@@ -1,0 +1,140 @@
+@font-face {
+    font-family:  "ux-micro-icon";
+    src:  url('ux-micro-icon.eot');
+    src:  url('ux-micro-icon.eot') format('embedded-opentype'),
+    url('ux-micro-icon.ttf') format('truetype'),
+    url('ux-micro-icon.woff') format('woff'),
+    url('ux-micro-icon.svg') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+[class^="ux-micro-icon-"], [class*=" ux-micro-icon-"]{
+    font-family: "ux-micro-icon" !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: normal;
+    text-decoration: none;
+    text-transform: none;
+    line-height: 1;
+}
+.ux-micro-icon-1001106002:before{content:"\EA01"}
+.ux-micro-icon-1001122002:before{content:"\EA02"}
+.ux-micro-icon-1001127001:before{content:"\EA03"}
+.ux-micro-icon-1001137001:before{content:"\EA04"}
+.ux-micro-icon-1001168001:before{content:"\EA05"}
+.ux-micro-icon-1001176001:before{content:"\EA06"}
+.ux-micro-icon-1001177002:before{content:"\EA07"}
+.ux-micro-icon-1001180001:before{content:"\EA08"}
+.ux-micro-icon-1001195002:before{content:"\EA09"}
+.ux-micro-icon-1001197001:before{content:"\EA0A"}
+.ux-micro-icon-1001201003:before{content:"\EA0B"}
+.ux-micro-icon-1001227001:before{content:"\EA0C"}
+.ux-micro-icon-1001268002:before{content:"\EA0D"}
+.ux-micro-icon-1001280001:before{content:"\EA0E"}
+.ux-micro-icon-1001316008:before{content:"\EA0F"}
+.ux-micro-icon-1001352005:before{content:"\EA10"}
+.ux-micro-icon-1001358002:before{content:"\EA11"}
+.ux-micro-icon-1001358003:before{content:"\EA12"}
+.ux-micro-icon-1001359001:before{content:"\EA13"}
+.ux-micro-icon-1001359002:before{content:"\EA14"}
+.ux-micro-icon-1001359003:before{content:"\EA15"}
+.ux-micro-icon-1001360001:before{content:"\EA16"}
+.ux-micro-icon-1001360002:before{content:"\EA17"}
+.ux-micro-icon-1001385001:before{content:"\EA18"}
+.ux-micro-icon-1001386001:before{content:"\EA19"}
+.ux-micro-icon-1001386007:before{content:"\EA1A"}
+.ux-micro-icon-1001405003:before{content:"\EA1B"}
+.ux-micro-icon-1001415001:before{content:"\EA1C"}
+.ux-micro-icon-1001420002:before{content:"\EA1D"}
+.ux-micro-icon-1001423006:before{content:"\EA1E"}
+.ux-micro-icon-1001426003:before{content:"\EA1F"}
+.ux-micro-icon-1001429007:before{content:"\EA20"}
+.ux-micro-icon-20001:before{content:"\EA21"}
+.ux-micro-icon-28001:before{content:"\EA22"}
+.ux-micro-icon-85001:before{content:"\EA23"}
+.ux-micro-icon-85002:before{content:"\EA24"}
+.ux-micro-icon-AIKE:before{content:"\EA25"}
+.ux-micro-icon-Android:before{content:"\EA26"}
+.ux-micro-icon-CDA:before{content:"\EA27"}
+.ux-micro-icon-HR:before{content:"\EA28"}
+.ux-micro-icon-Unityyouxikaifagongchengshi:before{content:"\EA29"}
+.ux-micro-icon-VR:before{content:"\EA2A"}
+.ux-micro-icon-VRyouxikaifagongchengshi:before{content:"\EA2B"}
+.ux-micro-icon-caifu:before{content:"\EA2C"}
+.ux-micro-icon-cfc:before{content:"\EA2D"}
+.ux-micro-icon-chuangye:before{content:"\EA2E"}
+.ux-micro-icon-deep-learning:before{content:"\EA2F"}
+.ux-micro-icon-estate-data:before{content:"\EA30"}
+.ux-micro-icon-newManager:before{content:"\EA31"}
+.ux-micro-icon-shouyouUIshejishi:before{content:"\EA32"}
+.ux-micro-icon-shouyouchangjingshejishi:before{content:"\EA33"}
+.ux-micro-icon-shujufenxishi£¨zhongji£©:before{content:"\EA34"}
+.ux-micro-icon-uniE61B:before{content:"\EA35"}
+.ux-micro-icon-uniE61D:before{content:"\EA36"}
+.ux-micro-icon-uniE61E:before{content:"\EA37"}
+.ux-micro-icon-uniE634:before{content:"\EA38"}
+.ux-micro-icon-uniE915:before{content:"\EA39"}
+.ux-micro-icon-wechatsenior:before{content:"\EA3A"}
+.ux-micro-icon-yuanhuashejishi:before{content:"\EA3B"}
+.ux-micro-icon-1001106002-after:after{content:"\EA01"}
+.ux-micro-icon-1001122002-after:after{content:"\EA02"}
+.ux-micro-icon-1001127001-after:after{content:"\EA03"}
+.ux-micro-icon-1001137001-after:after{content:"\EA04"}
+.ux-micro-icon-1001168001-after:after{content:"\EA05"}
+.ux-micro-icon-1001176001-after:after{content:"\EA06"}
+.ux-micro-icon-1001177002-after:after{content:"\EA07"}
+.ux-micro-icon-1001180001-after:after{content:"\EA08"}
+.ux-micro-icon-1001195002-after:after{content:"\EA09"}
+.ux-micro-icon-1001197001-after:after{content:"\EA0A"}
+.ux-micro-icon-1001201003-after:after{content:"\EA0B"}
+.ux-micro-icon-1001227001-after:after{content:"\EA0C"}
+.ux-micro-icon-1001268002-after:after{content:"\EA0D"}
+.ux-micro-icon-1001280001-after:after{content:"\EA0E"}
+.ux-micro-icon-1001316008-after:after{content:"\EA0F"}
+.ux-micro-icon-1001352005-after:after{content:"\EA10"}
+.ux-micro-icon-1001358002-after:after{content:"\EA11"}
+.ux-micro-icon-1001358003-after:after{content:"\EA12"}
+.ux-micro-icon-1001359001-after:after{content:"\EA13"}
+.ux-micro-icon-1001359002-after:after{content:"\EA14"}
+.ux-micro-icon-1001359003-after:after{content:"\EA15"}
+.ux-micro-icon-1001360001-after:after{content:"\EA16"}
+.ux-micro-icon-1001360002-after:after{content:"\EA17"}
+.ux-micro-icon-1001385001-after:after{content:"\EA18"}
+.ux-micro-icon-1001386001-after:after{content:"\EA19"}
+.ux-micro-icon-1001386007-after:after{content:"\EA1A"}
+.ux-micro-icon-1001405003-after:after{content:"\EA1B"}
+.ux-micro-icon-1001415001-after:after{content:"\EA1C"}
+.ux-micro-icon-1001420002-after:after{content:"\EA1D"}
+.ux-micro-icon-1001423006-after:after{content:"\EA1E"}
+.ux-micro-icon-1001426003-after:after{content:"\EA1F"}
+.ux-micro-icon-1001429007-after:after{content:"\EA20"}
+.ux-micro-icon-20001-after:after{content:"\EA21"}
+.ux-micro-icon-28001-after:after{content:"\EA22"}
+.ux-micro-icon-85001-after:after{content:"\EA23"}
+.ux-micro-icon-85002-after:after{content:"\EA24"}
+.ux-micro-icon-AIKE-after:after{content:"\EA25"}
+.ux-micro-icon-Android-after:after{content:"\EA26"}
+.ux-micro-icon-CDA-after:after{content:"\EA27"}
+.ux-micro-icon-HR-after:after{content:"\EA28"}
+.ux-micro-icon-Unityyouxikaifagongchengshi-after:after{content:"\EA29"}
+.ux-micro-icon-VR-after:after{content:"\EA2A"}
+.ux-micro-icon-VRyouxikaifagongchengshi-after:after{content:"\EA2B"}
+.ux-micro-icon-caifu-after:after{content:"\EA2C"}
+.ux-micro-icon-cfc-after:after{content:"\EA2D"}
+.ux-micro-icon-chuangye-after:after{content:"\EA2E"}
+.ux-micro-icon-deep-learning-after:after{content:"\EA2F"}
+.ux-micro-icon-estate-data-after:after{content:"\EA30"}
+.ux-micro-icon-newManager-after:after{content:"\EA31"}
+.ux-micro-icon-shouyouUIshejishi-after:after{content:"\EA32"}
+.ux-micro-icon-shouyouchangjingshejishi-after:after{content:"\EA33"}
+.ux-micro-icon-shujufenxishi£¨zhongji£©-after:after{content:"\EA34"}
+.ux-micro-icon-uniE61B-after:after{content:"\EA35"}
+.ux-micro-icon-uniE61D-after:after{content:"\EA36"}
+.ux-micro-icon-uniE61E-after:after{content:"\EA37"}
+.ux-micro-icon-uniE634-after:after{content:"\EA38"}
+.ux-micro-icon-uniE915-after:after{content:"\EA39"}
+.ux-micro-icon-wechatsenior-after:after{content:"\EA3A"}
+.ux-micro-icon-yuanhuashejishi-after:after{content:"\EA3B"}
