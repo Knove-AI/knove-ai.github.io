@@ -25,7 +25,7 @@ description:
 
 下图为**排列(permutation)数**、**组合(combination)数**以及将物体放入桶中问题的计算方法：
 
-<img src="images/image-20200603225257471.png" style="zoom:30%;" />
+<img src="/images/1/image-20200603225257471.png" style="zoom:30%;" />
 
 ```python
 # scipy实现阶乘和组合数的计算
@@ -115,7 +115,7 @@ $$
 
 下图展示了均匀分布和正态分布的概率密度函数：
 
-<img src="images/image-20200525155242858.png" style="zoom:35%;" />
+<img src="/images/1/image-20200525155242858.png" style="zoom:35%;" />
 
 对于一个随机变量$X$，其**累积分布函数(cumulative distribution function, CDF)**是随机变量$X$的取值小于等于$x$的概率：$\text{cdf}(x)=P(X \leqslant x)$。以连续型随机变量$X$为例，累积分布函数定义为：
 $$
@@ -123,7 +123,7 @@ $$
 $$
 其中，$p(t)$为概率密度函数。下图给出了标准正态分布的概率密度函数和累积分布函数：
 
-<img src="images/image-20200525160426151.png" style="zoom:30%;" />
+<img src="/images/1/image-20200525160426151.png" style="zoom:30%;" />
 
 ```python
 # 常用的离散型随机变量
@@ -299,7 +299,7 @@ $$
 
 所有概率分布都含有**参数(parameter)**，当参数未知时，通过已有数据来对参数进行估计，叫做**参数估计**任务。常见的分布以及其参数如下所示：
 
-<img src="images/image-20200604173424521.png" style="zoom:22%;" />
+<img src="/images/1/image-20200604173424521.png" style="zoom:22%;" />
 
 参数估计对于人工智能领域起到重要的作用。**许多机器学习算法的工作原理都是先定义一个含参数的概率模型，然后使用已有数据对模型参数进行学习**。**极大似然估计(maximum likelihood estimation, MLE)**和**最大后验估计(maximum a posteriori, MAP)**是两种常用的参数估计方法。
 
