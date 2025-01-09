@@ -1,0 +1,79 @@
+baseURL = 'https://goofish-shop.github.io/ai-doc/'
+languageCode = 'en-us'
+title = 'AI'
+theme =  'docsy'
+
+[module]
+    [[module.imports]]
+        path = "github.com/gohugoio/hugo-mod-bootstrap-scss/v5"
+
+
+
+[params.ui]
+breadcrumb_disable = false
+navbar_logo = true
+navbar_translucent_over_cover_disable = false
+sidebar_menu_compact = false
+sidebar_search_disable = false
+
+
+[permalinks]
+blog = "/:section/:year/:month/:day/:slug/"
+
+
+
+[markup.goldmark.renderer]
+unsafe = true
+
+[markup.highlight]
+style = "tango"
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.extensions]
+      [markup.goldmark.extensions.passthrough]
+        enable = true
+        [markup.goldmark.extensions.passthrough.delimiters]
+          block = [['\[', '\]'], ['$$', '$$']]
+          inline = [['\(', '\)']]
+[params]
+  math = true
+
+
+[params.katex]
+# enable/disable KaTeX support
+enable = true
+# Element(s) scanned by auto render extension. Default: document.body
+html_dom_element = "document.body"
+
+[params.katex.options]
+# If true (the default), KaTeX will throw a ParseError when it encounters an
+# unsupported command or invalid LaTeX. If false, KaTeX will render unsupported
+# commands as text, and render invalid LaTeX as its source code with hover text
+# giving the error, in the color given by errorColor.
+throwOnError = false
+errorColor = "#CD5C5C"
+
+# This is a list of delimiters to look for math, processed in the same order as
+# the list. Each delimiter has three properties:
+#   left:    A string which starts the math expression (i.e. the left delimiter).
+#   right:   A string which ends the math expression (i.e. the right delimiter).
+#   display: Whether math in the expression should be rendered in display mode.
+[[params.katex.options.delimiters]]
+  left = "$$"
+  right = "$$"
+  display = true
+[[params.katex.options.delimiters]]
+  left = "$"
+  right = "$"
+  display = false
+[[params.katex.options.delimiters]]
+  left = "\\("
+  right = "\\)"
+  display = false
+[[params.katex.options.delimiters]]
+  left = "\\["
+  right = "\\]"
+  display = true
+
+

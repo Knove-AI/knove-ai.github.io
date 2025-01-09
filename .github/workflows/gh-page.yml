@@ -1,0 +1,32 @@
+name: github pages
+
+on:
+  push:
+    branches:
+      - master  # Set a branch that will trigger a deployment
+  pull_request:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true  # Fetch Hugo themes (true OR recursive)
+          fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: 'latest'
+          extended: true
+
+      - name: Build
+        run: npm i -D postcss postcss-cli autoprefixer && npm install -g sass && npm i && hugo 
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@v4.4.2
+        with:
+            branch: gh-pages
+            folder: public
+            clean: true
+            single-commit: true
