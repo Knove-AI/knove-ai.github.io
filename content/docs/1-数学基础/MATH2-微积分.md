@@ -3,7 +3,7 @@ title: "微积分"
 # linkTitle: 微积分
 date: 2017-01-01
 math: true
-
+weight: 2
 description: 
 ---
 

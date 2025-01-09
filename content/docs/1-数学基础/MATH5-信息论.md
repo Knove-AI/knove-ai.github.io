@@ -3,7 +3,7 @@ title: "信息论"
 # linkTitle: 微积分
 date: 2017-01-01
 math: true
-
+weight: 5
 description: 
 ---
 

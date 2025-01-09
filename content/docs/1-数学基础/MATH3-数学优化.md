@@ -1,4 +1,11 @@
-## 数学优化
+---
+title: "数学优化"
+# linkTitle: 微积分
+date: 2017-01-01
+math: true
+weight: 3
+description: 
+---
 
 **数学优化(mathematical optimization)**问题也叫最优化问题，指在一定约束条件下，求解一个目标函数的最大值或最小值问题。数学优化问题的定义为：给定一个目标函数(也叫代价函数)$f:A\rightarrow\mathbb R$，寻找一个变量$\boldsymbol x^* \in \mathcal D$，使得对于所有$\mathcal D$中的$\boldsymbol x$，$f(\boldsymbol{x}^{*}) \leqslant f(\boldsymbol{x})$(最小化)；或者$f(\boldsymbol{x}^{*}) \geqslant f(\boldsymbol{x})$(最大化)，其中$\mathcal D$为变量$\boldsymbol x$的**约束集**，也叫**可行域**；$\mathcal D$中的变量被称为**可行解**。
 
