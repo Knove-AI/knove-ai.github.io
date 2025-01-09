@@ -1,4 +1,4 @@
-baseURL = 'https://goofish-shop.github.io/ai-doc/'
+baseURL = 'https://knove-ai.github.io/'
 languageCode = 'en-us'
 title = 'AI'
 theme =  'docsy'
