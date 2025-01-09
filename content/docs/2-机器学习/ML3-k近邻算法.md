@@ -2,7 +2,7 @@
 title: "近邻算法"
 date: 2017-01-01
 math: true
-
+weight: 3
 description: 
 ---
 ### $\boldsymbol k$近邻算法原理

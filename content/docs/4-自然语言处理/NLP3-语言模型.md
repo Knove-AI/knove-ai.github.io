@@ -2,7 +2,7 @@
 title: "语言模型"
 date: 2017-01-01
 math: true
-
+weight: 3
 description: 
 ---
 ### N元语法

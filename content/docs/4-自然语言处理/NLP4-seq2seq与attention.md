@@ -2,7 +2,7 @@
 title: "seq2seq与attention"
 date: 2017-01-01
 math: true
-
+weight: 4
 description: 
 ---
 ### 序列到序列模型

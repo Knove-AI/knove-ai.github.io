@@ -2,7 +2,7 @@
 title: "EM算法"
 date: 2017-01-01
 math: true
-
+weight: 10
 ---
 ### EM算法的引入
 

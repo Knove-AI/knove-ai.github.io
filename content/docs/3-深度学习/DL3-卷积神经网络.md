@@ -2,7 +2,7 @@
 title: "卷积神经网络"
 date: 2017-01-01
 math: true
-
+weight: 3
 description: 
 ---
 **卷积神经网络(convolutional neural network, CNN)**是一种具有局部连接、权重共享等特性的前馈神经网络。

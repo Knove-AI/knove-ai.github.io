@@ -2,7 +2,7 @@
 title: "自编码器"
 date: 2017-01-01
 math: true
-
+weight: 6
 description: 
 ---
 ### 自编码器

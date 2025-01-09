@@ -2,7 +2,7 @@
 title: "机器学习基础"
 date: 2017-01-01
 math: true
-
+weight: 1
 description: 
 ---
 

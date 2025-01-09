@@ -2,7 +2,7 @@
 title: "图神经网络"
 date: 2017-01-01
 math: true
-
+weight: 9
 description: 
 ---
 ### 图神经网络概述

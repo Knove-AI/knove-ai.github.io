@@ -2,7 +2,7 @@
 title: "深度学习概述"
 date: 2017-01-01
 math: true
-
+weight: 1
 description: 
 ---
 ### 表示学习

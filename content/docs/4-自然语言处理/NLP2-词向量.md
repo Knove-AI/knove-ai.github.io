@@ -2,7 +2,7 @@
 title: "词向量"
 date: 2017-01-01
 math: true
-
+weight: 2
 description: 
 ---
 ### 词向量概述

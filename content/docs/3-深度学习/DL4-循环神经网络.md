@@ -2,7 +2,7 @@
 title: "循环神经网络"
 date: 2017-01-01
 math: true
-
+weight: 4
 description: 
 ---
 ### 序列数据和语言模型

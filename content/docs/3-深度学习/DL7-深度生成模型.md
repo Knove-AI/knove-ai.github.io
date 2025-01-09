@@ -2,7 +2,7 @@
 title: "深度生成模型"
 date: 2017-01-01
 math: true
-
+weight: 7
 description: 
 ---
 ### 概率生成模型

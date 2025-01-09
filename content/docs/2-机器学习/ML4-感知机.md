@@ -2,7 +2,7 @@
 title: "感知机"
 date: 2017-01-01
 math: true
-
+weight: 4
 description: 
 ---
 ### 感知机算法

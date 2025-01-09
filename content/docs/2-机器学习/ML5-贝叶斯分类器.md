@@ -1,8 +1,8 @@
 ---
-title: "机器学习5 贝叶斯分类器"
+title: "贝叶斯分类器"
 date: 2017-01-01
 math: true
-
+weight: 5
 description: 
 ---
 ### 朴素贝叶斯的学习与分类

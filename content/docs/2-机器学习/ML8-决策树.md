@@ -2,7 +2,7 @@
 title: "决策树"
 date: 2017-01-01
 math: true
-
+weight: 8
 description: 
 ---
 ### 决策树模型
