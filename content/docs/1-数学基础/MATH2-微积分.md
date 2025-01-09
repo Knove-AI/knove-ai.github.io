@@ -21,11 +21,11 @@ f^{\prime}(x_{0})=\lim _{\Delta x \rightarrow 0} \frac{f(x_{0}+\Delta x)-f(x_{0}
 $$
 存在，则称函数$f(x)$在点$x_0$处可导，$f^{\prime}(x_0)$称为其**导数(derivative)**，或**导函数**，也可以记为${\text d f(x_0)}/{\text d x}$。在几何上，导数可以看做函数曲线上的切线斜率。下图给出了一个函数导数的可视化示例，其中函数$g(x)$的斜率为函数$f(x)$在点$x$的导数，$\Delta y=f(x+\Delta x)-f(x)$。
 
-<img src="images/image-20200509113346911.png" style="zoom:30%;" />
+<img src="/images/1/image-20200509113346911.png" style="zoom:30%;" />
 
 下表中给出了几个机器学习领域常见函数的导数：
 
-<img src="images/image-20200509113448001.png" style="zoom:30%;" />
+<img src="/images/1/image-20200509113448001.png" style="zoom:30%;" />
 
 **高阶导数**：对一个函数的导数继续求导，可以得到高阶导数。函数$f(x)$的导数$f^\prime(x)$称为一阶导数，$f^\prime(x)$的导数称为**二阶导数**，记为$f^{\prime\prime}(x)$、$f^{(2)}(x)$或$\text d^2f(x)/\text d x^2$。
 
@@ -101,7 +101,7 @@ $$
 
 不同分割的黎曼和不同。当$n$足够大时，如果黎曼和趋于某个极限，那么这个极限就叫做函数$f(x)$在闭区间$[a,b]$上的黎曼积分。下图给出了不同分割的黎曼和示例：
 
-<img src="images/image-20200509120615922.png" style="zoom:30%;" />
+<img src="/images/1/image-20200509120615922.png" style="zoom:30%;" />
 
 ### 矩阵微积分
 
