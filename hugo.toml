@@ -1,6 +1,6 @@
 baseURL = 'https://knove-ai.github.io/'
 languageCode = 'en-us'
-title = 'AI'
+title = '知予AI'
 theme =  'docsy'
 
 [module]
