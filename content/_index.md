@@ -2,7 +2,7 @@
 title: 
 linkTitle: 
 date: 2017-01-01
-
+type: docs
 ---
 
 
