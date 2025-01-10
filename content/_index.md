@@ -1,8 +1,8 @@
 ---
-title: 3-深度学习
-linkTitle: 3-深度学习
+title: 知予AI
+linkTitle: 
 date: 2017-01-01
-
+linkTitle: 1-数学基础
 ---
 
 
