@@ -264,15 +264,15 @@ linkTitle: 1-数学基础
       <td>研究方向的分类，研究方向的来源，如何自主选择研究方向</td>
     </tr>
     <tr>
-      <td><a href="/docs/1-数学基础/MATH5-信息论/">如何构思一个有意义的idea</a></td>
+      <td><a href="/docs/1-数学基础/math5-信息论/">如何构思一个有意义的idea</a></td>
       <td>idea的种类，看论文与想idea的关系</td>
     </tr>
     <tr>
-      <td><a href="/docs/1-数学基础/MATH2-微积分/">如何阅读一篇AI领域（以NLP为例）的论文</a></td>
+      <td><a href="/docs/1-数学基础/math2-微积分/">如何阅读一篇AI领域（以NLP为例）的论文</a></td>
       <td>一篇AI领域（以NLP为例）论文的结构，如何撰写一篇论文</td>
     </tr>
     <tr>
-      <td><a href="/docs/1-数学基础/MATH2-微积分/">如何撰写一篇AI领域（以NLP为例）的论文</a></td>
+      <td><a href="/docs/1-数学基础/math2-微积分/">如何撰写一篇AI领域（以NLP为例）的论文</a></td>
       <td>摘要，Introduction，Related Work，Methods，Experiments，Conclusion</td>
     </tr>
   </tbody>
