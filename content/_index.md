@@ -243,7 +243,7 @@ date: 2017-01-01
 
 ### 知予AI研究手册<a name="Knove-AI-Research"> </a>
 
-<table>
+<table border="1px">
   <thead>
     <tr>
       <th>章节</th>
@@ -299,7 +299,21 @@ table td {
     border-right: 1px solid #999;
 
 }
+table {
+    border-bottom: 1px solid #999;
 
+    border-right: 1px solid #999;
+}
+tbody{
+      border-bottom: 1px solid #999;
+
+    border-right: 1px solid #999;
+}
+thead {
+   border-bottom: 1px solid #999;
+
+    border-right: 1px solid #999;
+}
 th{
    border-bottom: 1px solid #999;
 
