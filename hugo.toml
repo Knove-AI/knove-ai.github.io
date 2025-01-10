@@ -77,4 +77,12 @@ errorColor = "#CD5C5C"
   right = "\\]"
   display = true
 
+[menus]
+  [[menus.main]]
+    name = 'Github'
+    pre = '<i class="fa fa-github"></i>'
+    url = 'https://github.com/knove-ai'
+    weight = 10
+
+
 

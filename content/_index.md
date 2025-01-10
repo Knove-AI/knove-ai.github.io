@@ -1,8 +1,8 @@
 ---
-title: 知予AI
+title: 
 linkTitle: 
 date: 2017-01-01
-linkTitle: 1-数学基础
+
 ---
 
 
@@ -84,8 +84,8 @@ linkTitle: 1-数学基础
 
 ### 知予AI学习手册<a name="Knove-AI-Learn"> </a>
 
-<table>
-  <thead>
+<table cellspacing="0" border="1px">
+  <thead border="1px">
     <tr>
       <th width=20%>章节</th>
       <th width=15%>子章节</th>
@@ -286,3 +286,23 @@ linkTitle: 1-数学基础
 
 <div align=center><img  src="/QRcode.jpeg" style="width: 30%;">
 </div>
+
+
+<style>
+
+table td {
+
+
+
+    border-bottom: 1px solid #999;
+
+    border-right: 1px solid #999;
+
+}
+
+th{
+   border-bottom: 1px solid #999;
+
+    border-right: 1px solid #999;
+}
+</style>
