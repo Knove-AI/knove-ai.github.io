@@ -283,4 +283,6 @@ linkTitle: 1-数学基础
 
 **如需要与教学者进行一对一交流，请添加对接小姐姐微信号PhiNorm，或扫描以下二维码：**
 
-<img src="/QRcode.jpeg" style="width: 30%;">
+
+<div align=center><img  src="/QRcode.jpeg" style="width: 30%;">
+></div>
