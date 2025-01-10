@@ -140,7 +140,7 @@ $$
 
 #### JS散度
 
-**JS散度(Jensen-Shannon divergence)**是一种对称的的衡量两个分布的相似度的度量方式，其定义为：
+<b>JS散度(Jensen-Shannon divergence)</b>是一种对称的的衡量两个分布的相似度的度量方式，其定义为：
 $$
 D_{\mathrm{JS}}(p \| q)=\frac{1}{2} D_{\mathrm{KL}}(p \| m)+\frac{1}{2} D_{K L}(q \| m)
 $$

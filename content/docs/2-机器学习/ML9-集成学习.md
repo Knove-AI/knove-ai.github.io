@@ -49,7 +49,7 @@ $$
 &=\frac{1}{M^{2}} \sum_{m=1}^{M} \sum_{n=1}^{M} \mathbb{E}_{{x}}[\epsilon_{m}({x}) \epsilon_{n}({x})]
 \end{aligned}
 $$
-其中$\mathbb{E}_{\boldsymbol{x}}[\epsilon_{m}({x}) \epsilon_{n}({x})]$是两个**不同模型错误的相关性**。若每个模型的错误**不相关**，即$\forall m \neq n, \mathbb{E}_{{x}}[\epsilon_{m}({x}) \epsilon_{n}({x})]=0$，此时$\mathcal R(F)$达到**下界**。如果每个模型的错误都是**相同的**，则$\forall m \neq n, \epsilon_{m}({x})=\epsilon_{n}({x})$，此时$\mathcal R(F)$达到**上界**。并且由于$\epsilon_{m}({x}) \geq 0, \forall m$，可以得到：
+其中$$\mathbb{E}_{\boldsymbol{ x }}[\epsilon_{m}({x}) \epsilon_{n}({x})]$$是两个**不同模型错误的相关性**。若每个模型的错误**不相关**，即$$\forall m \neq n, \mathbb{E}_{{x}}[\epsilon_{m}({x}) \epsilon_{n}({x})]=0$$，此时$\mathcal R(F)$达到**下界**。如果每个模型的错误都是**相同的**，则$\forall m \neq n, \epsilon_{m}({x})=\epsilon_{n}({x})$，此时$\mathcal R(F)$达到**上界**。并且由于$\epsilon_{m}({x}) \geq 0, \forall m$，可以得到：
 $$
 \bar{\mathcal{R}}(f) \geq \mathcal{R}(F) \geq \frac{1}{M} \bar{\mathcal{R}}(f)
 $$

@@ -7,27 +7,27 @@ weight: 3
 description: 
 ---
 
-**数学优化(mathematical optimization)**问题也叫最优化问题，指在一定约束条件下，求解一个目标函数的最大值或最小值问题。数学优化问题的定义为：给定一个目标函数(也叫代价函数)$f:A\rightarrow\mathbb R$，寻找一个变量$\boldsymbol x^* \in \mathcal D$，使得对于所有$\mathcal D$中的$\boldsymbol x$，$f(\boldsymbol{x}^{*}) \leqslant f(\boldsymbol{x})$(最小化)；或者$f(\boldsymbol{x}^{*}) \geqslant f(\boldsymbol{x})$(最大化)，其中$\mathcal D$为变量$\boldsymbol x$的**约束集**，也叫**可行域**；$\mathcal D$中的变量被称为**可行解**。
+<b>数学优化(mathematical optimization)</b>问题也叫最优化问题，指在一定约束条件下，求解一个目标函数的最大值或最小值问题。数学优化问题的定义为：给定一个目标函数(也叫代价函数)$f:A\rightarrow\mathbb R$，寻找一个变量$\boldsymbol x^* \in \mathcal D$，使得对于所有$\mathcal D$中的$\boldsymbol x$，$$f(\boldsymbol{x}^{*}) \leqslant f(\boldsymbol{x})$$(最小化)；或者$f(\boldsymbol{x}^{*}) \geqslant f(\boldsymbol{x})$(最大化)，其中$\mathcal D$为变量$\boldsymbol x$的**约束集**，也叫**可行域**；$\mathcal D$中的变量被称为**可行解**。
 
 ### 数学优化的类型
 
 #### 离散优化和连续优化
 
-**离散优化(discrete optimization)**问题是目标函数的输入变量为离散变量，比如为整数或有限集合中的元素。离散优化问题主要有两个分支：
+<b>离散优化(discrete optimization)</b>问题是目标函数的输入变量为离散变量，比如为整数或有限集合中的元素。离散优化问题主要有两个分支：
 
-(1) **组合优化(combinatorial optimization)**：其目标是从一个有限集合中找出使得目标函数最优的元素。在一般的组合优化问题中，集合中的元素之间存在一定的关联，可以表示为图结构。典型的组合优化问题有旅行商问题、最小生成树问题、图着色问题等。很多机器学习问题都是组合优化问题，比如特征选择、聚类问题、超参数优化问题以及**结构化学习(structured learning)**中标签预测问题等。
+(1) **组合优化(combinatorial optimization)**：其目标是从一个有限集合中找出使得目标函数最优的元素。在一般的组合优化问题中，集合中的元素之间存在一定的关联，可以表示为图结构。典型的组合优化问题有旅行商问题、最小生成树问题、图着色问题等。很多机器学习问题都是组合优化问题，比如特征选择、聚类问题、超参数优化问题以及<b>结构化学习(structured learning)</b>中标签预测问题等。
 
 (2) **整数规划(integer programming)**：输入变量$\boldsymbol x \in \mathbb Z^d$是一个整数向量。常见的整数规划问题通常为**整数线性规划**。整数线性规划的一种最直接的求解方法是：1. 去掉输入必须为整数的限制，将原问题转换为**一般的线性规划问题**，这个线性规划问题为原问题的**松弛问题**；2. 求得相应松弛问题的解；3. 把松弛问题的解**四舍五入到最接近的整数**。但是这种方法得到的解**一般都不是最优的**，因为原问题的最优解不一定在松弛问题最优解的附近。另外，这种方法得到的解也不一定满足约束条件。
 
 离散优化问题的求解一般都比较困难，优化算法的复杂度都比较高。
 
-**连续优化(continuous optimization)**目标函数的输入变量为连续变量$\boldsymbol x \in \mathbb R^d$，即目标函数为实函数。机器学习中的优化问题主要是连续优化问题。
+<b>连续优化(continuous optimization)</b>目标函数的输入变量为连续变量$\boldsymbol x \in \mathbb R^d$，即目标函数为实函数。机器学习中的优化问题主要是连续优化问题。
 
 #### 无约束优化和约束优化
 
 在连续优化问题中，根据是否有变量的约束条件，可以将优化问题分为无约束优化问题和约束优化问题。
 
-**无约束优化(unconstrained optimization)**问题的可行域为整个实数域$\mathcal D=\mathbb R^d$，可以写为：
+<b>无约束优化(unconstrained optimization)</b>问题的可行域为整个实数域$\mathcal D=\mathbb R^d$，可以写为：
 $$
 \min _{\boldsymbol{x}} \ \ f(\boldsymbol{x})
 $$
@@ -91,21 +91,21 @@ $$
 
 #### 全局最优和局部最优
 
-对于很多非线性优化问题，会存在若干个局部的极小值。局部极小值，或局部最优解$\boldsymbol x^*$定义为：存在一个$\delta>0$，对于所有的满足$\| \boldsymbol x - \boldsymbol x^* \| \leqslant \delta$的$\boldsymbol x$，公式$f(\boldsymbol X^*) \leqslant f(\boldsymbol X)$成立。也就是说，在$\boldsymbol x^*$的附近区域内，所有的函数值都会大于或者等于$f(\boldsymbol x^*)$。
+对于很多非线性优化问题，会存在若干个局部的极小值。局部极小值，或局部最优解$$\boldsymbol x^*$$定义为：存在一个$\delta>0$，对于所有的满足$\| \boldsymbol x - \boldsymbol x^* \| \leqslant \delta$的$\boldsymbol x$，公式$$f(\boldsymbol X^*) \leqslant f(\boldsymbol X)$$成立。也就是说，在  $$\boldsymbol x^*$$的附近区域内，所有的函数值都会大于或者等于$f(\boldsymbol x^*)$。
 
 对于所有的$\boldsymbol x \in A$，都有$f(\boldsymbol X^*) \leqslant f(\boldsymbol X)$成立，则$\boldsymbol X^*$为全局最小值，或**全局最优解**。求局部最优解一般是比较容易的，但很难保证其为全局最优解。**对于线性规划或凸优化问题，局部最优解就是全局最优解**。
 
-要确认一个点$\boldsymbol x^*$是否为局部最优解，通过比较它的淋浴内有没有更小的函数值是不现实的。如果函数$f(\boldsymbol x)$是二次连续可微的，我们可以通过检查目标函数在点$\boldsymbol x^*$的梯度$\nabla f\left(\boldsymbol{x}^{*}\right)$和Hessian矩阵$\nabla^2f(\boldsymbol x^*)$来判断。
+要确认一个点$$\boldsymbol x^*$$是否为局部最优解，通过比较它的淋浴内有没有更小的函数值是不现实的。如果函数$$f(\boldsymbol x)$$是二次连续可微的，我们可以通过检查目标函数在点$\boldsymbol x^*$的梯度$\nabla f\left(\boldsymbol{x}^{*}\right)$和Hessian矩阵$\nabla^2f(\boldsymbol x^*)$来判断。
 
-**局部最优解的一阶必要条件**如下：如果$\boldsymbol x^*$为局部最优解并且函数$f$在$\boldsymbol x^*$的邻域内一阶可微，则$\nabla f\left(\boldsymbol{x}^{*}\right)=0$。
+**局部最优解的一阶必要条件**如下：如果$$\boldsymbol x^*$$为局部最优解并且函数$f$在$\boldsymbol x^*$的邻域内一阶可微，则$$\nabla f\left(\boldsymbol{x}^{*}\right)=0$$ 。
 
-**局部最优解的二阶必要条件**如下：如果$\boldsymbol x^*$为局部最优解并且函数$f$在$\boldsymbol x^*$的邻域内二阶可微，则$\nabla f\left(\boldsymbol{x}^{*}\right)=0$，且$\nabla^2f(\boldsymbol x^*)$为半正定矩阵。
+**局部最优解的二阶必要条件**如下：如果$$\boldsymbol x^*$$为局部最优解并且函数*f*在$$\boldsymbol x^*$$的邻域内二阶可微，则$$\nabla f\left(\boldsymbol{x}^{*}\right)=0$$，且$$\nabla^2f(\boldsymbol x^*)$$为半正定矩阵。
 
 #### 梯度下降法
 
 **梯度下降法(gradient descent method)**经常用来求解无约束优化的极小值问题。对于函数$f(\boldsymbol x)$，如果$f(\boldsymbol x)$在点$\boldsymbol x_t$附近是连续可微的，那么$f(\boldsymbol x)$下降最快的方向是$f(\boldsymbol x)$在点$\boldsymbol x_t$梯度方向的**反方向**。
 
-梯度下降法从一个初始值$\boldsymbol x_0$出发，通过迭代公式$\boldsymbol{x}_{t+1}=\boldsymbol{x}_{t}-\alpha_{t} \nabla f\left(\boldsymbol{x}_{t}\right), t \geqslant 0$生成序列$\boldsymbol x_0,\boldsymbol x_1,\cdots$，使得
+梯度下降法从一个初始值$\boldsymbol x_0$出发，通过迭代公式$$\boldsymbol{x}_{t+1}=\boldsymbol{x}_{t}-\alpha_{t} \nabla f\left(\boldsymbol{x}_{t}\right), t \geqslant 0$$生成序列$\boldsymbol x_0,\boldsymbol x_1,\cdots$，使得
 $$
 f(\boldsymbol{x}_{0}) \geqslant f(\boldsymbol{x}_{1}) \geqslant f(\boldsymbol{x}_{2}) \geqslant \cdots
 $$
@@ -172,7 +172,7 @@ plt.show()
 
 ### 拉格朗日乘数法与KKT条件
 
-**拉格朗日乘数法(Lagrange multiplier)**是约束优化问题的一种有效求解方法。**约束优化问题**可以表示为：
+<b>拉格朗日乘数法(Lagrange multiplier)</b>是约束优化问题的一种有效求解方法。**约束优化问题**可以表示为：
 $$
 \begin{aligned}
 & \min_{\boldsymbol x} \ \ f(x)\\
@@ -191,7 +191,7 @@ $$
 $$
 \Lambda(\boldsymbol{x}, \lambda)=f(\boldsymbol{x})+\sum_{i=1}^{m} \lambda_{i} h_{i}(\boldsymbol{x})
 $$
-其中，$\lambda$为拉格朗日乘数，可以使正数或负数。如果$f(\boldsymbol x^*)$是原始约束优化问题的局部最优值，那么存在一个$\lambda^*$，使得$(\boldsymbol x^*,\lambda^*)$为拉格朗日函数$\Lambda(\boldsymbol{x}, \lambda)$的**平稳点(stationary point)**，即一阶偏导数为0的点。因此，只需要令${\partial \Lambda(\boldsymbol{x}, \lambda)}/{\partial \boldsymbol{x}}=0$和${\partial \Lambda(\boldsymbol{x}, \lambda)}/{\partial \lambda}=0$，得到：
+其中，$\lambda$为拉格朗日乘数，可以使正数或负数。如果$$f(\boldsymbol x^*)$$是原始约束优化问题的局部最优值，那么存在一个 $\lambda^* $，使得$(\boldsymbol x^* ,\lambda^* )$为拉格朗日函数$\Lambda(\boldsymbol{x}, \lambda)$的**平稳点(stationary point)**，即一阶偏导数为0的点。因此，只需要令${\partial \Lambda(\boldsymbol{x}, \lambda)}/{\partial \boldsymbol{x}}=0$和${\partial \Lambda(\boldsymbol{x}, \lambda)}/{\partial \lambda}=0$，得到：
 $$
 \nabla f(\boldsymbol{x})+\sum_{i=1}^{m} \lambda_{i} \nabla h_{i}(\boldsymbol{x})=0, \ \ h_i(\boldsymbol x)=0,i=0,\cdots,m
 $$
@@ -229,18 +229,18 @@ $\Gamma(\boldsymbol{a}, \boldsymbol{b})$是一个凸函数，即使$f(\boldsymbo
 $$
 \Gamma(\boldsymbol{a}, \boldsymbol{b})=\min _{\boldsymbol{x} \in \mathcal{D}} \Lambda(\boldsymbol{x}, \boldsymbol{a}, \boldsymbol{b}) \leqslant \Lambda(\tilde{\boldsymbol{x}}, \boldsymbol{a}, \boldsymbol{b}) \leqslant f(\tilde{\boldsymbol{x}})
 $$
-令$p^*$是原问题的最优值，则有$\Gamma(\boldsymbol{a}, \boldsymbol{b}) \leqslant p^*$，即**拉格朗日对偶函数为原问题最优值的下界**。优化拉格朗日对偶函数$\Gamma(\boldsymbol{a}, \boldsymbol{b})$并得到原问题的最优下界，称为**拉格朗日对偶问题(Lagrange dual problem)**，即：
+令$p^* $是原问题的最优值，则有$\Gamma(\boldsymbol{a}, \boldsymbol{b}) \leqslant p^*$，即**拉格朗日对偶函数为原问题最优值的下界**。优化拉格朗日对偶函数$\Gamma(\boldsymbol{a}, \boldsymbol{b})$并得到原问题的最优下界，称为**拉格朗日对偶问题(Lagrange dual problem)**，即：
 $$
 \begin{aligned}
 \max _{\boldsymbol{a}, \boldsymbol{b}} \ \ \ & \Gamma(\boldsymbol{a}, \boldsymbol{b}) \\
 \text {subject to} \ \ \ & \boldsymbol{b} \geqslant 0
 \end{aligned}
 $$
-拉格朗日对偶函数为凸函数，因此拉格朗日对偶问题为**凸优化问题**。 
+拉格朗日对偶函数为凸函数，因此拉格朗日对偶问题为<b>凸优化问题</b>。 
 
-令$d^*$表示拉格朗日对偶问题的最优值，则有$d^* \leqslant p^*$，这个性质称为**弱对偶性(weak duality)**。如果$d^* = p^*$，这个性质称为**强对偶性(strong duality)**。
+令$$d^* $$ 表示拉格朗日对偶问题的最优值，则有$$d^* \leqslant p^*$$，这个性质称为<b>弱对偶性(weak duality)</b>。如果$d^* = p^*$，这个性质称为**强对偶性(strong duality)**。
 
-当强对偶性成立时，令$\boldsymbol x^*$和$\boldsymbol a^*, \boldsymbol b^*$分别是原问题和对偶问题的最优解，那么它们满足以下条件：
+当强对偶性成立时，令$\boldsymbol x^* $和$\boldsymbol a^*, \boldsymbol b^* $分别是原问题和对偶问题的最优解，那么它们满足以下条件：
 $$
 \begin{aligned}
 \nabla f\left(\boldsymbol{x}^{*}\right) +\sum_{i=1}^{m} a_{i}^{*} \nabla h_{i}(\boldsymbol{x}^{*})&+\sum_{j=1}^{n} b_{j}^{*} \nabla g_{j}(\boldsymbol{x}^{*})=0 \\
@@ -252,7 +252,7 @@ b_{j}^{*} \geqslant 0, \ \ & j=0, \cdots, n
 $$
 称为不等式约束优化问题的**KKT条件(Karush-Kuhn-Tucker condition)**。KKT条件是拉格朗日乘数法在不等式约束优化问题上的泛化。当原问题是凸优化问题时，满足KKT条件的解也是原问题和对偶问题的最优解。
 
-KKT条件中第四个式子称为**互补松弛(complementary slackness)条件**。如果最优解$\boldsymbol x^*$出现在不等式约束的边界上$g_j(\boldsymbol x)=0$，则$b_j^*>0$；如果最优解$\boldsymbol x$出现在不等式约束的内部$g_j(\boldsymbol x)<0$，则$b_j^*=0$。互补松弛条件说明**当最优解出现在不等式约束的内部，则约束失败**。
+KKT条件中第四个式子称为**互补松弛(complementary slackness)条件**。如果最优解$\boldsymbol x^* $出现在不等式约束的边界上$g_j(\boldsymbol x)=0$，则$b_j^* >0$；如果最优解$\boldsymbol x$出现在不等式约束的内部$g_j(\boldsymbol x)<0$，则$b_j^*=0$。互补松弛条件说明**当最优解出现在不等式约束的内部，则约束失败**。
 
 ```python
 # cvxpy解决凸优化问题

@@ -19,7 +19,7 @@ RNN是在自然语言处理领域中最先被用起来的，比如，RNN可以�
 
 ### 网络结构
 
-给定一个输入序列$\boldsymbol x_{1:T}=(\boldsymbol{x}_{1}, \boldsymbol{x}_{2}, \ldots, \boldsymbol{x}_{t}, \cdots, \boldsymbol{x}_{T})$，RNN通过下面公式更新带反馈边的隐藏层的活性值$\boldsymbol h_t$：
+给定一个输入序列$$\boldsymbol x_{1:T}=(\boldsymbol{x}_{1}, \boldsymbol{x}_{2}, \ldots, \boldsymbol{x}_{t}, \cdots, \boldsymbol{x}_{T})$$，RNN通过下面公式更新带反馈边的隐藏层的活性值$\boldsymbol h_t$：
 $$
 \boldsymbol{h}_{t}=f(\boldsymbol{h}_{t-1}, \boldsymbol{x}_{t})
 $$
@@ -98,14 +98,14 @@ $$
 $$
 \frac{\partial \mathcal{L}_{t}}{\partial u_{i j}}=\sum_{k=1}^{t} \frac{\partial^{+} \boldsymbol{z}_{k}}{\partial u_{i j}} \frac{\partial \mathcal{L}_{t}}{\partial \boldsymbol{z}_{k}}
 $$
-其中$\frac{\partial^{+} \boldsymbol{z}_{k}}{\partial u_{i j}}$表示“直接”偏导数，即公式$\boldsymbol{z}_{k}=U \boldsymbol{h}_{k-1}+W \boldsymbol{x}_{k}+\boldsymbol{b}$中保持$\boldsymbol h_{k-1}$不变，对$u_{ij}$进行求偏导数，得到：
+其中$$\frac{\partial^{+} \boldsymbol{z}_{k}}{\partial u_{i j}} $$ 表示“直接”偏导数，即公式$$\boldsymbol {z}_{k}=U \boldsymbol{h}_{k-1}+W \boldsymbol{x}_{k}+\boldsymbol{b}$$中保持$\boldsymbol h_{k-1}$不变，对$u_{ij}$进行求偏导数，得到：
 $$
 \begin{aligned}
 \frac{\partial^{+} \boldsymbol{z}_{k}}{\partial u_{i j}} &=[0, \cdots,[\boldsymbol{h}_{k-1}]_{j}, \cdots, 0] \\
 & \triangleq \mathbb{I}_{i}([\boldsymbol{h}_{k-1}]_{j})
 \end{aligned}
 $$
-其中$[\boldsymbol h_{k-1}]_j$为第$k-1$时刻隐状态的第$j$维，$\mathbb{I}_{i}(x)$是除了第$i$列值为$x$外，其余都为0的行向量。
+其中$$[\boldsymbol h_{k-1}]_j$$为第$k-1$时刻隐状态的第$j$维，$\mathbb{I}_{i}(x)$是除了第$i$列值为$x$外，其余都为0的行向量。
 
 定义误差项$\delta_{t,k}=\frac{\partial \mathcal L_t}{\partial \boldsymbol z_k}$为第$t$时刻损失对第$k$时刻隐藏神经层的净输入$\boldsymbol z_k$的导数，则当$1 \leqslant k \leqslant t$时，
 $$
@@ -160,7 +160,7 @@ $$
 $$
 其中$\mathbb{I}_{i}(x)$是除了第$i$列值为$x$外，其余都为0的行向量。
 
-RTRL算法从第一个时刻开始，，除了计算循环神经网络的隐状态之外，还利用上式依次前向计算偏导数$\frac{\partial \boldsymbol{h}_{1}}{\partial u_{i j}}, \frac{\partial \boldsymbol{h}_{2}}{\partial u_{i j}}, \frac{\partial \boldsymbol{h}_{3}}{\partial u_{i j}}, \cdots$。
+RTRL算法从第一个时刻开始，，除了计算循环神经网络的隐状态之外，还利用上式依次前向计算偏导数$$\frac{\partial \boldsymbol{h}_{1}}{\partial u_{i j}}, \frac{\partial \boldsymbol{h}_{2}}{\partial u_{i j}}, \frac{\partial \boldsymbol{h}_{3}}{\partial u_{i j}}, \cdots $$。
 
 这样，假设第$t$个时刻存在一个监督信息，其损失函数为$\mathcal L_t$，就可以同时计算损失函数对$u_{ij}$的偏导数
 $$

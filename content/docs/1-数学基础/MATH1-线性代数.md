@@ -1,7 +1,7 @@
 ---
 title: "线性代数"
 date: 2017-01-01
-math: true
+# math: true
 weight: 1
 ---
 
@@ -11,7 +11,7 @@ weight: 1
 
 #### 向量
 
-**标量(scalar)**是一个实数，一般用斜体小写字母$a,b,c$来表示。**向量(vector)**是由一组实数组成的有序数组，一个*n*维向量$\boldsymbol a$由*n*个有序实数组成，表示为$\boldsymbol{a}=\left[a_{1}, a_{2}, \cdots, a_{n}\right]$，其中$a_{i}$称为向量$\boldsymbol{a}$的第*i*个分量(第*i*维)。
+<b>标量(scalar)</b>是一个实数，一般用斜体小写字母$a,b,c$来表示。<b>向量(vector)</b>是由一组实数组成的有序数组，一个*n*维向量$\boldsymbol a$由*n*个有序实数组成，表示为$\boldsymbol{a}=\left[a_{1}, a_{2}, \cdots, a_{n}\right]$，其中$a_{i}$称为向量$\boldsymbol{a}$的第$i$个分量(第$i$维)。
 
 ```python
 # numpy库常用于实现线性代数中向量和矩阵的基本操作
@@ -19,6 +19,7 @@ import numpy as np
 # numpy中向量的定义
 v_1 = np.array([1, 2, 3, 4, 5])
 v_2 = np.array([5.6, 4.6, 3.6, 2.6, 1.6])
+
 ```
 
 #### 向量空间
@@ -53,13 +54,13 @@ $$
 
 设$v_1,v_2,\cdots,v_n$为向量空间$\mathcal V$中的向量，则其线性组合$a_1v_1+a_2v_2+\cdots+a_nv_n$构成$\mathcal V$的子空间，并将其称为向量$v_1,v_2,\cdots,v_n$**张成(span)**的子空间，或$v_1,v_2,\cdots,v_n$的张成，记作$\operatorname{span}(v_1,v_2,\cdots,v_n)$。
 
-**线性无关**：线性空间$\mathcal V$中的一组向量$\left\{\boldsymbol{v}_{1}, \boldsymbol{v}_{2}, \cdots, \boldsymbol{v}_{n}\right\}$，如果对任意的一组标量$\lambda_{1}, \lambda_{2}, \cdots, \lambda_{n}$，若$\sum_i \lambda_i \boldsymbol v_i=0$，则必然$\lambda_1=\lambda_2=\cdots=\lambda_n=0$，那么$\left\{\boldsymbol{v}_{1}, \boldsymbol{v}_{2}, \cdots, \boldsymbol{v}_{n}\right\}$是线性无关的，也称为线性独立的。
+**线性无关**：线性空间$\mathcal V$中的一组向量$$\left\{\boldsymbol{v}_{1}, \boldsymbol{v}_{2}, \cdots, \boldsymbol{v}_{n}\right\}$$，如果对任意的一组标量$\lambda_{1}, \lambda_{2}, \cdots, \lambda_{n}$，若$\sum_i \lambda_i \boldsymbol v_i=0$，则必然$\lambda_1=\lambda_2=\cdots=\lambda_n=0$，那么$$\left\{\boldsymbol{v}_{1}, \boldsymbol{v}_{2}, \cdots, \boldsymbol{v}_{n}\right\}$$是线性无关的，也称为线性独立的。
 
 **基向量**：线性空间$\mathcal V$的**基(base)**$\mathcal B=\left\{\boldsymbol{e}_{1}, \boldsymbol{e}_{2}, \cdots, \boldsymbol{e}_{n}\right\}$是$\mathcal V$的有限子集，**其元素之间线性无关**。向量空间$\mathcal V$中的所有向量都可以按唯一的方式表达为$\mathcal B$中向量的线性组合。即对任意$v \in \mathcal V$，存在一组标量$(\lambda_1,\lambda_2,\cdots,\lambda_n)$，使得：
 $$
 \boldsymbol{v}=\lambda_{1} \boldsymbol{e}_{1}+\lambda_{2} \boldsymbol{e}_{2}+\cdots+\lambda_{n} \boldsymbol{e}_{n}
 $$
-$\mathcal B$中的向量称为**基向量(base vector)**。$(\lambda_1,\lambda_2,\cdots,\lambda_n)$称为向量$\boldsymbol v$关于基$\mathcal B$的**坐标(coordinate)**。向量空间中基的个数即向量空间的维数。
+$\mathcal B$中的向量称为<b>基向量(base vector)</b>。$(\lambda_1,\lambda_2,\cdots,\lambda_n)$称为向量$\boldsymbol v$关于基$\mathcal B$的**坐标(coordinate)**。向量空间中基的个数即向量空间的维数。
 
 **内积(inner product)**：一个$n$维线性空间中的两个向量$\boldsymbol a$和$\boldsymbol b$，其内积(也称**点积**)为：
 $$
@@ -71,7 +72,7 @@ v_i = np.inner(v_1, v_2)
 print(v_i, v_i.shape)  # 结果为标量
 ```
 
-向量内积实际上是矩阵乘法的一种特例。向量$\boldsymbol a$和$\boldsymbol b$的**外积(outer product)**定义为：
+向量内积实际上是矩阵乘法的一种特例。向量$\boldsymbol a$和$\boldsymbol b$的<b>外积(outer product)</b>定义为：
 $$
 \boldsymbol a \boldsymbol b^{\text T}=\left[\begin{array}{c}
 a_{1} \\
@@ -97,7 +98,7 @@ print(v_o, v_o.shape)  # 结果为矩阵
 
 #### 范数
 
-**范数(norm)**是一个表示向量“长度”的函数，为向量空间内所有向量赋予非零的正长度或大小。对$n$维向量$\boldsymbol v$，一个常见的范数函数为$\ell_p$范数：
+<b>范数(norm)</b>是一个表示向量“长度”的函数，为向量空间内所有向量赋予非零的正长度或大小。对$n$维向量$\boldsymbol v$，一个常见的范数函数为$\ell_p$范数：
 $$
 \ell_{p}(\boldsymbol{v}) \equiv\|\boldsymbol{v}\|_{p}=\left(\sum_{i=1}^{n}\left|v_{i}\right|^{p}\right)^{1 / p}
 $$
@@ -172,14 +173,14 @@ X = [[2, 6, 9],
 
 #### 矩阵操作
 
-(1) **加法**：$[A+B]_{ij}=a_{ij}+b_{ij}$，必须保证运算的两个矩阵的大小相同。
+(1) <b>加法</b>：$$[A+B]_{ij}=a_{ij}+b_{ij}$$，必须保证运算的两个矩阵的大小相同。
 
 ```python
 # numpy实现矩阵加法
 print(np.add(A, A))
 ```
 
-(2) **乘积**：$[AB]_{ij}=\sum_{k=1}^ma_{ik}b_{kj}$，必须保证第一个矩阵的列数和第二个矩阵的行数相等。矩阵的乘积表示一个复合线性映射，即先完成线性映射$B$，再完成线性映射$A$。如果$A$是$k \times m$阶矩阵，$B$是$m \times n$阶矩阵，则其乘积$AB$是一个$k \times n$阶矩阵。矩阵乘法满足结合律和分配率：
+(2) **乘积**：$$[AB]_{ij}=\sum_{k=1}^ma_{ik}b_{kj}$$，必须保证第一个矩阵的列数和第二个矩阵的行数相等。矩阵的乘积表示一个复合线性映射，即先完成线性映射$B$，再完成线性映射$A$。如果$A$是$k \times m$阶矩阵，$B$是$m \times n$阶矩阵，则其乘积$AB$是一个$k \times n$阶矩阵。矩阵乘法满足结合律和分配率：
 
 **结合律**：$(AB)C=A(BC)$，
 
@@ -191,14 +192,14 @@ C = np.dot(A, B)
 print(C, C.shape)  # (3,4) * (4,5) = (3,5)
 ```
 
-(3) **Hadamard积**：$[A \odot B]_{i j}=a_{i j} b_{i j}$，即$A$和$B$中对应的元素相乘，必须保证运算的两个矩阵的大小相同。
+(3) **Hadamard积**：$$[A \odot B]_{i j}=a_{i j} b_{i j}$$，即$A$和$B$中对应的元素相乘，必须保证运算的两个矩阵的大小相同。
 
 ```python
 # numpy实现Hadamard积
 print(np.multiply(A, A))
 ```
 
-(4) **转置(transposition)**：$[A^\text T]_{ij}=[A]_{ji}$。显然，$(A+B)^\text T =A^\text T + B^\text T$，$(AB)^\text T=B^\text T A^\text T$。
+(4) **转置(transposition)**：$$[A^\text T]_{ij}=[A]_{ji}。$$显然，$(A+B)^\text T =A^\text T + B^\text T$，$(AB)^\text T=B^\text T A^\text T$。
 
 ```python
 # numpy实现矩阵转置

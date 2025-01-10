@@ -98,12 +98,9 @@ $$
 ##### 均匀分布(uniform distribution)
 
 若$a,b$为有限数，$[a,b]$上的均匀分布的概率密度函数定义为：
-$$
-p(x)=\left\{\begin{aligned}
-& \frac{1}{b-a} , \ \  a \leq x \leq b \\
-& 0 , \ \  x<a \ \ \text{or} \ \  x>b
-\end{aligned}\right.
-$$
+
+$p(x)=\begin{aligned} & \frac{1}{b-a} , \ \  a \leq x \leq b \\ & 0 , \ \  x<a \ \ \text{or} \ \  x>b \end{aligned} . $
+
 
 ##### 正态分布(normal distribution)
 
@@ -117,7 +114,7 @@ $$
 
 <img src="/images/1/image-20200525155242858.png" style="zoom:35%;" />
 
-对于一个随机变量$X$，其**累积分布函数(cumulative distribution function, CDF)**是随机变量$X$的取值小于等于$x$的概率：$\text{cdf}(x)=P(X \leqslant x)$。以连续型随机变量$X$为例，累积分布函数定义为：
+对于一个随机变量$X$，其<b>累积分布函数(cumulative distribution function, CDF)</b>是随机变量$X$的取值小于等于$x$的概率：$\text{cdf}(x)=P(X \leqslant x)$。以连续型随机变量$X$为例，累积分布函数定义为：
 $$
 \text{cdf}(x)=\int_{-\infty}^{x}p(t)\text{d}t
 $$
@@ -173,7 +170,7 @@ print(X.rvs())  # Get a random sample from X
 
 随机向量也分为**离散型随机向量**和**连续型随机向量**。
 
-离散型随机向量的**联合概率分布(joint probability distribution)**为：
+离散型随机向量的<b>联合概率分布(joint probability distribution)</b>为：
 $$
 P(X_{1}=x_{1}, X_{2}=x_{2}, \cdots, X_{n}=x_{n})=p(x_{1}, x_{2}, \cdots, x_{n})
 $$

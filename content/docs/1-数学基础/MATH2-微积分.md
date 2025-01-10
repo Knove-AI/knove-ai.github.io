@@ -9,7 +9,7 @@ description:
 
 
 
-**微积分(calculus)**是研究函数的**微分(differentiation)**、**积分(integration)**及其相关应用的数学分支。
+**微积分(calculus)**是研究函数的<b>微分(differentiation)</b>、<b>积分(integration)</b>及其相关应用的数学分支。
 
 ### 微分
 
@@ -37,7 +37,7 @@ $$
 
 #### 泰勒公式
 
-**泰勒公式(Taylor's formula)**是一个函数$f(x)$在已知某一点的各阶导数值的情况之下，可以用这些导数值作系数构建一个多项式来近似函数在这一点的邻域中的值。如果函数$f(x)$在$a$点处$n$次可导$(n \geqslant 1)$，在一个包含点$a$的区间上的任意$x$，都有：
+<b>泰勒公式(Taylor's formula)</b>是一个函数$f(x)$在已知某一点的各阶导数值的情况之下，可以用这些导数值作系数构建一个多项式来近似函数在这一点的邻域中的值。如果函数$f(x)$在$a$点处$n$次可导$(n \geqslant 1)$，在一个包含点$a$的区间上的任意$x$，都有：
 $$
 \begin{aligned}
 f(x)=f(a)+& \frac{1}{1 !} f^{\prime}(a)(x-a)+\frac{1}{2 !} f^{(2)}(a)(x-a)^{2}+\cdots \\

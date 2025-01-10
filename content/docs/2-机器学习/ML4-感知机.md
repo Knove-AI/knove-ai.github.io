@@ -40,11 +40,11 @@ $$
 
 Novikoff证明对于两类问题，**如果训练集是线性可分的，那么感知器算法可以在有限次迭代后收敛**。然而，如果训练集不是线性可分的，那么这个算法则**不能确保会收敛**。
 
-当数据集是两类线性可分时，对于训练集$\mathcal{D}=\left\{\left(\boldsymbol{x}^{(n)}, y^{(n)}\right)\right\}_{n=1}^{N}$，其中$\boldsymbol x^{(n)}$为样本的增广特征向量，$y^{(n)}\in \{+1,-1\}$那么存在一个正的常数$\gamma>0$和权重向量$\boldsymbol w^*$，并且$\|\boldsymbol w^*\|=1$，对所有$n$都满足$(\boldsymbol{w}^{*})^{\mathrm{T}}(y^{(n)} \boldsymbol{x}^{(n)}) \geq \gamma$。可以证明，假设$R$是训练集$\mathcal D$中最大的特征向量的模，即$R=\underset n\max \|x^{(n)}\|$，如果训练集$\mathcal D$线性可分，二分类感知机参数学习算法的权重更新次数不超过$\frac{R^2}{\gamma^2}$。
+当数据集是两类线性可分时，对于训练集$$\mathcal{D}=\left\{\left(\boldsymbol{ x }^{(n)}, y^{(n)}\right)\right\} _{n=1}^{N} $$，其中$\boldsymbol x^{(n)}$为样本的增广特征向量，$y^{(n)}\in \{+1,-1\}$那么存在一个正的常数$\gamma>0$和权重向量$\boldsymbol w^*$，并且$\|\boldsymbol w^*\|=1$，对所有$n$都满足$$(\boldsymbol{w}^{*})^{\mathrm{T}}(y^{(n)} \boldsymbol{x}^{(n)}) \geq \gamma$$。可以证明，假设$R$是训练集$\mathcal D$中最大的特征向量的模，即$R=\underset n\max \|x^{(n)}\|$，如果训练集$\mathcal D$线性可分，二分类感知机参数学习算法的权重更新次数不超过$\frac{R^2}{\gamma^2}$。
 
 证明：
 
-感知机的权重向量更新方式为$\boldsymbol{w}_{k}=\boldsymbol{w}_{k-1}+y^{(k)} \boldsymbol{x}^{(k)}$，其中$\boldsymbol x^{(k)},y^{(k)}$表示第$k$个被错误分类的样本。因为**初始权重向量为0**，在第$K$次更新时感知机的权重向量为：
+感知机的权重向量更新方式为$$\boldsymbol{w}_{k}=\boldsymbol{w}_{k-1}+y^{(k)} \boldsymbol{x}^{(k)}$$，其中$\boldsymbol x^{(k)},y^{(k)}$表示第$k$个被错误分类的样本。因为**初始权重向量为0**，在第$K$次更新时感知机的权重向量为：
 $$
 \boldsymbol{w}_{K}=\sum_{k=1}^{K} y^{(k)} \boldsymbol{x}^{(k)}
 $$
