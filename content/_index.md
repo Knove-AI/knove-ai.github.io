@@ -9,11 +9,11 @@ linkTitle: 1-数学基础
 <h1 align="center">🪐 知予AI：大语言模型时代，助力AI学习者成长为研究者 </h1>
 
 <p align="center">
-<a href="#Brief-Intro" style="color: #FFC04C;">平台简介</a> |
-<a href="#What-To-Get" style="color: #FFA500;">学习者能在知予AI获得什么</a> |
-<a href="#Knove-AI-Learn" style="color: #FF8C00;">知予AI学习手册</a> |
-<a href="#Knove-AI-Research" style="color: #FF7F50;">知予AI研究手册</a> |
-<a href="#Contact-Us" style="color: #FF4500;">联系我们（寻找/成为知予AI教学者）</a>
+<a href="#-知予ai致力于打造学习者资源教学者三位一体的ai学习平台a-namebrief-intro-a" style="color: #FFC04C;">平台简介</a> |
+<a href="#-学习者能在知予ai获得什么a-namewhat-to-get-a" style="color: #FFA500;">学习者能在知予AI获得什么</a> |
+<a href="#知予ai学习手册a-nameknove-ai-learn-a" style="color: #FF8C00;">知予AI学习手册</a> |
+<a href="#知予ai研究手册a-nameknove-ai-research-a" style="color: #FF7F50;">知予AI研究手册</a> |
+<a href="#-联系我们a-namecontact-us-a" style="color: #FF4500;">联系我们（寻找/成为知予AI教学者）</a>
 </p>
 
 <div align=center><img src="/Knove-1.png" style="width: 40%;"></div>
