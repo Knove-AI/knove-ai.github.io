@@ -7,7 +7,7 @@ description:
 ---
 ### 线性回归模型
 
-**线性回归(linear regression)**是机器学习和统计学中最基础和广泛应用的模型，是一种对自变量和隐变量之间关系进行建模的回归分析。自变量数量为1时称为**简单线性回归**，自变量数量大于1时称为**多元线性回归**。
+**线性回归(linear regression)** 是机器学习和统计学中最基础和广泛应用的模型，是一种对自变量和隐变量之间关系进行建模的回归分析。自变量数量为1时称为**简单线性回归**，自变量数量大于1时称为**多元线性回归**。
 
 从机器学习的角度看，输入就是样本的特征向量$\boldsymbol x\in \mathbb R^d$，其每一维对应一个自变量(数据的特征)；输出是标签$y$，这里$y\in \mathbb R$是连续值(实数或连续整数)。假设空间是一组参数化的线性函数$f(\boldsymbol x;\boldsymbol w;b)=\boldsymbol w^\text T \boldsymbol x+b$，其中**权重向量**$\boldsymbol w$与输入$\boldsymbol x$维度相同，**偏置**$b$是一个标量，二者都是**可学习的参数**。令$\boldsymbol x$再拼接一个常数$1$，$\boldsymbol w$再拼接一个偏置$b$，线性模型就可以更简洁地用$f(\boldsymbol x;\boldsymbol w)=\boldsymbol w^\text T \boldsymbol x$来表示。
 
@@ -44,11 +44,11 @@ $$
 
 在最小二乘法中，$X X^{\mathrm{T}} \in \mathbb{R}^{(d+1) \times(d+1)}$**必须存在逆矩阵**，即$X X^{\mathrm{T}}$是**满秩**的，$rank(XX^\text T)=d+1$。也就是说，$X$中的**行向量之间是线性不相关的**，即每一个**特征**都和其他特征不相关。一种常见的$X X^{\mathrm{T}}$不可逆的情况是样本数量$N$小于特征数量$d+1$，这时其秩为$N$，会存在很多解$\boldsymbol w^*$，使得$\mathcal R(\boldsymbol w)=0$。
 
-当$XX^\text T$不可逆时，可以使用**主成分分析(principal components analysis)**来预处理数据，使特征独立，然后再使用最小二乘法进行求解。或者是**通过梯度下降法来迭代求解**，$\boldsymbol w$的更新公式为$\boldsymbol{w} \leftarrow \boldsymbol{w}+\alpha X\left(\boldsymbol{y}-X^{\mathrm{T}} \boldsymbol{w}\right)$。
+当$XX^\text T$不可逆时，可以使用**主成分分析(principal components analysis)** 来预处理数据，使特征独立，然后再使用最小二乘法进行求解。或者是**通过梯度下降法来迭代求解**，$\boldsymbol w$的更新公式为$\boldsymbol{w} \leftarrow \boldsymbol{w}+\alpha X\left(\boldsymbol{y}-X^{\mathrm{T}} \boldsymbol{w}\right)$。
 
 <img src="/images/2/image-20200416175139915.png" alt="image-20200416175139915" style="zoom:50%;" />
 
-其中$\alpha$是学习率。这种利用梯度下降法来估计参数的方法也称为**最小均方(least mean squares)**算法。由于风险函数$\mathcal R(\boldsymbol w)$是关于$\boldsymbol w$的**凸函数**，因此只要选取一个合适的学习率，最终风险函数总能收敛到全局最小值。
+其中$\alpha$是学习率。这种利用梯度下降法来估计参数的方法也称为**最小均方(least mean squares)** 算法。由于风险函数$\mathcal R(\boldsymbol w)$是关于$\boldsymbol w$的**凸函数**，因此只要选取一个合适的学习率，最终风险函数总能收敛到全局最小值。
 
 ### 线性回归结构风险最小化
 
@@ -85,7 +85,7 @@ $$
 $$
 \log p(\boldsymbol{y} | X ; \boldsymbol{w}, \sigma)=\sum_{n=1}^{N} \log \mathcal{N}\left(y^{(n)} ; \boldsymbol{w}^{\mathrm{T}} \boldsymbol{x}^{(n)}, \sigma^{2}\right)
 $$
-**最大似然估计(maximum likelihood estimation, MLE)**是指找到一组参数$\boldsymbol w$使得似然函数$p(\boldsymbol y|X;\boldsymbol w,\sigma)$最大，等价于对数似然函数$\log p(\boldsymbol y|X;\boldsymbol w,\sigma)$最大。令$\partial p(\boldsymbol y|X;\boldsymbol w,\sigma)/\partial \boldsymbol w=0$，得到$\boldsymbol{w}^{M L}=\left(X X^{\mathrm{T}}\right)^{-1} X \boldsymbol{y}$，这与最小二乘法的解相同。也可以将对数似然函数进行化简，显然得到了**均方误差(MSE)损失函数**的形式。因此，均方误差损失函数并不是凭空创造出来的，而是通过最大似然估计来最大化似然函数得到的结果。
+**最大似然估计(maximum likelihood estimation, MLE)** 是指找到一组参数$\boldsymbol w$使得似然函数$p(\boldsymbol y|X;\boldsymbol w,\sigma)$最大，等价于对数似然函数$\log p(\boldsymbol y|X;\boldsymbol w,\sigma)$最大。令$\partial p(\boldsymbol y|X;\boldsymbol w,\sigma)/\partial \boldsymbol w=0$，得到$\boldsymbol{w}^{M L}=\left(X X^{\mathrm{T}}\right)^{-1} X \boldsymbol{y}$，这与最小二乘法的解相同。也可以将对数似然函数进行化简，显然得到了**均方误差(MSE)损失函数**的形式。因此，均方误差损失函数并不是凭空创造出来的，而是通过最大似然估计来最大化似然函数得到的结果。
 
 ### 最大后验估计与正则化
 
@@ -110,6 +110,7 @@ $$
 $$
 \boldsymbol{w}^{M A P}=\underset{\boldsymbol{w}}{\arg \max } p(\boldsymbol{y} | X, \boldsymbol{w} ; \sigma) p(\boldsymbol{w} ; \nu)
 $$
+
 令似然函数为最大似然估计中的高斯密度函数，则后验分布$p(\boldsymbol w|X,\boldsymbol y;\nu,\sigma)$的对数为：
 $$
 \begin{aligned}

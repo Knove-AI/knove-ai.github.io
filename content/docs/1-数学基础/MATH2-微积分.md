@@ -9,7 +9,7 @@ description:
 
 
 
-**微积分(calculus)**是研究函数的<b>微分(differentiation)</b>、<b>积分(integration)</b>及其相关应用的数学分支。
+<strong>微积分(calculus)</strong>是研究函数的<strong>微分(differentiation)</strong>、<strong>积分(integration)</strong>及其相关应用的数学分支。
 
 ### 微分
 

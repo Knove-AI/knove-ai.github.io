@@ -146,7 +146,7 @@ $$
 
 #### 实时循环学习算法
 
-与反向传播的BPTT算法不同的是，**实时循环学习(real-time recurrent learning, RTRL)**是通过前向传播的方式来计算梯度的。假设循环神经网络中第$t+1$时刻的状态$\boldsymbol h_{t+1}$为：
+与反向传播的BPTT算法不同的是，**实时循环学习(real-time recurrent learning, RTRL)** 是通过前向传播的方式来计算梯度的。假设循环神经网络中第$t+1$时刻的状态$\boldsymbol h_{t+1}$为：
 $$
 \boldsymbol{h}_{t+1}=f\left(\boldsymbol{z}_{t+1}\right)=f\left(U \boldsymbol{h}_{t}+W \boldsymbol{x}_{t+1}+\boldsymbol{b}\right)
 $$
@@ -209,6 +209,7 @@ $$
 ### LSTM
 
 <img src="/images/3/image-20200716112944445.png" style="zoom:35%;" />
+
 $$
 \begin{aligned}
 \tilde{\boldsymbol{c}}_{t} &=\tanh (W_{c} \boldsymbol{x}_{t}+U_{c} \boldsymbol{h}_{t-1}+\boldsymbol{b}_{c})\\
@@ -223,6 +224,7 @@ $$
 ### GRU
 
 <img src="/images/3/image-20200716113028211.png" style="zoom:35%;" />
+
 $$
 \begin{aligned}
 \boldsymbol{h}_{t} &=\boldsymbol{z}_{t} \odot \boldsymbol{h}_{t-1}+\left(1-\boldsymbol{z}_{t}\right) \odot g\left(\boldsymbol{x}_{t}, \boldsymbol{h}_{t-1} ; \theta\right) \\
@@ -263,11 +265,11 @@ $$
 
 ### 扩展到图结构
 
-如果将循环神经网络按时间展开，每个时刻的隐状态$\boldsymbol h_t$看做一个节点，那么这些节点构成一个链式结构，每个节点*t*都收到其**父节点**的**消息(message)**，更新自己的状态，并传递给其**子节点**。而链式结构是一种特殊的图结构，我们可以比较容易地将这种**消息传递(message passing)**的思想扩展到**任意的图结构**上。
+如果将循环神经网络按时间展开，每个时刻的隐状态$\boldsymbol h_t$看做一个节点，那么这些节点构成一个链式结构，每个节点*t*都收到其**父节点**的**消息(message)**，更新自己的状态，并传递给其**子节点**。而链式结构是一种特殊的图结构，我们可以比较容易地将这种**消息传递(message passing)** 的思想扩展到**任意的图结构**上。
 
 #### 递归神经网络
 
-**递归神经网络(recursive neural network, RecNN)**是**循环神经网络在有向无循环图上的扩展**。其一般结构为**树状**的层次结构，如下图所示：
+**递归神经网络(recursive neural network, RecNN)** 是**循环神经网络在有向无循环图上的扩展**。其一般结构为**树状**的层次结构，如下图所示：
 
 <img src="/images/3/image-20200716152620411.png" style="zoom:30%;" />
 
@@ -277,7 +279,7 @@ $$
 
 #### 图网络
 
-在实际应用中，很多数据是图结构的，比如知识图谱、社交网络、分子网络等。而前馈网络和反馈网络很难处理图结构的数据。**图网络(graph network, GN)**是将消息传递的思想扩展到图结构数据上的神经网络。
+在实际应用中，很多数据是图结构的，比如知识图谱、社交网络、分子网络等。而前馈网络和反馈网络很难处理图结构的数据。**图网络(graph network, GN)** 是将消息传递的思想扩展到图结构数据上的神经网络。
 
 对于一个任意的图结构$G(\mathcal V,\mathcal E)$，其中$\mathcal V$表示**节点集合**，$\mathcal E$表示**边集合**。每条边表示两个节点之间的依赖关系。节点之间的连接可以是有向的，也可以是无向的。图中每个节点$v$都用一组神经元来表示其状态$\boldsymbol h^{(v)}$，初始状态可以为节点的$v$输入特征$\boldsymbol x^{(v)}$。每个节点可以收到来自**相邻节点**的消息，并更新自己的状态。
 $$

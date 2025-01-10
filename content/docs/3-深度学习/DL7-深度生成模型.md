@@ -191,7 +191,7 @@ $$
 
 #### 生成网络
 
-**生成网络(generative network)**的目标刚好和判别网络相反，即让判别网络将自己生成的样本判别为真是样本：
+**生成网络(generative network)** 的目标刚好和判别网络相反，即让判别网络将自己生成的样本判别为真是样本：
 $$
 \begin{aligned}
 & \max _{\theta}\left(\mathbb{E}_{\boldsymbol{z} \sim p(\boldsymbol{z})}[\log D(G(\boldsymbol{z} ; \theta) ; \phi)]\right) \\

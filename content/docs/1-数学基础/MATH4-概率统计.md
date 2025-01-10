@@ -245,7 +245,7 @@ $$
 
 #### 贝叶斯定理
 
-**贝叶斯定理(Bayes' theorem)**或贝叶斯公式描述了两个条件概率$p(x|y)$和$p(y|x)$之间的关系：
+**贝叶斯定理(Bayes' theorem)** 或贝叶斯公式描述了两个条件概率$p(x|y)$和$p(y|x)$之间的关系：
 $$
 p(y | x)=\frac{p(x | y) p(y)}{p(x)}
 $$
@@ -256,7 +256,7 @@ $$
 
 #### 期望与方差
 
-对于离散型随机变量$X$，其概率分布为$p(x_1),p(x_2),\cdots,p(x_n)$，$X$的**期望(expectation)**或均值定义为：
+对于离散型随机变量$X$，其概率分布为$p(x_1),p(x_2),\cdots,p(x_n)$，$X$的**期望(expectation)** 或均值定义为：
 $$
 \mathbb{E}[X]=\sum_{i=1}^{n} x_{i} p(x_{i})
 $$
@@ -264,13 +264,13 @@ $$
 $$
 \mathbb{E}[X]=\int_{\mathbb{R}} x p(x) d x
 $$
-随机变量$X$的**方差(variance)**用来定义它的概率分布的离散程度，定义为：
+随机变量$X$的**方差(variance)** 用来定义它的概率分布的离散程度，定义为：
 $$
 \operatorname{var}(X)=\mathbb{E}[(X-\mathbb{E}[X])^{2}]
 $$
 随机变量$X$的方差也称为它的二阶矩。$\sqrt{\text{var}(X)}$则称为$X$的根方差或**标准差**。
 
-两个连续随机变量$X$和$Y$的**协方差(covariance)**用来衡量两个随机变量的分布之间的总体变化性，定义为：
+两个连续随机变量$X$和$Y$的**协方差(covariance)** 用来衡量两个随机变量的分布之间的总体变化性，定义为：
 $$
 \operatorname{cov}(X, Y)=\mathbb{E}[(X-\mathbb{E}[X])(Y-\mathbb{E}[Y])]
 $$
@@ -298,11 +298,11 @@ $$
 
 <img src="/images/1/image-20200604173424521.png" style="zoom:22%;" />
 
-参数估计对于人工智能领域起到重要的作用。**许多机器学习算法的工作原理都是先定义一个含参数的概率模型，然后使用已有数据对模型参数进行学习**。**极大似然估计(maximum likelihood estimation, MLE)**和**最大后验估计(maximum a posteriori, MAP)**是两种常用的参数估计方法。
+参数估计对于人工智能领域起到重要的作用。**许多机器学习算法的工作原理都是先定义一个含参数的概率模型，然后使用已有数据对模型参数进行学习** 。**极大似然估计(maximum likelihood estimation, MLE)** 和 **最大后验估计(maximum a posteriori, MAP)** 是两种常用的参数估计方法。
 
 #### 极大似然估计
 
-MLE的思想是，**选择使得观测数据出现可能性最大的参数**$\theta$。假设数据为$X_1,\cdots,X_n$，并且满足独立同分布。**所有数据的联合可能性(似然, likelihood)**可以写为：
+MLE的思想是，**选择使得观测数据出现可能性最大的参数**$\theta$。假设数据为$X_1,\cdots,X_n$，并且满足独立同分布。**所有数据的联合可能性(似然, likelihood)** 可以写为：
 $$
 L(\theta)=\prod_{i=1}^{n} f(X_{i}|\theta)
 $$

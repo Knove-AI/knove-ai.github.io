@@ -7,7 +7,7 @@ description:
 ---
 ### ELMo
 
-预训练词向量(如word2vec和GloVe等)通常只能为一个单词产生一个特定的词向量，而忽略了该单词的**上下文(context)**关系，因而无法解决**一词多义**或**一义多词**的问题。**ELMo(embeddings from language models)**本质上是一个深度双向LSTM模型，用于为一个句子中的每个单词生成上下文相关的词向量。将这些上下文相关词向量编码了单词的深层次语义和句法信息，因此当ELMo应用到许多NLP任务中，这些任务的效果相对于使用静态的词向量往往能得到很大的提升。
+预训练词向量(如word2vec和GloVe等)通常只能为一个单词产生一个特定的词向量，而忽略了该单词的**上下文(context)** 关系，因而无法解决**一词多义**或**一义多词**的问题。**ELMo(embeddings from language models)** 本质上是一个深度双向LSTM模型，用于为一个句子中的每个单词生成上下文相关的词向量。将这些上下文相关词向量编码了单词的深层次语义和句法信息，因此当ELMo应用到许多NLP任务中，这些任务的效果相对于使用静态的词向量往往能得到很大的提升。
 
 ELMo是整个输入句子的函数，其输出为句子中每个单词的上下文相关词向量。给定一个含有$N$个标记的序列$(t_1,t_2,\cdots,t_N)$，**前向语言模型(forward language model)**通过建模在给定之前的标记序列$(t_1,\cdots,t_{k-1})$下$t_k$的概率来计算该句子(标记序列)的概率：
 $$
@@ -16,13 +16,13 @@ $$
 
 在ELMo之前的语言模型通常为第$k$个位置的单词(通过embedding等方式)计算出一个上下文无关的词表示$\mathbf x_k^{LM}$，然后将其送入一个$L$层的前向LSTM。在每个位置$k$，每一层LSTM会输出一个上下文相关的表示为$\overrightarrow{\mathbf h}_{k,j}^{LM}$，其中$j=1,2,\cdots,L$。最顶层的LSTM输出$\overrightarrow{\mathbf h}_{k,L}^{LM}$在下游任务被用来预测下一个标记(通过sottmax层等方式)，即$t_{k+1}$。
 
-**反向语言模型(backward language model)**与前向语言模型的计算方向正好相反：
+**反向语言模型(backward language model)** 与前向语言模型的计算方向正好相反：
 $$
 p\left(t_{1}, t_{2}, \cdots, t_{N}\right)=\prod_{k=1}^{N} p\left(t_{k} | t_{k+1}, t_{k+2}, \cdots, t_{N}\right)
 $$
 因此在第$k$个位置，第$j$层LSTM的输出表示为$\overleftarrow{\mathbf h}_{k,j}^{LM}$。
 
-**双向语言模型(biLM)**可以结合前向和反向的语言模型。其可以形式化表示为**最大化前向和反向语言模型的对数似然函数之和**：
+**双向语言模型(biLM)** 可以结合前向和反向的语言模型。其可以形式化表示为**最大化前向和反向语言模型的对数似然函数之和**：
 $$
 \sum_{k=1}^{N} (\log p(t_{k} | t_{1}, \cdots, t_{k-1} ; \Theta_{x}, \overrightarrow{\Theta}_{LSTM}, \Theta_{s})+\log p(t_{k} | t_{k+1}, \cdots, t_{N} ; \Theta_{x}, \overleftarrow{\Theta}_{L S T M}, \Theta_{s}))
 $$
@@ -51,13 +51,13 @@ ELMo在多个NLP任务及数据集上的实验结果如下所示：
 
 ### Transformer
 
-在Transformer之前的序列模型均采用了**循环层(recurrent layer)和卷积层(convolution layer)**，其中效果最好的模型均采用了**注意力(attention)**机制。Transformer摒弃了全部循环层和卷积层，只基于注意力机制，实现了**计算的并行化**。原论文采用机器翻译以及其他NLP任务来验证Transformer的有效性。Transformer的模型结构如下所示，其中左半部分是多个编码器，右半部分是多个解码器：
+在Transformer之前的序列模型均采用了**循环层(recurrent layer)和卷积层(convolution layer)**，其中效果最好的模型均采用了**注意力(attention)** 机制。Transformer摒弃了全部循环层和卷积层，只基于注意力机制，实现了**计算的并行化**。原论文采用机器翻译以及其他NLP任务来验证Transformer的有效性。Transformer的模型结构如下所示，其中左半部分是多个编码器，右半部分是多个解码器：
 
 <img src="/images/4/image-20200420153815269.png" style="zoom:40%;" />
 
 #### Encoder and Decoder Stacks
 
-**编码器(encoder)**是由$N=6$个编码器层组成的栈式结构，其中每个编码器层中有两个sub-layers，即**多头注意力机制(multi-head attentin)**层和**全连接前馈神经网络**层。每一个sub-layer都采用了**残差连接(residual connection)**以及**层归一化(layer normalization)**。因此，每个sub-layer的输出为$\text{LayerNorm}(x+\text{Sublayer}(x))$。为了方便进行残差连接，模型中所有sub-layers的输出维度，以及embedding层的输出维度，均为$d_{model}=512$。**解码器(decoder)**也是由$N=6$个解码器层组成的栈式结构，但解码器层比编码器层多一个sub-layer，即掩码多头注意力机制，保证了在位置$i$的预测仅仅依赖于在$i$之前已知的预测。
+**编码器(encoder)** 是由$N=6$个编码器层组成的栈式结构，其中每个编码器层中有两个sub-layers，即**多头注意力机制(multi-head attentin)** 层和**全连接前馈神经网络**层。每一个sub-layer都采用了**残差连接(residual connection)**以及**层归一化(layer normalization)**。因此，每个sub-layer的输出为$\text{LayerNorm}(x+\text{Sublayer}(x))$。为了方便进行残差连接，模型中所有sub-layers的输出维度，以及embedding层的输出维度，均为$d_{model}=512$。**解码器(decoder)**也是由$N=6$个解码器层组成的栈式结构，但解码器层比编码器层多一个sub-layer，即掩码多头注意力机制，保证了在位置$i$的预测仅仅依赖于在$i$之前已知的预测。
 
 #### Attention
 
@@ -112,7 +112,7 @@ $$
 
 #### Positional Encoding
 
-由于模型中不含循环层以及卷积层，为了使模型得以利用句子中的顺序信息，必须向输入中加入相对或绝对的位置信息。文章通过给编码器和解码器的输入词向量$X$加入**位置编码(positional encodings)**来实现顺序信息的引入。位置编码的维度与输入词向量相同，均为$d_{model}$。最终输入编码器和解码器的向量为**原始词向量与其对应位置编码之和**。
+由于模型中不含循环层以及卷积层，为了使模型得以利用句子中的顺序信息，必须向输入中加入相对或绝对的位置信息。文章通过给编码器和解码器的输入词向量$X$加入**位置编码(positional encodings)** 来实现顺序信息的引入。位置编码的维度与输入词向量相同，均为$d_{model}$。最终输入编码器和解码器的向量为**原始词向量与其对应位置编码之和**。
 
 在论文中，位置编码采用如下形式：
 $$
@@ -907,7 +907,7 @@ ERNIE使用中文维基百科、百度百科、百度新闻和百度贴吧的综
 
 <img src="/images/4/image-20200527105452130.png" style="zoom:40%;" />
 
-在ERNIE中，NSP任务变为了**DLM(dialogue language model)**任务。使用dialogue embedding来区分不同的对话角色，可以表示多轮对话。与BERT中的**MLM(masked language model)**一样，masks被应用于强制模型来预测查询和响应条件下的丢失单词。此外，通过用随机选择的句子替换查询Q或响应R来生成假样本。该模型用于判断多回合对话是真是假。DLM任务帮助ERNIE学习对话中的隐含关系，这也增强了模型学习语义表示的能力。
+在ERNIE中，NSP任务变为了**DLM(dialogue language model)** 任务。使用dialogue embedding来区分不同的对话角色，可以表示多轮对话。与BERT中的**MLM(masked language model)** 一样，masks被应用于强制模型来预测查询和响应条件下的丢失单词。此外，通过用随机选择的句子替换查询Q或响应R来生成假样本。该模型用于判断多回合对话是真是假。DLM任务帮助ERNIE学习对话中的隐含关系，这也增强了模型学习语义表示的能力。
 
 #### ERNIE 2.0
 

@@ -29,7 +29,7 @@ greedy decoding的缺陷是无法undo decision，即**一步错，步步错**。
 
 当人们听到句子“the ball is on the field”，人们不会认为这6个单词都一样重要，而是首先会注意到“ball”，“on” 和 “field”，因为这些单词是人们觉得最重要的。类似的，Bahdanau等人注意到**使用RNN的最终状态作为seq2seq模型的单个“上下文向量”的缺点**：**输入的不同部分具有不同的重要程度**。再者，**输出的不同部分甚至可以考虑输入的不同部分“重要”**。例如，在翻译任务中，输出的第一个单词是一般是基于输入的前几个词，输出的最后几个词可能基于输入的后几个词。
 
-**注意力机制(attention mechanism)**的核心思想：on each step of the decoder, focus on a particular part of the source sequence。
+**注意力机制(attention mechanism)** 的核心思想：on each step of the decoder, focus on a particular part of the source sequence。
 
 #### 认知神经学中的注意力
 
@@ -117,7 +117,9 @@ $$
 
 <img src="/images/4/image-20200717183337792.png" style="zoom:45%;" />
 
+
 在每个时间步$t$，计算解码器当前时间步的输出$\boldsymbol h_t$和所有编码器隐含状态$\boldsymbol{\bar h}_s$的得分函数，并得到权重向量$\boldsymbol a_t$。然后将编码器每个时间步的输出与$\boldsymbol a_t$进行加权平均，得到上下文向量$\boldsymbol c_t$。公式描述如下：
+
 $$
 \operatorname{score}(\boldsymbol{h}_{t}, {\bar{\boldsymbol h}}_{s})=\left\{\begin{array}{l}
 \boldsymbol{h}_{t}^{\text{T}} \boldsymbol{W} {\bar{\boldsymbol h}}_{s} \\
@@ -133,7 +135,7 @@ $$
 
 #### 指针网络
 
-注意力机制主要是用来做信息筛选，从输入信息中选取相关的信息。注意力机制可以分为两步：一是计算**注意力分布**$\alpha$，二是根据$\alpha$来计算输入**信息的加权平均**。我们可以只利用注意力机制中的第一步，将注意力分布作为一个**软性的指针(pointer)**来指出相关信息的位置。
+注意力机制主要是用来做信息筛选，从输入信息中选取相关的信息。注意力机制可以分为两步：一是计算**注意力分布**$\alpha$，二是根据$\alpha$来计算输入**信息的加权平均**。我们可以只利用注意力机制中的第一步，将注意力分布作为一个**软性的指针(pointer)** 来指出相关信息的位置。
 
 **指针网络(pointer network)**[3]是一种**序列到序列模型**，输入是长度为$n$的向量序列$X=\boldsymbol x_1,\cdots,\boldsymbol x_n$，输出是**下标序列**$c_{1:m}=c_1,c_2,\cdots,c_m,c_i \in [1,n],\forall i$。和一般的序列到序列任务不同，这里的输出序列是输入序列的下标(索引)。比如输入一组乱序的数字，输出为按大小排序的输入数字序列的下标。比如输入为20*,* 5*,* 10，输出为1*,* 3*,* 2。
 

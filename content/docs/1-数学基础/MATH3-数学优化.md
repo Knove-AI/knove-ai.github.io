@@ -17,7 +17,7 @@ description:
 
 (1) **组合优化(combinatorial optimization)**：其目标是从一个有限集合中找出使得目标函数最优的元素。在一般的组合优化问题中，集合中的元素之间存在一定的关联，可以表示为图结构。典型的组合优化问题有旅行商问题、最小生成树问题、图着色问题等。很多机器学习问题都是组合优化问题，比如特征选择、聚类问题、超参数优化问题以及<b>结构化学习(structured learning)</b>中标签预测问题等。
 
-(2) **整数规划(integer programming)**：输入变量$\boldsymbol x \in \mathbb Z^d$是一个整数向量。常见的整数规划问题通常为**整数线性规划**。整数线性规划的一种最直接的求解方法是：1. 去掉输入必须为整数的限制，将原问题转换为**一般的线性规划问题**，这个线性规划问题为原问题的**松弛问题**；2. 求得相应松弛问题的解；3. 把松弛问题的解**四舍五入到最接近的整数**。但是这种方法得到的解**一般都不是最优的**，因为原问题的最优解不一定在松弛问题最优解的附近。另外，这种方法得到的解也不一定满足约束条件。
+(2) **整数规划(integer programming)**：输入变量$\boldsymbol x \in \mathbb Z^d$是一个整数向量。常见的整数规划问题通常为<b>整数线性规划</b>。整数线性规划的一种最直接的求解方法是：1. 去掉输入必须为整数的限制，将原问题转换为**一般的线性规划问题**，这个线性规划问题为原问题的**松弛问题**；2. 求得相应松弛问题的解；3. 把松弛问题的解**四舍五入到最接近的整数**。但是这种方法得到的解**一般都不是最优的**，因为原问题的最优解不一定在松弛问题最优解的附近。另外，这种方法得到的解也不一定满足约束条件。
 
 离散优化问题的求解一般都比较困难，优化算法的复杂度都比较高。
 
@@ -27,19 +27,19 @@ description:
 
 在连续优化问题中，根据是否有变量的约束条件，可以将优化问题分为无约束优化问题和约束优化问题。
 
-<b>无约束优化(unconstrained optimization)</b>问题的可行域为整个实数域$\mathcal D=\mathbb R^d$，可以写为：
+<b>无约束优化(unconstrained optimization)</b>问题的可行域为整个实数域$\mathcal D=\mathbb R^d $，可以写为：
 $$
 \min _{\boldsymbol{x}} \ \ f(\boldsymbol{x})
 $$
-其中$\boldsymbol x \in \mathbb R^d$为输入变量，$f:\mathbb R \rightarrow \mathbb R$为目标函数。
+其中$\boldsymbol x \in \mathbb R^d$为输入变量，$f:\mathbb R \rightarrow \mathbb R $为目标函数。
 
-**约束优化(constrained optimization)**问题中变量$\boldsymbol x$需要满足一些等式或不等式的约束。约束优化问题通常使用**拉格朗日乘数法**来进行求解。 
+**约束优化(constrained optimization)** 问题中变量$ \boldsymbol x $需要满足一些等式或不等式的约束。约束优化问题通常使用**拉格朗日乘数法**来进行求解。 
 
 #### 线性优化和非线性优化
 
-若目标函数和所有的约束函数都为线性函数，则该问题称为**线性规划(linear programming)**问题。相反，如果木变函数或任何一个约束函数为非线性函数，则该问题为**非线性规划(nonlinear programming)**问题。
+若目标函数和所有的约束函数都为线性函数，则该问题称为<b>线性规划(linear programming)</b>问题。相反，如果木变函数或任何一个约束函数为非线性函数，则该问题为 <b>非线性规划(nonlinear programming)</b>问题。
 
-在非线性优化问题中，有一类比较特殊的问题是**凸优化(convex programming)**问题。在凸优化问题中，变量$\boldsymbol x$的可行域为**凸集**，即对于集合中任意两点，它们的连线全部位于集合内部。目标函数$f$也必须为凸函数，即满足：
+在非线性优化问题中，有一类比较特殊的问题是**凸优化(convex programming)**问题。在凸优化问题中，变量$\boldsymbol x $的可行域为**凸集**，即对于集合中任意两点，它们的连线全部位于集合内部。目标函数$f$也必须为凸函数，即满足：
 $$
 f(\alpha \boldsymbol{x}+(1-\alpha) \boldsymbol{y}) \leq \alpha f(\boldsymbol{x})+(1-\alpha) f(\boldsymbol{y}), \ \ \forall \alpha \in[0,1]
 $$

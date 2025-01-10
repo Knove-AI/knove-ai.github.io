@@ -8,7 +8,7 @@ description:
 
 ### 线性支持向量机与硬间隔最大化
 
-**支持向量机(support vector machine, SVM)**是一个经典的机器学习二分类算法，其找到的分割超平面具有更好的鲁棒性，因此广泛使用在很多任务上，并表现出了很强的优势。
+**支持向量机(support vector machine, SVM)** 是一个经典的机器学习二分类算法，其找到的分割超平面具有更好的鲁棒性，因此广泛使用在很多任务上，并表现出了很强的优势。
 
 给定一个二分类数据集$\mathcal{D}=\{(\boldsymbol{x}^{(n)}, y^{(n)})\}_{n=1}^{N}$，其中$y_n \in \{+1,-1\}$，如果两类样本是线性可分的，即存在一个超平面$\boldsymbol{w}^{\mathrm{T}} \boldsymbol{x}+b=0$将两类样本分开，对于每一类样本都有$y^{(n)}(\boldsymbol{w}^{\mathrm{T}} \boldsymbol{x}^{(n)}+b)>0$。
 

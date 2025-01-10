@@ -11,7 +11,7 @@ description:
 
 ### 文本分类
 
-**文本分类(text classification)**在自然语言处理领域有着广泛的应用，例如**垃圾邮件检测(spam detection)**、**情感分析(sentiment analysis)**、**语言识别(language id)**以及**新闻类别标注(news classification)**等。文本分类有着非常多的实现方法，每种实现方法中文本的表示也存在着很大的不同。但总的来说，文本分类是一个**监督学习问题**，需要数据样本以及其对应标签。
+**文本分类(text classification)** 在自然语言处理领域有着广泛的应用，例如**垃圾邮件检测(spam detection)**、**情感分析(sentiment analysis)**、**语言识别(language id)** 以及**新闻类别标注(news classification)** 等。文本分类有着非常多的实现方法，每种实现方法中文本的表示也存在着很大的不同。但总的来说，文本分类是一个**监督学习问题**，需要数据样本以及其对应标签。
 
 分类问题又可以分为**二分类**、**多分类**以及**多标签分类**等类型。其中的**多标签分类**指的是为每个数据标定数量不相同的标签，其由于类标签数量不确定、**类标签之间可能有相互依赖**、多标签的训练集比较难以获取等原因，难度是分类问题中最大的，因此也称为了分类问题的研究热点。目前主流的多标签分类的实现方式有如下几种：
 
@@ -35,7 +35,7 @@ description:
 
 ### 基于卷积神经网络的文本分类
 
-与朴素贝叶斯算法等这类传统机器学习方法不同，使用卷积神经网络(CNN)进行文本分类需要将词使用**词向量(例如Word2Vec)**进行表示。CNN最初是针对图像设计的，其利用卷积核(convolving filters)来提取图像的局部特征。然而CNN也可以用于文本的特征提取，其通常被称为**TextCNN**。
+与朴素贝叶斯算法等这类传统机器学习方法不同，使用卷积神经网络(CNN)进行文本分类需要将词使用**词向量(例如Word2Vec)** 进行表示。CNN最初是针对图像设计的，其利用卷积核(convolving filters)来提取图像的局部特征。然而CNN也可以用于文本的特征提取，其通常被称为**TextCNN**。
 
 Yoon Kim在论文《Convolutional Neural Networks for Sentence Classification》中提出了如下CNN网络结构用于文本分类任务：
 
@@ -111,7 +111,7 @@ Armand Joulin等人提出了如下FastText模型，可用于快速的文本分�
 
 <img src="/images/4/image-20200423180413505.png" style="zoom:30%;" />
 
-其中$x_1,x_2,\cdots,x_N$是一个句子中的$N$个特征，可以是词向量，也可以是**N-gram特征**。这些词的特征表示(word representation)在隐含层(hidden)被平均为**句子的特征表示(sentence representation)**，然后被送入一个线性分类器。当输出空间很大时，论文使用**层次化softmax(hierarchical softmax)**对结果类别进行计算以减少计算复杂度。对于一个由$N$个文档祖晨的集合，该模型的目标是最小化如下所示的**损失函数(或负对数似然函数)**：
+其中$x_1,x_2,\cdots,x_N$是一个句子中的$N$个特征，可以是词向量，也可以是**N-gram特征**。这些词的特征表示(word representation)在隐含层(hidden)被平均为**句子的特征表示(sentence representation)**，然后被送入一个线性分类器。当输出空间很大时，论文使用**层次化softmax(hierarchical softmax)** 对结果类别进行计算以减少计算复杂度。对于一个由$N$个文档祖晨的集合，该模型的目标是最小化如下所示的**损失函数(或负对数似然函数)**：
 $$
 -\frac{1}{N}\sum_{n=1}^{N}y_n\log(f(BAx_n))
 $$
@@ -134,7 +134,7 @@ def build_fasttext_model(vocab, embed, length, num_hidden, num_classes):
 
 ### 基于循环神经网络的文本分类
 
-使用循环神经网络(recurrent neural network, RNN)进行文本分类时，通常每个**时间步(time step)**的输入是文本中每个单词的词向量，将最后一个单词对应的RNN的输出通过全连接层+softmax的形式映射到类别的概率分布：
+使用循环神经网络(recurrent neural network, RNN)进行文本分类时，通常每个**时间步(time step)** 的输入是文本中每个单词的词向量，将最后一个单词对应的RNN的输出通过全连接层+softmax的形式映射到类别的概率分布：
 
 <img src="/images/4/image-20200508142405388.png" style="zoom:30%;" />
 
@@ -161,7 +161,7 @@ def build_rnn_model(vocab, embed, length, num_hidden, num_classes):
 
 ### 基于预训练语言模型的文本分类
 
-基于Transformer encoder的语言模型(如BERT)非常适合完成文本分类任务。以BERT为例，按照分类的对象，可以有**句子对分类任务(sentence pair classification)、单个句子分类任务(single sentence classification)以及标记分类(token classification)任务**等，其分别作用于不同场景下：句子对分类任务可以解决语义匹配问题，单个句子分类任务可以解决情感分析、垃圾邮件识别等问题，而标记分类任务可以实现**命名实体识别(named entity recognition)**等任务。
+基于Transformer encoder的语言模型(如BERT)非常适合完成文本分类任务。以BERT为例，按照分类的对象，可以有**句子对分类任务(sentence pair classification)、单个句子分类任务(single sentence classification)以及标记分类(token classification)任务**等，其分别作用于不同场景下：句子对分类任务可以解决语义匹配问题，单个句子分类任务可以解决情感分析、垃圾邮件识别等问题，而标记分类任务可以实现**命名实体识别(named entity recognition)** 等任务。
 
 ```python
 # 微调transformers中的BERT模型进行中文文本分类(新闻标题分类)
@@ -375,7 +375,7 @@ $$
 
 ### PGN生成式文本摘要
 
-**PGN(pointer-generator network)**在seq2seq+attention结构的基础上进行两个改进：(1) 引入**指针网络**，从原文中复制部分单词，从而**提高摘要准确性，并解决OOV问题**；(2) 利用**coverage机制**减少重复。
+**PGN(pointer-generator network)** 在seq2seq+attention结构的基础上进行两个改进：(1) 引入**指针网络**，从原文中复制部分单词，从而**提高摘要准确性，并解决OOV问题**；(2) 利用**coverage机制**减少重复。
 
 PGN的结构如下图所示：
 
@@ -400,7 +400,7 @@ $$
 $$
 e_{i}^{t}=v^{T}\tanh(W_{h} h_{i}+W_{s} s_{t}+w_{c} c_{i}^{t}+b_{\mathrm{attn}})
 $$
-上式可以确保**注意力机制的当前决定(选择下一个注意力分布)考虑到其先前的决定(隐含在$c_t$中)**。 这应该使注意力机制更容易**避免重复关注相同的位置，从而避免生成重复的文本**。
+上式可以确保**注意力机制的当前决定(选择下一个注意力分布)考虑到其先前的决定(隐含在$c_t$中)** 。 这应该使注意力机制更容易**避免重复关注相同的位置，从而避免生成重复的文本**。
 
 定义coverage损失来对**频繁attend相同的位置**这一现象进行惩罚：
 $$
@@ -557,7 +557,7 @@ if __name__ == '__main__':
 
 #### MRC的形式化定义
 
-给定上下文$C$以及问题$Q$，**机器阅读理解(machine reading comprehension, MRC)**任务要求模型给出问题$Q$正确的回答$A$，该过程通过学习函数$\mathcal F$得到，即$A=\mathcal F(C,Q)$。
+给定上下文$C$以及问题$Q$，**机器阅读理解(machine reading comprehension, MRC)** 任务要求模型给出问题$Q$正确的回答$A$，该过程通过学习函数$\mathcal F$得到，即$A=\mathcal F(C,Q)$。
 
 #### MRC中的四大任务
 
@@ -674,7 +674,7 @@ $$
 
 <img src="/Users/zhaoziliang/Desktop/4-自然语言处理//images/4/image-20220105101023855.png" style="zoom:45%;" />
 
-(1) 在三个**嵌入层(embedding layer)**中，首先对每个token分别使用字符级别和词级别的嵌入进行标识，然后用LSTM进行编码。经过LSTM后得到两个矩阵：$H \in \mathbb R^{2d \times T}$以及$U \in \mathbb R^{2d \times J}$，其中$d$是词嵌入和字符嵌入得到的表示的长度，$T$和$J$分别表示上下文(context)和查询(query)的长度。到这一步，查询和上下文是分开并行处理的。
+(1) 在三个**嵌入层(embedding layer)** 中，首先对每个token分别使用字符级别和词级别的嵌入进行标识，然后用LSTM进行编码。经过LSTM后得到两个矩阵：$H \in \mathbb R^{2d \times T}$以及$U \in \mathbb R^{2d \times J}$，其中$d$是词嵌入和字符嵌入得到的表示的长度，$T$和$J$分别表示上下文(context)和查询(query)的长度。到这一步，查询和上下文是分开并行处理的。
 
 (2) **注意力流层(attention flow layer)**：该层进行context-to-query和query-to-context双向注意力的计算。首先计算出一个相似度矩阵$S \in \mathbb R^{T \times J}$，其中$S^{t, j} = \alpha(H_{:,t}, U_{:,j})$，$\alpha$是一个计算两个向量之间相似度的可训练的标量函数，文中选用$\alpha(h, u) = w_S^T [h;u;h \cdot u]$，其中"$;$"表示向量拼接，"$\cdot$"表示向量按位乘法。对于context-to-query注意力的计算，计算query中每个word与context中word的相似度；对于query-to-context注意力的计算，取出每一行的最大值，然后经过softmax函数计算得到。
 
