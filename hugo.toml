@@ -2,7 +2,8 @@ baseURL = 'https://knove-ai.github.io/'
 languageCode = 'en-us'
 title = '知予AI'
 theme =  'docsy'
-
+canonifyURLs = false
+uglyURLs = false
 [module]
     [[module.imports]]
         path = "github.com/gohugoio/hugo-mod-bootstrap-scss/v5"
