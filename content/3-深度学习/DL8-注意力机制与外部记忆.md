@@ -67,7 +67,10 @@ $$
 $$
 上式称为**软性注意力机制(soft attention mechanism)**，下图给出了软性注意力机制的示例图：
 
+<div align="center">
 <img src="/images/3/image-20201004205649318.png" style="zoom:40%;" />
+</div>
+
 
 人工神经网络中注意力机制的实现：
 
@@ -164,13 +167,20 @@ $$
 
 下图给出了指针网络的示例：
 
+<div align="center">
 <img src="/images/3/image-20201004221027115.png" style="zoom:30%;" />
+</div>
+
+
 
 #### 自注意力模型
 
 当使用神经网络来处理一个变长的向量序列时，我们通常可以使用卷积网络或循环网络进行编码来得到一个相同长度的输出向量序列，如下图所示：
 
+<div align="center">
 <img src="/images/3/image-20201004230604413.png" style="zoom:30%;" />
+</div>
+
 
 基于卷积或循环网络的序列编码都可以看做是一种局部的编码方式，只建模了输入信息的局部依赖关系。虽然循环网络理论上可以建立长距离依赖关系，但是由于信息传递的容量以及梯度消失问题，实际上也只能建立短距离依赖关系。
 
@@ -230,7 +240,10 @@ $$
 
 记忆网络结构如下所示，一般由以下几个模块构成：
 
+<div align="center">
 <img src="/images/3/image-20201005101509539.png" style="zoom:30%;" />
+</div>
+
 
 (1) **主网络(控制器)**$C$：负责信息处理，并与外界进行交互(接受外界的输入信息并产生输出到外界)。主网络还同时通过读写模块和外部记忆进行交互。
 
@@ -271,13 +284,20 @@ $$
 
 端到端记忆网络结构如下所示：
 
+<div align="center">
 <img src="/images/3/image-20201005120052297.png" style="zoom:30%;" />
+</div>
+
+
 
 ##### 神经图灵机
 
 **神经图灵机(neural Turing machine, NTM)** 主要由两个部件构成：控制器和外部记忆。**外部记忆**定义为矩阵$M \in \mathbb R^{d \times N}$，其中$N$是记忆片段的数量，$d$是每个记忆片段的大小。**控制器**为一个前馈或循环神经网络。神经图灵机中的外部记忆是可读写的，其结构如下所示：
 
+<div align="center">
 <img src="/images/3/image-20201028105252105.png" style="zoom:40%;" />
+</div>
+
 
 在每个时刻$t$，控制器接受当前时刻的输入$\boldsymbol x_t$、上一时刻的输出$\boldsymbol h_{t-1}$和上一时刻从外部记忆中读取的信息$\boldsymbol r_{t-1}$，并产生输出$\boldsymbol h_t$，同时生成和读写外部记忆相关的三个向量：查询向量$\boldsymbol q_t$、删除向量$\boldsymbol e_t$和增加向量$\boldsymbol a_t$，然后对外部记忆$M_t$进行读写操作，生成读向量$\boldsymbol r_t$和新的外部记忆$M_{t+1}$。
 

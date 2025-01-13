@@ -21,7 +21,10 @@ description:
 
 假设一个生成模型中包含隐变量，即部分变量不可观测，如下图所示，其中观测变量$\boldsymbol X$是一个高维空间$\mathcal X$中的随机向量，隐变量$\boldsymbol Z$是一个相对低维空间$\mathcal Z$中的随机向量。例如，对于手写数字识别任务，$\boldsymbol X$是数字矩阵(28*28维)，而$\boldsymbol Z$是数字的具体值(10维)。
 
+<div align="center">
 <img src="/images/3/image-20211227111340078.png" style="zoom:40%;" />
+</div>
+
 
 该生成模型的联合概率密度函数可以分解为：$p(\boldsymbol{x}, \boldsymbol{z} ; \theta)=p(\boldsymbol{x} | \boldsymbol{z} ; \theta) p(\boldsymbol{z} ; \theta)$。其中$p(\boldsymbol{z} ; \theta)$为隐变量$\boldsymbol z$先验分布的概率密度函数，$p(\boldsymbol{x} | \boldsymbol{z} ; \theta)$为已知$\boldsymbol z$时观测变量$\boldsymbol x$的条件概率密度函数，$\theta$表示两个密度函数的参数。一般情况下，我们可以假设这两个概率密度函数为某种参数化的分布族，例如正态分布，然后通过最大似然估计得到参数$\theta$。
 
@@ -45,7 +48,10 @@ $$
 
 (2) 用神经网络来估计概率分布$p(\boldsymbol x | \boldsymbol z ; \theta)$，称为**生成网络**。生成网络的输入为$\boldsymbol z$，输出为概率分布$p(\boldsymbol x | \boldsymbol z ; \theta)$。
 
+<div align="center">
 <img src="/images/3/image-20211227112621087.png" style="zoom:30%;" />
+</div>
+
 
 ### Pytorch实现VAE进行MNIST手写数字生成
 
@@ -165,11 +171,17 @@ for epoch in range(1, 51):
 
 VAE显式地构建样本的密度函数$p(\boldsymbol x ; \theta)$，并通过最大似然估计来求解参数，称为**显式密度模型(explicit density model)**。然而，如果只是希望有一个模型能生成符合数据分布$p_r(\boldsymbol x)$的样本，那么可以不显式地估计出数据分布的密度函数。假设在低维空间$\mathcal Z$中有一个简单容易采样的分布$p(\boldsymbol z)$，$p(\boldsymbol z)$通常为**标准多元正态分布**。我们用神经网络构建一个映射函数$G: \mathcal Z \rightarrow \mathcal X$，称为生成网络。利用神经网络强大的拟合能力，使得$G(\boldsymbol z)$服从$p_r(\boldsymbol x)$。这种模型称为**隐式密度模型(implicit density model)**，如下图所示。
 
+<div align="center">
 <img src="/images/3/image-20211227125702313.png" style="zoom:30%;" />
+</div>
+
 
 隐式密度模型的一个关键是如何确保生成网络产生的样本一定是服从真实的数据分布。既然我们不构建显式密度函数，就无法通过最大似然估计等方法来训练。生成对抗网络(generative adversarial networks, GAN)是通过对抗训练的方式来使得生成网络产生的样本服从真实数据分布。在生成对抗网络中，有两个网络进行对抗训练。一个是**判别网络**，目标是尽量准确地判断一个样本是来自于真实数据还是由生成网络产生；另一个是**生成网络**，目标是尽量生成判别网络无法区分来源的样本。这两个目标相反的网络不断地进行交替训练。当最后收敛时，如果判别网络再也无法判断出一个样本的来源，那么也就等价于生成网络可以生成符合真实数据分布的样本。生成对抗网络的流程如下所示。
 
+<div align="center">
 <img src="/images/3/image-20211227130206670.png" style="zoom:30%;" />
+</div>
+
 
 #### 判别网络
 
@@ -206,7 +218,10 @@ GAN的两个网络的优化目标是相反的，训练难度较大。一般情�
 
 生成对抗网络的训练流程如下所示。每次迭代时，判别网络更新$K$次而生成网络更新一次，即首先要保证判别网络足够强才能开始训练生成网络。在实践中$K$是一个超参数，其取值一般取决于具体任务。
 
+<div align="center">
 <img src="/images/3/image-20211227131625769.png" style="zoom:50%;" />
+</div>
+
 
 GAN的判别网络和生成网络都可以根据不同的生成任务使用不同的网络结构，例如DCGAN使用卷积网络来实现两个网络。
 

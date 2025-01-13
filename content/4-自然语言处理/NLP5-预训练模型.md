@@ -65,7 +65,10 @@ ELMo在多个NLP任务及数据集上的实验结果如下所示：
 
 论文中的attention机制称为“scaled dot-product attention”，如下图所示：
 
+<div align="center">
 <img src="/images/4/image-20200420184046759.png" style="zoom:30%;" />
+</div>
+
 
 其输入包括queries(维度为$d_k$)、keys(维度为$d_k$)以及values(维度为$d_v$)。当并行处理多个输入的时候，可以将其组成三个矩阵$Q,K,V$，并且以下式来计算注意力输出：
 $$
@@ -75,7 +78,10 @@ $$
 
 论文提出，将输入线性映射到$h$个不同的空间内并且使用多个并行的注意力机制能够提高模型性能。该方式称为多头注意力机制，如下图所示：
 
+<div align="center">
 <img src="/images/4/image-20200420201802904.png" style="zoom:30%;" />
+</div>
+
 
 多头注意力机制可以形式化地表示为：
 $$
@@ -86,7 +92,10 @@ $$
 $$
 该式可以利用下图进行理解：
 
+<div align="center">
 <img src="/images/4/image-20200420203933069.png" style="zoom:45%;" />
+</div>
+
 
 假设模块的输入为$X$(即原始句子的词嵌入序列，维度为$(len,d_{model})$)或者$R$(即上一个编码器模块传来的输入，维度也为$(len,d_{model})$)。图中的$X$或$R$等价于原文公式中的$Q,K,V$，首先分别乘以$3\times h$个不同的权重矩阵(维度分别为$(d_{model},d_k),(d_{model},d_k),(d_{model},d_v)$)以映射到$3\times h$个不同的空间，然后分别按照每一个注意力头的$Q,K,V$进行单头注意力计算，产生每个注意力头的结果$Z_i$，维度为$(len,d_v)$。将$h$个$Z_i$连接在一起，得到维度为$(len,hd_v)$大小的矩阵。将连接后的矩阵$Z$与参数矩阵$W^O$(维度为$(hd_v,d_{model})$)相乘，得到最终的结果为$Z$，维度为$(len,d_{model})$。原文取$h=8,d_k=d_v=d_{model}/h=64$。
 
@@ -125,11 +134,17 @@ $$
 
 下表分析了self-attention与循环层和卷积层相比时间复杂度的差异：
 
+<div align="center">
 <img src="/images/4/image-20200420222402891.png" style="zoom:33%;" />
+</div>
+
 
 实验结果如下：
 
+<div align="center">
 <img src="/images/4/image-20200420222424199.png" style="zoom:33%;" />
+</div>
+
 
 #### Tensorflow实现Transformer用于机器翻译
 
@@ -813,11 +828,17 @@ BERT的作者认为，ELMo和GPT这类模型的**单向性**限制了下游任�
 
 BERT模型的两种预训练方式以及其在下游任务中的应用示意图如下所示：
 
+<div align="center">
 <img src="/images/4/image-20200425201254058.png" style="zoom:45%;" />
+</div>
+
 
 BERT模型与ELMo和GPT的区别如下所示：
 
+<div align="center">
 <img src="/images/4/image-20200426101648120.png" style="zoom:40%;" />
+</div>
+
 
 #### 模型结构
 
@@ -827,7 +848,10 @@ BERT模型本质上是一个多层的双向Transformer的编码器。设Transfor
 
 对于一个给定的标记，**其输入表示为token embedding、segment embedding和position embedding之和**。
 
+<div align="center">
 <img src="/images/4/image-20200425210720499.png" style="zoom:30%;" />
+</div>
+
 
 #### 预训练BERT
 
@@ -843,9 +867,14 @@ BERT通过masked language model和next sentence prediction两种方式进行预�
 
 仅需要改变输入和输出，BERT便能用于完成很多种类的NLP任务。在微调的过程中，BERT中的全部参数都会以端到端的方式进行微调。下图展示了对于不同任务，BERT输入和输出的变化：
 
+<div align="center">
 <img src="/images/4/image-20200426100129779.png" style="zoom:30%;" />
+</div>
 
+<div align="center">
 <img src="/images/4/image-20200426100154337.png" style="zoom:30%;" />
+</div>
+
 
 #### 实验结果
 
@@ -853,31 +882,53 @@ BERT通过masked language model和next sentence prediction两种方式进行预�
 
 (1) GLUE
 
+<div align="center">
 <img src="/images/4/image-20200426100615444.png" style="zoom:40%;" />
+</div>
+
 
 (2) SQuAD 1.1
 
+<div align="center">
 <img src="/images/4/image-20200426100706463.png" style="zoom:40%;" />
+</div>
+
 
 (3) SQuAD 2.0
 
+<div align="center">
 <img src="/images/4/image-20200426100809998.png" style="zoom:40%;" />
+</div>
+
 
 (4) SWAG
 
+<div align="center">
 <img src="/images/4/image-20200426100834569.png" style="zoom:40%;" />
+</div>
+
 
 (5) 预训练方式调整对实验结果的影响
 
+
+<div align="center">
 <img src="/images/4/image-20200426101035301.png" style="zoom:40%;" />
+</div>
+
 
 (6) 网络结构调整对实验结果的影响
 
+<div align="center">
 <img src="/images/4/image-20200426101208031.png" style="zoom:40%;" />
+</div>
+
 
 (7) 命名实体识别
 
+<div align="center">
 <img src="/images/4/image-20200426101335649.png" style="zoom:40%;" />
+</div>
+
 
 ### ERNIE
 
@@ -887,13 +938,19 @@ Google提出的BERT模型，利用Transformer的多层self-attention双向建模
 
 **ERNIE和BERT不同的masking策略**如下所示：
 
+<div align="center">
 <img src="/images/4/image-20200527092631883.png" style="zoom:40%;" />
+</div>
+
 
 与BERT相同，ERNIE的整体网络架构也使用Transformer的编码器。Transformer可以通过**自注意力机制**捕捉句子中每个标记的上下文信息，并**生成一系列上下文嵌入(contextual embedding)**。
 
 ERNIE使用先验知识来增强预训练语言模型，其提出了一种**多阶段的知识masking策略**，将短语和实体层次的知识整合到语言表达中，而**不是直接加入知识嵌入**。下图描述了句子的不同masking级别：
 
+<div align="center">
 <img src="/images/4/image-20200527103621711.png" style="zoom:40%;" />
+</div>
+
 
 (1) **Basic-level masking**：Basifc-level masking是第一个阶段，它把一个句子看作一个基本语言单位的序列，对于英语，基本语言单位是**单词**，对于汉语，基本语言单位是**汉字**。在训练过程中，随机屏蔽15%的基本语言单元，并使用句子中的其他基本单元作为输入，训练一个Transformer的编码器来预测屏蔽单元。基于Basic-level masking，我们可以得到一个基本的单词表示。**因为它是在基本语义单元的随机掩码上训练的，所以很难对高层语义知识进行完全建模**。这个过程与BERT相同。
 
@@ -905,7 +962,10 @@ ERNIE使用中文维基百科、百度百科、百度新闻和百度贴吧的综
 
 此外，ERNIE**使用多轮对话修改BERT中的NSP(next sentence prediction)任务**：
 
+<div align="center">
 <img src="/images/4/image-20200527105452130.png" style="zoom:40%;" />
+</div>
+
 
 在ERNIE中，NSP任务变为了**DLM(dialogue language model)** 任务。使用dialogue embedding来区分不同的对话角色，可以表示多轮对话。与BERT中的**MLM(masked language model)** 一样，masks被应用于强制模型来预测查询和响应条件下的丢失单词。此外，通过用随机选择的句子替换查询Q或响应R来生成假样本。该模型用于判断多回合对话是真是假。DLM任务帮助ERNIE学习对话中的隐含关系，这也增强了模型学习语义表示的能力。
 
@@ -913,7 +973,10 @@ ERNIE使用中文维基百科、百度百科、百度新闻和百度贴吧的综
 
 ERNIE 2.0在ERNIE 1.0的基础上继续进行改进：其构建了3类任务，包括word-aware tasks、structure-aware tasks和semantic-aware tasks。这些任务都是无监督或弱监督，所以可以从海量数据中获取到。对于**多任务的预训练**，本文框架是在一个持续的学习模式中训练所有这些任务。ERNIE 2.0先用一个简单的任务训练一个初始模型，然后不断引入新的预训练任务对模型进行升级。对于一个新任务，先用前一个任务的参数进行初始化。然后，新任务将与之前的任务一起训练，以确保模型不会忘记它所学到的知识。
 
+<div align="center">
 <img src="/images/4/image-20211230155514333.png" style="zoom:40%;" />
+</div>
+
 
 如上图所示，ERNIE 2.0的输入包括四部分：Token embedding、Sentence embedding、Position embedding和Task embedding。作者设计了七个预训练任务，并归属于三个类别，以此来提升预训练效果。
 
@@ -923,13 +986,19 @@ BERT模型使用Transormer encoder结构对文本进行编码并预训练，然�
 
 GPT使用语言模型任务进行预训练，然后可以进一步fine-tuning从而适应多种不同的下游任务，如下所示：
 
+<div align="center">
 <img src="/images/4/image-20211230162346254.png" style="zoom:40%;" />
+</div>
+
 
 GPT-1的思想是先通过在无标签的数据上学习一个通用的语言模型，然后再根据特定热任务进行微调。而GPT2的目的是训练一个泛化能力更强的词向量模型，**使用无监督的预处训练做有监督的任务**，即，将各类有监督任务构建为语言模型的形式进行预训练。GPT2并没有网络结构上进行更多的创新和设计，而是使用了更多的参数和更大的数据集。GPT-2的核心思想概括为：任何有监督任务都是语言模型的一个子集，当模型的容量非常大且数据量足够丰富时，仅仅靠训练语言模型的学习便可以完成其他有监督学习的任务。
 
 GPT-3进一步提升了语言模型的能力，仅仅需要zero-shot或者few-shot，GPT-3就可以在下游任务表现的非常好。除了几个常见的NLP任务，GPT-3还在很多非常困难的任务上也有惊艳的表现，例如撰写人类难以判别的文章，甚至编写SQL查询语句，React或者JavaScript代码等。而这些强大能力的能力则依赖于GPT-3的1,750亿参数量， 45TB的训练数据以及高达1,200万美元的训练费用。GPT、GPT-2和GPT-3的对比如下。
 
+<div align="center">
 <img src="/images/4/image-20211230163905638.png" style="zoom:45%;" />
+</div>
+
 
 ### 参考资料
 

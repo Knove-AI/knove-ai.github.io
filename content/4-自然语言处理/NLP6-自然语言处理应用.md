@@ -27,11 +27,17 @@ description:
 
 朴素贝叶斯算法是一种生成模型，其实现简单，常常用于**文本分类的baseline**。在朴素贝叶斯算法中，文本常用词袋模型进行表示，即每个文档表示为一个大小为$|V|$的向量，其中$|V|$为词汇表的大小，每一个维度表示对应下标的单词在文档中出现的次数：
 
+<div align="center">
 <img src="/images/4/image-20200417082234463.png" style="zoom:35%;" />
+</div>
+
 
 朴素贝叶斯分类器是一个概率模型，其理论基础是贝叶斯定理，“朴素”一词指的是**条件独立性假设**。对于文档$d$，朴素贝叶斯算法预测使得后验概率$P(c|d)$最大的类别$c\in C$。**朴素贝叶斯算法的过程如下所示**：
 
+<div align="center">
 <img src="/images/4/image-20200417082740628.png" style="zoom: 40%;" />
+</div>
+
 
 ### 基于卷积神经网络的文本分类
 
@@ -39,13 +45,19 @@ description:
 
 Yoon Kim在论文《Convolutional Neural Networks for Sentence Classification》中提出了如下CNN网络结构用于文本分类任务：
 
+<div align="center">
 <img src="/images/4/image-20200417084853983.png" style="zoom:30%;" />
+</div>
+
 
 整个网络仅使用了一个卷积层、一个池化层和一个全连接层。输入层为词向量，其可以一开始将词向量矩阵随机初始化，并在训练的过程中进行学习(作为实验的baseline)，也可以一直**保持静态**(即使用其他语料训练完成后便不再改变)，还可以预训练后在该网络训练的过程中进行**微调**(在实验中能够取得更好的效果)。该论文还将输入设置为两个通道，其均为词向量，但**其中一个通道保持静态，另一个通道可以在训练过程汇中进行微调**。
 
 另一篇关于TextCNN的论文提出了如下所示的网络结构：
 
+<div align="center">
 <img src="/images/4/image-20200417095418695.png" style="zoom:50%;" />
+</div>
+
 
 该论文进行了**大量的实验**来优化TextCNN中的参数，其中比较重要的一些**结论和建议**如下：
 
@@ -109,7 +121,10 @@ def TextCNN(seq_len, token_num, embed_dim, out_dim, model_img_path=None, embed_m
 
 Armand Joulin等人提出了如下FastText模型，可用于快速的文本分类， 并且准确度接近state-of-art模型。
 
+<div align="center">
 <img src="/images/4/image-20200423180413505.png" style="zoom:30%;" />
+</div>
+
 
 其中$x_1,x_2,\cdots,x_N$是一个句子中的$N$个特征，可以是词向量，也可以是**N-gram特征**。这些词的特征表示(word representation)在隐含层(hidden)被平均为**句子的特征表示(sentence representation)**，然后被送入一个线性分类器。当输出空间很大时，论文使用**层次化softmax(hierarchical softmax)** 对结果类别进行计算以减少计算复杂度。对于一个由$N$个文档祖晨的集合，该模型的目标是最小化如下所示的**损失函数(或负对数似然函数)**：
 $$
@@ -136,11 +151,17 @@ def build_fasttext_model(vocab, embed, length, num_hidden, num_classes):
 
 使用循环神经网络(recurrent neural network, RNN)进行文本分类时，通常每个**时间步(time step)** 的输入是文本中每个单词的词向量，将最后一个单词对应的RNN的输出通过全连接层+softmax的形式映射到类别的概率分布：
 
+<div align="center">
 <img src="/images/4/image-20200508142405388.png" style="zoom:30%;" />
+</div>
+
 
 还可以使用**双向结构**，能够在一定程度上提升分类效果。除了将最后时刻的状态作为**序列表示**之外，我们还可以**对整个序列的所有状态进行平均**，并用这个平均状态来作为整个序列的表示：
 
+<div align="center">
 <img src="/images/4/image-20200508142535364.png" style="zoom:30%;" />
+</div>
+
 
 本质上，RNN是在产生一个**句嵌入(sentence smbeeding)**，然后使用全连接+softmax的方式对该句嵌入进行分类。除了单向RNN和双向RNN以外，还可以**利用每个时间步的输出组合成一个新的向量**作为句嵌入。除了原始的RNN以外，还可以将每一层替换为LSTM或者GRU。
 
@@ -348,7 +369,10 @@ for i in range(len(texts)):  # texts为文档集合
 
 基于seq2seq+attention结构的生成式文本摘要示意图如下：
 
-<img src="/Users/zhaoziliang/Desktop/4-自然语言处理//images/4/image-20200803110440798.png" style="zoom:33%;" />
+<div align="center">
+<img src="/images/4/image-20200803110440798.png" style="zoom:33%;" />
+</div>
+
 
 原始文本(source text)中的单词$w_i$被逐步输入一个编码器(论文中使用的是单层双向LSTM)，产生一个编码器隐藏层序列$h_i$，其长度与原始文本长度相同。在解码时的第$t$个时间步中，解码器接受前一个单词的词向量(在训练时是参考摘要的词向量，在测试阶段是decoder上一步输出的词向量)，并产生解码器隐含状态$s_t$。**注意力分布**可使用如下公式计算得出：
 $$
@@ -379,7 +403,9 @@ $$
 
 PGN的结构如下图所示：
 
-<img src="/Users/zhaoziliang/Desktop/4-自然语言处理//images/4/image-20200803113112581.png" style="zoom:33%;" />
+<div align="center">
+<img src="/images/4/image-20200803113112581.png" style="zoom:33%;" />
+</div>
 
 在PGN中，注意力分布$a^t$和上下文向量$h_t^*$与原始seq2seq+attention结构的计算方式一致。此外，定义在时间步$t$的**生成概率**$p_{\text{gen}}$：
 $$
@@ -416,13 +442,19 @@ $$
 
 应用BERT可以实现抽提式文本摘要，模型如下图所示：
 
-<img src="/Users/zhaoziliang/Desktop/4-自然语言处理//images/4/image-20211228190259107.png" style="zoom:45%;" />
+<div align="center">
+<img src="/images/4/image-20211228190259107.png" style="zoom:45%;" />
+</div>
+
 
 首先将文档(document)以句子进行切分，在每个句子前加入[CLS]标记。将多种embeddings相加后用BERT编码，然后对每个[CLS]对应位置的输出进行分类：(1) 该句子作为摘要的一部分；(2) 该句子不作为摘要的一部分。
 
 BertSum在CNN/DailyMail数据集上的效果超过了现有模型：
 
-<img src="/Users/zhaoziliang/Desktop/4-自然语言处理//images/4/image-20211228190539245.png" style="zoom:35%;" />
+<div align="center">
+<img src="/images/4/image-20211228190539245.png" style="zoom:35%;" />
+</div>
+
 
 类似地，微调GPT-2等生成式模型，也可以实现生成式摘要，并且结果显著优于未经过预训练的seq2seq等模型。
 
@@ -563,31 +595,49 @@ if __name__ == '__main__':
 
 机器阅读理解的四大任务分别为：**完形填空(cloze test)、多项选择(multiple choice)、答案抽取(span extraction)以及自由问答(free answering)**。
 
-<img src="/Users/zhaoziliang/Desktop/4-自然语言处理//images/4/image-20200610151552516.png" style="zoom:30%;" />
+<div align="center">
+<img src="/images/4/image-20200610151552516.png" style="zoom:30%;" />
+</div>
+
 
 四大任务的**常用数据集**如下：
 
 (1) 完形填空：**CNN & Daily Mail**，The Children's Book Test，LAMBADA。
 
-<img src="/Users/zhaoziliang/Desktop/4-自然语言处理//images/4/image-20200610152037046.png" style="zoom:35%;" />
+<div align="center">
+<img src="/images/4/image-20200610152037046.png" style="zoom:35%;" />
+</div>
+
 
 (2) 多项选择：MC Test，RACE。
 
-<img src="/Users/zhaoziliang/Desktop/4-自然语言处理//images/4/image-20200610152107786.png" style="zoom:35%;" />
+<div align="center">
+<img src="/images/4/image-20200610152107786.png" style="zoom:35%;" />
+</div>
+
 
 (3) 答案抽取：**SQuAD**，**NewsQA**，TriviaQA。
 
-<img src="/Users/zhaoziliang/Desktop/4-自然语言处理//images/4/image-20200610152142781.png" style="zoom:35%;" />
+<div align="center">
+<img src="/images/4/image-20200610152142781.png" style="zoom:35%;" />
+</div>
+
 
 (4) 自由问答：**bAbI**，MS MARCO，SearchQA，**DuReader**。
 
-<img src="/Users/zhaoziliang/Desktop/4-自然语言处理//images/4/image-20200610152327311.png" style="zoom:35%;" />
+<div align="center">
+<img src="/images/4/image-20200610152327311.png" style="zoom:35%;" />
+</div>
+
 
 #### MRC的四大基础模块
 
 MRC任务有以下四大基础模块：
 
-<img src="/Users/zhaoziliang/Desktop/4-自然语言处理//images/4/image-20200610153403730.png" style="zoom:30%;" />
+<div align="center">
+<img src="/images/4/image-20200610153403730.png" style="zoom:30%;" />
+</div>
+
 
 (1) **Embeddings**：该模块将context和question嵌入到向量空间中，使用包含语义信息的向量来表示单词、句子以及段落的含义。常用的方法有one-hot、word2vec、**预训练语言模型(ELMo、GPT、BERT)**等，还可以**融合其他特征**，例如字符嵌入(character embedidng)、词性、命名实体等。
 
@@ -609,7 +659,10 @@ $$
 $$
 (2) F1-score：主要用于**答案抽取**任务。在该任务中，**候选答案(产生的答案)**和**参考答案(实际的答案)**都被当做**a bag of tokens**，可以给出混淆矩阵：
 
-<img src="/Users/zhaoziliang/Desktop/4-自然语言处理//images/4/image-20200610164905946.png" style="zoom:30%;" />
+<div align="center">
+<img src="/images/4/image-20200610164905946.png" style="zoom:30%;" />
+</div>
+
 
 精准率、召回率以及F1-score的计算方式分别如下：
 $$
@@ -655,7 +708,10 @@ $$
 
 文章提出了三种神经模型，用于估计根据文档$d$回答查询$q$单词类型$a$的概率$p(a|d, q)$：
 
-<img src="/Users/zhaoziliang/Desktop/4-自然语言处理//images/4/image-20220104185208664.png" style="zoom:40%;" />
+<div align="center">
+<img src="/images/4/image-20220104185208664.png" style="zoom:40%;" />
+</div>
+
 
 (1) **Deep LSTM Reader** (c)：将query和document输入LSTM，并用"|||"分隔符隔开，将编码后的query和document输入模块$g$(文中采用全连接神经网络)，模型即可进行答案预测。
 
@@ -664,7 +720,10 @@ $$
 
 在CNN & Daily Mail数据上的实验结果如下：
 
-<img src="/Users/zhaoziliang/Desktop/4-自然语言处理//images/4/image-20220104192743148.png" style="zoom:40%;" />
+<div align="center">
+<img src="/images/4/image-20220104192743148.png" style="zoom:40%;" />
+</div>
+
 
 该论文引出了MRC领域**一维匹配模型**和**二维匹配模型**的概念：一维匹配模型将query编码为固定长度的向量，计算document每个词在特定问题上下文向量中作为答案的概率；二维匹配模型将query每一个词编码，计算document中每一个词对query中每一个词的注意力，形成词与词的二维匹配结构，模型效果要稍优于一维匹配模型。
 
@@ -672,7 +731,10 @@ $$
 
 论文《Bidirectional Attention Flow for Machine Comprehension》提出使用双向注意力流机制实现机器阅读理解，确立了编码层-交互层-输出层的MRC结构。所提出的模型如下图所示：
 
-<img src="/Users/zhaoziliang/Desktop/4-自然语言处理//images/4/image-20220105101023855.png" style="zoom:45%;" />
+<div align="center">
+<img src="/images/4/image-20220105101023855.png" style="zoom:45%;" />
+</div>
+
 
 (1) 在三个**嵌入层(embedding layer)** 中，首先对每个token分别使用字符级别和词级别的嵌入进行标识，然后用LSTM进行编码。经过LSTM后得到两个矩阵：$H \in \mathbb R^{2d \times T}$以及$U \in \mathbb R^{2d \times J}$，其中$d$是词嵌入和字符嵌入得到的表示的长度，$T$和$J$分别表示上下文(context)和查询(query)的长度。到这一步，查询和上下文是分开并行处理的。
 
@@ -686,8 +748,11 @@ $$
 
 基于RNN结构的模型训练和推断速度较慢。论文《QANet: Combining Local Convolution with Global Self-Attention for Reading Comprehension》提出了一种基于卷积和自注意力操作的网络用于机器阅读理解，其能够在准确率不下降的情况下，以3-13倍的训练增速以及4-9倍的推断增速实现加速。模型的整体架构如下图所示：
 
-<img src="/Users/zhaoziliang/Desktop/4-自然语言处理//images/4/image-20220105150906555.png" style="zoom:55%;" />
 
+
+<div align="center">
+<img src="/images/4/image-20220105150906555.png" style="zoom:55%;" />
+</div>
 其输入层设计为300维的GloVe词向量和200维的字符嵌入。对于context-query attention层，其采用的策略与Bi-DAF一致。该论文的重点在于将Bi-DAF中的LSTM编码层替换为了多个Encoder Blocks，如上图右侧所示。在这些blocks中，卷积操作可以对局部相互作用建模(捕获文本的局部结构)，而使用自注意力机制则可以对全局交互进行建模(学习每对单词之间的相互作用)。对于SQuAD 1.1数据集，模型输出层预测的是各个位置作为开始和结束位置的概率，因此与Bi-DAF类似，将起始位置和结束位置交叉熵之和作为损失函数进行优化。
 
 ### 基于预训练语言模型的MRC
@@ -698,8 +763,11 @@ $$
 
 在下图中，[a]展示了最直接的阅读理解模型，即不存在验证模块的模型；[b]和[c]两种方式分别在模型encoder端和decoder端中加入了验证模块，并在训练时采用多任务学习的策略，从而使模型能够判断不可回答的问题并进行忽略。该论文主要提出两个模块：泛读器(sketchy reading module)和精读器(intensive reading module)，通过两阶段的方式完成阅读。下图中[d]和[e]展示了该论文所提出的结构：
 
-<img src="/Users/zhaoziliang/Desktop/4-自然语言处理//images/4/image-20220105153105939.png" style="zoom:45%;" />
 
+
+<div align="center">
+<img src="/images/4/image-20220105153105939.png" style="zoom:45%;" />
+</div>
 #### Sketchy Reading Module
 
 泛读器由以下部分组成：

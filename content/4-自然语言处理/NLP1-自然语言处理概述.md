@@ -206,7 +206,10 @@ type指语料库中**不同的词的个数(即词典大小)**，而token指语�
 
 目前常用的英语分词标准是**Penn Treebank tokenization标准**，一个使用该标准的分词实例如下：
 
+<div align="center">
 <img src="/images/4/image-20200430090758651.png" style="zoom:25%;" />
+</div>
+
 
 在实际应用中，由于分词是在其他NLP处理之前的步骤，其需要很快的完成速度。目前**英语**分词的通用方法是使用NLTK(http://www.nltk.org)。**汉语**分词比英语更复杂，常用的分词工具是jieba(https://github.com/fxsjy/jieba)。但一些研究发现，汉语直接按汉字进行切分的效果要比分词更好，因为一个汉字代表一个独立的语素，而且产生的单词表更小，且不会产生非常多的低频词汇。然而，在**日语和泰语**等语言中，单个字符作为一个独立单元太小了，因此必须分词。对于汉语、日语和泰语这类语言的标准分词算法使用**神经序列模型(neural sequence model)**，通过监督学习的方式训练模型在手工切分的数据集上学习切分的方式。
 
@@ -216,23 +219,40 @@ type指语料库中**不同的词的个数(即词典大小)**，而token指语�
 
 (1) 第一步，vocabulary里只有单个字符，dictionary表示文本中出现的所有单词及其相应的词频：
 
+<div align="center">
 <img src="/images/4/image-20200430103137228.png" style="zoom:25%;" />
+</div>
+
 
 (2) 第二步，“(r, _)”这一字符对出现的频率最高，将其合并后加入vocabulary中：
 
+<div align="center">
 <img src="/images/4/image-20200430103249059.png" style="zoom:25%;" />
+</div>
+
 
 (3) 第三步，“(e, r_)”这一字符对出现的频率最高，将其合并后加入vocabulary中：
 
+<div align="center">
 <img src="/images/4/image-20200430103416331.png" style="zoom:25%;" />
+</div>
+
+
 
 (4) 第四步，以此类推：
 
+
+<div align="center">
 <img src="/images/4/image-20200430103708140.png" style="zoom:25%;" />
+</div>
+
+
 
 (5) 继续合并，会得到如下结果：
 
+<div align="center">
 <img src="/images/4/image-20200430103739915.png" alt="image-20200430103739915" style="zoom:25%;" />
+</div>
 
 对于测试句子的切分，首先将其分解为单个字符，然后按照训练时合并的顺序，对测试句子进行逐个合并，直到无法合并为止。因此在上例中，**“n e w e r _”会被合并为“newer\_”，而“l o w e r _”会被合并成“low er\_”**。
 
@@ -256,15 +276,26 @@ type指语料库中**不同的词的个数(即词典大小)**，而token指语�
 
 (1) **词的表示(word representation)**：词是自然语言处理许多任务中最基础的单元。在使用深度学习来解决NLP中的任务的时候，词如何表示成为了一个核心的问题。在deep NLP中，词通常通过词向量(或词嵌入)的方式进行表示。**词嵌入(word embedding)** 技术将每个单词嵌入到一个低维空间中，相似的单词在空间中的距离较近。
 
+<div align="center">
 <img src="/images/4/image-20200430091820599.png" style="zoom:30%;" />
+</div>
+
 
 (2) **形态学(morphology)**：在传统NLP任务中，词由语素(morphemes)组成，如词干、前缀和后缀等；而在deep NLP中，为了描述词的多样的形态变换，解决方案是将每个语素看做一个向量，**神经网络将多个语素向量结合**，最终形成一个词向量(应用：句法分析器)。
 
+
+<div align="center">
 <img src="/images/4/image-20200430091333212.png" style="zoom:20%;" />
+</div>
+
 
 (3) **语义学(semantics)**：传统NLP通常使用lambda演算，即精巧设计的函数来表达语义；在deep NLP中依然是**将每个语义单位用向量来进行表示**(应用：情感分析)。
 
+<div align="center">
 <img src="/images/4/image-20200430091419840.png" style="zoom:20%;" />
+</div>
+
+
 
 (4) **问答系统(question answering)**：传统方法需要大量特征工程来捕获知识。在深度学习中，使用神经网络可以很好地解决该问题，因为deep NLP认为**Facts are stored in vectors**。
 
@@ -272,7 +303,10 @@ type指语料库中**不同的词的个数(即词典大小)**，而token指语�
 
 (6) **机器翻译(machine translation)**：传统的翻译系统是一个非常大的多层结构，而深度学习中可以使用神经网络完成**端到端翻译过程**，并使翻译性能得到极大的提高。
 
+<div align="center">
 <img src="/images/4/image-20200430091527847.png" style="zoom:40%;" />
+</div>
+
 
 ### jieba库的分词、词性标注与关键词提取操作示例
 

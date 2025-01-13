@@ -92,7 +92,7 @@ type: docs
       <th>内容</th>
     </tr>
   </thead>
-  <tbody>
+  <tbody border="1px">
     <tr>
       <td rowspan="5"><a href="/docs/1-数学基础/">人工智能数学基础</a></td>
       <td><a href="/docs/1-数学基础/math1-线性代数/">线性代数</a></td>
@@ -243,7 +243,7 @@ type: docs
 
 ### 知予AI研究手册<a name="Knove-AI-Research"> </a>
 
-<table border="1px">
+<table >
   <thead>
     <tr>
       <th>章节</th>
@@ -294,29 +294,26 @@ table td {
 
 
 
-    border-bottom: 1px solid #999;
     
-    border-right: 1px solid #999;
+    border: 1px solid #999;
 
 }
 table {
-    border-bottom: 1px solid #999;
+    border: 1px solid #999;
 
-    border-right: 1px solid #999;
+   
 }
 tbody{
-      border-bottom: 1px solid #999;
+      border: 1px solid #999;
 
-    border-right: 1px solid #999;
+  
 }
 thead {
-   border-bottom: 1px solid #999;
+   border: 1px solid #999;
 
-    border-right: 1px solid #999;
 }
 th{
-   border-bottom: 1px solid #999;
+   border: 1px solid #999;
 
-    border-right: 1px solid #999;
 }
 </style>

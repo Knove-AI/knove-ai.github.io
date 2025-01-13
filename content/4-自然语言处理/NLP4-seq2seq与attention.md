@@ -17,13 +17,19 @@ description:
 
 因此，seq2seq模型通常被称为“**编码器-解码器模型**”。其示意图如下：
 
+<div align="center">
 <img src="/images/4/image-20200717100127147.png" style="zoom:40%;" />
+</div>
+
 
 首先，编码器将输入句子编码为一个**隐含层向量**作为整个输入句子的嵌入向量，然后将该向量作为解码器的**初始隐含层向量**，输入一个\<START\>特殊标记，通过**自回归**的方式不断生成单词，直到生成\<END\>符号，或者达到长度限制为止。以上decoder生成(测试)句子的方式为**greedy decoding**，即**每次选取输出softmax值最大的单词**。
 
 greedy decoding的缺陷是无法undo decision，即**一步错，步步错**。解决方案是**beam search**，即explore several hypotheses and select the best one。On each step of decoder, keep track of the k(beam size) most probable partial translations。beam search相当于**全局搜索的剪枝过程**，其不保证找到最优解，但是效果更好。beam size为2的情况如下：
 
+<div align="center">
 <img src="/images/4/image-20200717100806251.png" style="zoom:35%;" />
+</div>
+
 
 ### 注意力机制
 
@@ -84,7 +90,10 @@ $$
 $$
 上式称为**软性注意力机制(soft attention mechanism)**，下图给出了软性注意力机制的示意。
 
+<div align="center">
 <img src="/images/4/image-20200717105643785.png" style="zoom:30%;" />
+</div>
+
 
 #### 注意力机制的变体
 
@@ -115,7 +124,11 @@ $$
 
 以机器翻译这一seq2seq任务为例，论文[1]和[2]设计了如下所示的global attention机制：
 
+<div align="center">
 <img src="/images/4/image-20200717183337792.png" style="zoom:45%;" />
+</div>
+
+
 
 
 在每个时间步$t$，计算解码器当前时间步的输出$\boldsymbol h_t$和所有编码器隐含状态$\boldsymbol{\bar h}_s$的得分函数，并得到权重向量$\boldsymbol a_t$。然后将编码器每个时间步的输出与$\boldsymbol a_t$进行加权平均，得到上下文向量$\boldsymbol c_t$。公式描述如下：
@@ -156,13 +169,19 @@ s_{i, j}=\boldsymbol{v}^{\mathrm{T}} \tanh (W \boldsymbol{x}_{j}+U \boldsymbol{h
 $$
 其中$\boldsymbol v,W,U$为可学习的参数。下图给出了指针网络的示例。
 
+<div align="center">
 <img src="/images/4/image-20200717205833195.png" style="zoom:30%;" />
+</div>
+
 
 #### 自注意力机制
 
 当使用神经网络来处理一个变长的向量序列时，我们通常可以使用卷积网络[4]或循环网络进行编码来得到一个相同长度的输出向量序列，如下图所示：
 
+<div align="center">
 <img src="/images/4/image-20200717213925973.png" style="zoom:35%;" />
+</div>
+
 
 **基于卷积或循环网络的序列编码都可以看做是一种局部的编码方式**，只建模了**输入信息的局部依赖关系**。虽然循环网络理论上可以建立长距离依赖关系，但是由于信息传递的容量以及梯度消失问题，**实际上也只能建立短距离依赖关系**。
 
