@@ -17,7 +17,9 @@ description:
 
 神经网络的基本组成单位是**神经元(neuron)**，如下所示：
 
+<div align="center">
 <img src="/images/3/image-20200428203202172.png" style="zoom:35%;" />
+</div>
 
 假设一个神经元接收$D$个输入$x_1,x_2,\cdots,x_D$，令向量$\boldsymbol{x}=\left[x_{1} ; x_{2} ; \cdots ; x_{D}\right]$表示这组输入，并用**净输入(net input)**$z\in \mathbb R$表示一个神经元所获得的输入信号的加权和，则神经元的**前向(forward)运算**过程如下：
 $$
@@ -42,7 +44,10 @@ $$
 
 三种网络结构示意图如下所示：
 
+<div align="center">
 <img src="/images/3/image-20200428224849253.png" style="zoom:30%;" />
+</div>
+
 
 ### 激活函数
 
@@ -68,7 +73,9 @@ $$
 $$
 下图给出了sigmoid函数和tanh函数的图像。tanh函数的输出是零中心化的(zero-centered)，而sigmoid函数的输出恒大于0。非零中心化的输出会使 得其后一层的神经元的输入发生**偏置偏移(bias shift)**，并**进一步使得梯度下降的收敛速度变慢**。
 
+<div align="center">
 <img src="/images/3/image-20200428214520104.png" style="zoom:30%;" />
+</div>
 
 (3) **ReLU函数**：ReLU(Rectified Linear Unit, 修正线性单元)是目前深度神经网络中经常使用的激活函数。
 $$
@@ -114,7 +121,9 @@ $$
 $$
 下图给出了ReLU、Leaky ReLU、ELU以及Softplus函数的示例。
 
+<div align="center">
 <img src="/images/3/image-20200428215823434.png" style="zoom:30%;" />
+</div>
 
 (7) **Swish函数**：一种**自门控(self-gated)**激活函数，定义为：
 $$
@@ -122,7 +131,10 @@ $$
 $$
 其中$\sigma(\cdot)$为sigmoid函数，$\beta$为可学习的参数或一个固定超参数，$\sigma(\cdot) \in (0,1)$可以看作是一种软性的门控机制。当$\sigma(\beta x)$接近于1时，门处于“开”状态，激活函数的输出近似于$x$本身；当$\sigma(\beta x)$接近于0时，门的状态为“关”，激活函数的输出近似于0。下图给出了Swish函数的实例。
 
+
+<div align="center">
 <img src="/images/3/image-20200428223811432.png" style="zoom:30%;" />
+</div>
 
 除了以上这些激活函数外，还有各式各样其他激活函数，如**Maxout单元**、**高斯误差线性单元(GELU)** 等。
 
@@ -130,11 +142,15 @@ $$
 
 **前馈神经网络(feed-forward neural network)** 是结构最简单的神经网络，其信息从输入层通过多个隐含层传递到输出层，然后误差通过反向传播算法再从输出层逐层传播至输入层。其网络层次表示如下：
 
+<div align="center">
 <img src="/images/3/image-20200428225023895.png" style="zoom:25%;" />
+</div>
 
 前馈神经网络可用如下参数表示：
 
+<div align="center">
 <img src="/images/3/image-20200428225743651.png" style="zoom:25%;" />
+</div>
 
 前馈神经网络通过下面公式进行**前向传播**：
 $$
@@ -241,7 +257,9 @@ $$
 
 在计算出每一层的误差时候，我们就可以得到每一层参数的梯度。因此，使用反向传播算法的前馈神经网络的训练过程可以分为以下三步：(1) 前馈计算每一层的净输入$\boldsymbol z^{(l)}$和激活值$\boldsymbol a^{(l)}$直到最后一层；(2) 反向计算每一层的误差项$\delta^{(l)}$；(3) 计算每一层参数的偏导数，并更新参数。使用反向传播算法的随机梯度下降训练过程如下所示：
 
+<div align="center">
 <img src="/images/3/image-20200429181346985.png" style="zoom:40%;" />
+</div>
 
 ### 通用近似定理
 
@@ -290,11 +308,14 @@ f(x ; w, b)=\frac{1}{\exp (-(w x+b))+1}
 $$
 该复合函数可以用如下**计算图(computational graph)** 进行表示：
 
+<div align="center">
 <img src="/images/3/image-20200429195107920.png" style="zoom:35%;" />
+</div>
 
 从计算图上可以看出，该复合函数由六个基本函数组成，每个基本函数的导数都很简单，可以通过规则实现：
-
+<div align="center">
 <img src="/images/3/image-20200429195546467.png" style="zoom:30%;" />
+</div>
 
 整个复合函数$f(x;w,b)$关于参数$w$和$b$的梯度可以通过计算图上的结点$f(x;w,b)$与参数$w$和$b$之间路径上所有的导数连乘来得到，即：
 $$

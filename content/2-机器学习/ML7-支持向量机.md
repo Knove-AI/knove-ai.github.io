@@ -43,7 +43,9 @@ $$
 $$
 这就是支持向量机的基本型。下图展示了分割超平面、支持向量以及间隔之间的关系。
 
+<div align="center">
 <img src="/images/2/image-20200424200122266.png" style="zoom:40%;" />
+</div>
 
 为了找到最大间隔分割超平面，将上式目标函数写为凸优化问题：
 $$
@@ -99,7 +101,9 @@ $$
 
 令$\phi(\boldsymbol x)$表示将$\boldsymbol x$映射后的特征向量，于是，在特征空间中划分超平面所对应的模型可表示为$f(\boldsymbol x)=\boldsymbol w^\text T \phi(\boldsymbol x)+b$，其中$\boldsymbol w$和$b$是模型参数，因此原始问题形式只需将$\boldsymbol x$变为$\phi(\boldsymbol x)$即可。
 
+<div align="center">
 <img src="/images/2/image-20200424212330626.png" style="zoom:50%;" />
+</div>
 
 在一个变换后的特征空间$\phi$中，支持向量机的决策函数为：
 $$

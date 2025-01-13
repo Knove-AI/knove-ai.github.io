@@ -51,17 +51,27 @@ $$
 
 对于集合$C$，如果对任意$x,y \in C,\theta \in \mathbb R,0 \leqslant \theta \leqslant 1$，有$\theta x + (1-\theta)y \in C$，则集合$C$为**凸集(convex set)**。下图中，左边为凸集，右边为非凸集：
 
+<div align="center">
 <img src="/images/1/image-20200604220501894.png" style="zoom:20%;" />
+</div>
+
 
 $\theta x+(1-\theta)y$称为点$x$和$y$的凸组合。凸集有以下实例：
 
+<div align="center">
 <img src="/images/1/image-20200608210123071.png" style="zoom:35%;" />
+</div>
 
+<div align="center">
 <img src="/images/1/image-20200608210306814.png" style="zoom:35%;" />
+</div>
 
+<div align="center">
 <img src="/images/1/image-20200608210354412.png" style="zoom:35%;" />
-
+</div>
+<div align="center">
 <img src="/images/1/image-20200608210431723.png" style="zoom:35%;" />
+</div>
 
 #### 凸函数
 
@@ -113,7 +123,10 @@ $$
 
 梯度下降法的过程如下图所示：
 
+
+<div align="center">
 <img src="/images/1/image-20200525174138426.png" style="zoom:35%;" />
+</div>
 
 梯度下降法为一阶收敛算法，当靠近极小值时梯度变小，收敛速度会变慢，并且可能以“之字形”的方式下降。如果目标函数为二阶连续可微，我们可以采用**牛顿法**。牛顿法为二阶收敛算法，收敛速度更快，但是**每次迭代需要计算Hessian矩阵的逆矩阵，复杂度较高**。
 
@@ -201,7 +214,10 @@ $$
 
 等式约束优化问题的解释如下：假设目标函数是二维的，即$f(x,y)$，下图蓝色虚线为目标函数的等高线图。对于凸的目标函数，**只有当等高线与目标函数的曲线相切时才有可能得到可行解**。因此在最优解处目标函数与约束函数$g(x,y)$相切，这时两者的法向量是平行的，即：$\nabla f(x,y)+\lambda \nabla g(x,y)=0$，与上文对应。
 
+
+<div align="center">
 <img src="/images/1/image-20200526164541279.png" style="zoom:35%;" />
+</div>
 
 #### 不等式约束优化问题
 

@@ -29,12 +29,15 @@ $$
 \end{array}\right.
 $$
 具体的感知机参数学习算法如下所示：
-
+<div align="center">
 <img src="/images/2/image-20200421193100436.png" style="zoom:40%;" />
+</div>
 
 下图给出了感知机参数学习的更新过程，其中红色实心点为正例，蓝色空心点为负例。黑色箭头表示权重向量，红色虚线箭头表示权重的更新方向。
 
+<div align="center">
 <img src="/images/2/image-20200421193247291.png" style="zoom:50%;" />
+</div>
 
 ### 感知机算法的收敛性
 
@@ -109,7 +112,10 @@ $$
 $$
 但这个方法需要在处理每一个样本时都要更新$\bar{\boldsymbol w}$。因为$\bar{\boldsymbol w}$和$\boldsymbol w_{t,n}$都是稠密向量，所以更新操作比较费时。为了提高迭代速度，有很多改进的方法，让这个更新只需要在错误预测发生时才进行更新。一个改进的平均感知机算法的训练过程如下所示：
 
+<div align="center">
 <img src="/images/2/image-20200421202350637.png" style="zoom:40%;" />
+</div>
+
 
 ### 基于numpy的感知机实现
 

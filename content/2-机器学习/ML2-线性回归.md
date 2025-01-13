@@ -13,7 +13,9 @@ description:
 
 线性回归的示意图如下：
 
+<div align="center">
 <img src="/images/2/image-20200416113414181.png" style="zoom:35%;" />
+</div>
 
 ### 线性回归经验风险最小化
 
@@ -46,7 +48,9 @@ $$
 
 当$XX^\text T$不可逆时，可以使用**主成分分析(principal components analysis)** 来预处理数据，使特征独立，然后再使用最小二乘法进行求解。或者是**通过梯度下降法来迭代求解**，$\boldsymbol w$的更新公式为$\boldsymbol{w} \leftarrow \boldsymbol{w}+\alpha X\left(\boldsymbol{y}-X^{\mathrm{T}} \boldsymbol{w}\right)$。
 
+<div align="center">
 <img src="/images/2/image-20200416175139915.png" alt="image-20200416175139915" style="zoom:50%;" />
+</div>
 
 其中$\alpha$是学习率。这种利用梯度下降法来估计参数的方法也称为**最小均方(least mean squares)** 算法。由于风险函数$\mathcal R(\boldsymbol w)$是关于$\boldsymbol w$的**凸函数**，因此只要选取一个合适的学习率，最终风险函数总能收敛到全局最小值。
 

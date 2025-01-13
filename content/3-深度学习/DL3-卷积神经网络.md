@@ -31,7 +31,9 @@ $$
 
 一般情况下滤波器的长度$m$远小于信号序列的长度$n$。下图为一维卷积的示意图：
 
+<div align="center">
 <img src="/images/3/image-20200508144946346.png" style="zoom:30%;" />
+</div>
 
 #### 二维卷积
 

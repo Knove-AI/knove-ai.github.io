@@ -54,7 +54,10 @@ print(entropy(p3))
 
 假设一个随机变量$X$有三种可能取值$x_1,x_2,x_3$，不同概率分布对应的熵如下：
 
+<div align="center">
 <img src="/images/1/image-20200526195633003.png" style="zoom:30%;" />
+</div>
+
 
 #### 熵编码
 

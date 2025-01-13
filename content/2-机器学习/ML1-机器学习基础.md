@@ -22,7 +22,9 @@ description:
 
 人工智能的**发展简史**如下：
 
+<div align="center">
 <img src="/images/2/image-20200415145435022.png" style="zoom:45%;" />
+</div>
 
 ### 统计学习
 
@@ -70,7 +72,9 @@ $$
 
 下图给出了**机器学习的基本流程**。对一个预测任务，输入特征向量为$\boldsymbol x$，输出标签为$y$，我们选择一个函数集合$\mathcal F$，通过学习算法$\mathcal A$和一组训练样本$\mathcal D$，从$\mathcal F$中学习到函数$f^*(\boldsymbol x)$。对新的输入$\boldsymbol x$，就可以用该函数进行预测。
 
+<div align="center">
 <img src="/images/2/image-20200415091828772.png" style="zoom:35%;" />
+</div>
 
 ### 统计学习的分类
 
@@ -287,7 +291,9 @@ $$
 
 当假设空间含有不同复杂度(例如不同参数个数)的模型时，应当选择或学习一个合适的模型。如果一味追求提高对训练数据的预测能力，所选模型的复杂度往往会比真模型更高，这种现象被称为过拟合。下图阐释了**回归问题**中的过拟合情况，其中左图为欠拟合(under-fitting)，中间为正常预测，右图为过拟合。显然，右图虽然能够对训练数据拟合得很好，但是模型过于复杂，**在回归问题中表现为多项式次数太高**，因此对未知数据的预测效果较差。
 
+<div align="center">
 <img src="/images/2/image-20200415150627942.png" style="zoom:35%;" />
+</div>
 
 应当**选择使测试误差最小的模型**。因此在学习时要防止过拟合，就要选择复杂度适当的模型。
 
@@ -308,7 +314,9 @@ $$
 
 正则化的图形化描述如下所示，其中最右图为**弹性网(elastic net)**，是LASSO回归和岭回归的调和：
 
+<div align="center">
 <img src="/images/2/image-20200415152219842.png" style="zoom:45%;" />
+</div>
 
 上图中，红色的圈(norm ball)就是要最小化的**损失函数的等高线图**，最中心的“+”就是理论上**损失函数误差最小的点**。左图的蓝色正方形(圆形)边界及内部点就是$L_1$正则化所产生的约束条件。注意，**等高线与norm ball首次相交的地方(图中为红点)就是最优解**，即损失函数最小的同时让参数仍然在限制范围内。可以看出，$L_1$正则化中的最优解点往往位于坐标轴上，即参数值为0的情况；而$L_2$正则化中的最优解点对应的参数值均不为0。这是一个非常重要的性质：$L_1$正则化中往往一些参数会变为0，因而可以进行**特征选择**，并且具有良好的解释性；$L_2$正则化中参数会被限定为很小的值，从优化或者数值计算的角度来说，$L_2$正则化有助于**处理病态矩阵求逆困难的问题**。
 
@@ -379,11 +387,16 @@ $$
 
 下图直观地展示了机器学习模型的四种偏差和方差的组合情况：
 
+<div align="center">
 <img src="/images/2/image-20200415170010360.png" style="zoom:40%">
+</div>
 
 下图为机器学习模型的期望错误$\mathcal R(f)$、偏差和方差随复杂度的变化情况：
 
+<div align="center">
 <img src="/images/2/image-20200415170056569.png" style="zoom:40%">
+</div>
+
 
 ### 生成模型与判别模型
 
@@ -401,7 +414,9 @@ $$
 
 **判别方法的特点**：判别方法直接学习的是决策函数$f(X)$或者条件概率分布$P(Y|X)$，直接面对预测，往往学习的准确率更高；由于直接学习$f(X)$或$P(Y|X)$，可以对数据进行各种程度上的抽象、定义特征并使用特征，因此可以在一定程度上简化学习问题。
 
+<div align="center">
 <img src="/images/2/image-20200415174749208.png" style="zoom:40%;" />
+</div>
 
 ### 监督学习的评价指标
 
@@ -409,11 +424,15 @@ $$
 
 二分类问题中，预测结果和真实标签之间有如下四种组合方式，称为**混淆矩阵(confusion matrix)**：
 
+<div align="center">
 <img src="/images/2/image-20200416091734381.png" style="zoom:40%;" />
+</div>
 
 分类问题常用的评价指标如下：
 
+<div align="center">
 <img src="/images/2/image-20200416092006689.png" style="zoom:40%;" />
+</div>
 
 很多时候我们有**多个二分类混淆矩阵**，例如进行多次训练/测试，每次得到一个混淆矩阵；或是在多个数据集上进行训练/测试，希望股计算法的“全局”性能；甚或是执行多分类任务，每两两类别的组合都对应一个混淆矩阵。总之，我们希望在$n$各二分类混淆矩阵上综合考察**精准率(precision)**和**召回率(recall)**。这便产生了两种方式：**宏平均(macro)**以及**微平均(micro)**。micro通过先计算总体的TP，FN和FP的数量，再计算precision、recall和F1等指标；macro分别计算每个类别的precision、recall和F1等指标，然后做平均。
 
@@ -425,11 +444,15 @@ $$
 
 **ROC曲线**便是从这个角度出发来研究学习器泛化性能的有力工具。ROC的全称是受试者工作特征(receiver operating characteristic)曲线，其根据学习器的预测结果对样例进行排序，按此顺序逐个把样本作为正例进行预测，每次计算出两个重要的值，即真正例率(true positive rate, TPR)和假正例率(false positive rate, FPR)，将二者作为横纵坐标作图，就得到了ROC曲线。这两个指标的定义如下：
 
+<div align="center">
 <img src="/images/2/image-20200416095347124.png" style="zoom:40%;" />
+</div>
 
 ROC曲线的示意图如下所示：
 
+<div align="center">
 <img src="/images/2/image-20200416095613316.png" style="zoom:40%;" />
+</div>
 
 **AUC(area under ROC curve)** 指的是ROC曲线下的面积。进行学习器比较时，AUC更高的学习器性能被认为更高。
 
@@ -437,11 +460,17 @@ ROC曲线的示意图如下所示：
 
 回归问题常用的评价指标如下：
 
+<div align="center">
 <img src="/images/2/image-20200416093316291.png" style="zoom:40%;" />
+</div>
 
+
+<div align="center">
 <img src="/images/2/image-20200416093335581.png" style="zoom:40%;" />
-
+</div>
+<div align="center">
 <img src="/images/2/image-20200416093417806.png" style="zoom:45%;" />
+</div>
 
 ### 假设空间
 
