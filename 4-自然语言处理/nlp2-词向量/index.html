@@ -1,0 +1,590 @@
+<!doctype html>
+<html itemscope itemtype="http://schema.org/WebPage" lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+
+
+<link rel="shortcut icon" href="/favicons/favicon.ico" >
+<link rel="apple-touch-icon" href="/favicons/apple-touch-icon-180x180.png" sizes="180x180">
+<link rel="icon" type="image/png" href="/favicons/favicon-16x16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="/favicons/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/favicons/android-36x36.png" sizes="36x36">
+<link rel="icon" type="image/png" href="/favicons/android-48x48.png" sizes="48x48">
+<link rel="icon" type="image/png" href="/favicons/android-72x72.png" sizes="72x72">
+<link rel="icon" type="image/png" href="/favicons/android-96x96.png" sizes="96x96">
+<link rel="icon" type="image/png" href="/favicons/android-144x144.png" sizes="144x144">
+<link rel="icon" type="image/png" href="/favicons/android-192x192.png" sizes="192x192">
+
+<title>词向量 | 知予AI</title>
+<meta name="description" content="词向量概述 在自然语言处理领域，词的表示(representation) 是一个核心问题。我们希望将单词通过某种嵌入的形式表示，以捕获词的含义(meaning)以及词和词之间的关系(relationship)。一个解决方法是，使用wordnet(a thesaurus containing lists of synonym sets and hypernyms)，如下所示：
+然而，wordnet存在着许多问题，例如新词汇含义的缺失、上下文无关以及对人类劳动力的需求过大等。
+$$w^{\text {aardvark}}=\left[\begin{array}{c}1 \\0 \\0 \\\vdots \\0\end{array}\right], w^{a}=\left[\begin{array}{c}0 \\1 \\0 \\\vdots \\0\end{array}\right], w^{a t}=\left[\begin{array}{c}0 \\0 \\1 \\\vdots \\0\end{array}\right], \cdots w^{z e b r a}=\left[\begin{array}{c}0 \\0 \\0 \\\vdots \\1\end{array}\right]$$ 即每个向量中只有一个位置为1，其余位置为0，为1的位置的下标对应单词的id。这样的词表示存在两个问题：(1) 没有给出两个单词之间的相似性，即任何两个向量的余弦相似度为0，这样会丢失语义信息；(2) 当词汇表很大时，每个单词对应的向量是一个高维稀疏向量。
+因此，或许可以尝试降低维度，使用一个子空间(维度为$N$，$N\ll |V|$)来表达单词。在传统机器学习方法中，可以利用**奇异值分解(single value decomposition, SVD)**实现该过程。
+首先遍历一个很大的数据集，统计词的共现计数矩阵$X$，然后对矩阵$X$进行奇异值分解得到$USV^\text T$，然后我们使用矩阵$U$的行来作为字典中所有词的词向量。$X$矩阵有两种选择的方式：(1) 统计每个单词在每个文档中出现的次数，生成单词-文本矩阵(word-document matrix)，这种方式称为潜在语义分析(latent semantic analysis)；(2) 计算每个单词在感兴趣单词的附近特定大小的窗口中出现的次数，生成基于窗口的单词-单词共现矩阵(window based co-occurence matrix)。以下为该方法的示例(假定窗口大小为1)：
+(1) I enjoy flflying.
+(2) I like NLP.
+(3) I like deep learning.">
+<meta property="og:url" content="https://knove-ai.github.io/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp2-%E8%AF%8D%E5%90%91%E9%87%8F/">
+  <meta property="og:site_name" content="知予AI">
+  <meta property="og:title" content="词向量">
+  <meta property="og:description" content="词向量概述 在自然语言处理领域，词的表示(representation) 是一个核心问题。我们希望将单词通过某种嵌入的形式表示，以捕获词的含义(meaning)以及词和词之间的关系(relationship)。一个解决方法是，使用wordnet(a thesaurus containing lists of synonym sets and hypernyms)，如下所示：
+然而，wordnet存在着许多问题，例如新词汇含义的缺失、上下文无关以及对人类劳动力的需求过大等。
+$$w^{\text {aardvark}}=\left[\begin{array}{c}1 \\0 \\0 \\\vdots \\0\end{array}\right], w^{a}=\left[\begin{array}{c}0 \\1 \\0 \\\vdots \\0\end{array}\right], w^{a t}=\left[\begin{array}{c}0 \\0 \\1 \\\vdots \\0\end{array}\right], \cdots w^{z e b r a}=\left[\begin{array}{c}0 \\0 \\0 \\\vdots \\1\end{array}\right]$$ 即每个向量中只有一个位置为1，其余位置为0，为1的位置的下标对应单词的id。这样的词表示存在两个问题：(1) 没有给出两个单词之间的相似性，即任何两个向量的余弦相似度为0，这样会丢失语义信息；(2) 当词汇表很大时，每个单词对应的向量是一个高维稀疏向量。
+因此，或许可以尝试降低维度，使用一个子空间(维度为$N$，$N\ll |V|$)来表达单词。在传统机器学习方法中，可以利用**奇异值分解(single value decomposition, SVD)**实现该过程。
+首先遍历一个很大的数据集，统计词的共现计数矩阵$X$，然后对矩阵$X$进行奇异值分解得到$USV^\text T$，然后我们使用矩阵$U$的行来作为字典中所有词的词向量。$X$矩阵有两种选择的方式：(1) 统计每个单词在每个文档中出现的次数，生成单词-文本矩阵(word-document matrix)，这种方式称为潜在语义分析(latent semantic analysis)；(2) 计算每个单词在感兴趣单词的附近特定大小的窗口中出现的次数，生成基于窗口的单词-单词共现矩阵(window based co-occurence matrix)。以下为该方法的示例(假定窗口大小为1)：
+(1) I enjoy flflying.
+(2) I like NLP.
+(3) I like deep learning.">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="4-自然语言处理">
+    <meta property="article:published_time" content="2017-01-01T00:00:00+00:00">
+    <meta property="article:modified_time" content="2017-01-01T00:00:00+00:00">
+
+  <meta itemprop="name" content="词向量">
+  <meta itemprop="description" content="词向量概述 在自然语言处理领域，词的表示(representation) 是一个核心问题。我们希望将单词通过某种嵌入的形式表示，以捕获词的含义(meaning)以及词和词之间的关系(relationship)。一个解决方法是，使用wordnet(a thesaurus containing lists of synonym sets and hypernyms)，如下所示：
+然而，wordnet存在着许多问题，例如新词汇含义的缺失、上下文无关以及对人类劳动力的需求过大等。
+$$w^{\text {aardvark}}=\left[\begin{array}{c}1 \\0 \\0 \\\vdots \\0\end{array}\right], w^{a}=\left[\begin{array}{c}0 \\1 \\0 \\\vdots \\0\end{array}\right], w^{a t}=\left[\begin{array}{c}0 \\0 \\1 \\\vdots \\0\end{array}\right], \cdots w^{z e b r a}=\left[\begin{array}{c}0 \\0 \\0 \\\vdots \\1\end{array}\right]$$ 即每个向量中只有一个位置为1，其余位置为0，为1的位置的下标对应单词的id。这样的词表示存在两个问题：(1) 没有给出两个单词之间的相似性，即任何两个向量的余弦相似度为0，这样会丢失语义信息；(2) 当词汇表很大时，每个单词对应的向量是一个高维稀疏向量。
+因此，或许可以尝试降低维度，使用一个子空间(维度为$N$，$N\ll |V|$)来表达单词。在传统机器学习方法中，可以利用**奇异值分解(single value decomposition, SVD)**实现该过程。
+首先遍历一个很大的数据集，统计词的共现计数矩阵$X$，然后对矩阵$X$进行奇异值分解得到$USV^\text T$，然后我们使用矩阵$U$的行来作为字典中所有词的词向量。$X$矩阵有两种选择的方式：(1) 统计每个单词在每个文档中出现的次数，生成单词-文本矩阵(word-document matrix)，这种方式称为潜在语义分析(latent semantic analysis)；(2) 计算每个单词在感兴趣单词的附近特定大小的窗口中出现的次数，生成基于窗口的单词-单词共现矩阵(window based co-occurence matrix)。以下为该方法的示例(假定窗口大小为1)：
+(1) I enjoy flflying.
+(2) I like NLP.
+(3) I like deep learning.">
+  <meta itemprop="datePublished" content="2017-01-01T00:00:00+00:00">
+  <meta itemprop="dateModified" content="2017-01-01T00:00:00+00:00">
+  <meta itemprop="wordCount" content="880">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="词向量">
+  <meta name="twitter:description" content="词向量概述 在自然语言处理领域，词的表示(representation) 是一个核心问题。我们希望将单词通过某种嵌入的形式表示，以捕获词的含义(meaning)以及词和词之间的关系(relationship)。一个解决方法是，使用wordnet(a thesaurus containing lists of synonym sets and hypernyms)，如下所示：
+然而，wordnet存在着许多问题，例如新词汇含义的缺失、上下文无关以及对人类劳动力的需求过大等。
+$$w^{\text {aardvark}}=\left[\begin{array}{c}1 \\0 \\0 \\\vdots \\0\end{array}\right], w^{a}=\left[\begin{array}{c}0 \\1 \\0 \\\vdots \\0\end{array}\right], w^{a t}=\left[\begin{array}{c}0 \\0 \\1 \\\vdots \\0\end{array}\right], \cdots w^{z e b r a}=\left[\begin{array}{c}0 \\0 \\0 \\\vdots \\1\end{array}\right]$$ 即每个向量中只有一个位置为1，其余位置为0，为1的位置的下标对应单词的id。这样的词表示存在两个问题：(1) 没有给出两个单词之间的相似性，即任何两个向量的余弦相似度为0，这样会丢失语义信息；(2) 当词汇表很大时，每个单词对应的向量是一个高维稀疏向量。
+因此，或许可以尝试降低维度，使用一个子空间(维度为$N$，$N\ll |V|$)来表达单词。在传统机器学习方法中，可以利用**奇异值分解(single value decomposition, SVD)**实现该过程。
+首先遍历一个很大的数据集，统计词的共现计数矩阵$X$，然后对矩阵$X$进行奇异值分解得到$USV^\text T$，然后我们使用矩阵$U$的行来作为字典中所有词的词向量。$X$矩阵有两种选择的方式：(1) 统计每个单词在每个文档中出现的次数，生成单词-文本矩阵(word-document matrix)，这种方式称为潜在语义分析(latent semantic analysis)；(2) 计算每个单词在感兴趣单词的附近特定大小的窗口中出现的次数，生成基于窗口的单词-单词共现矩阵(window based co-occurence matrix)。以下为该方法的示例(假定窗口大小为1)：
+(1) I enjoy flflying.
+(2) I like NLP.
+(3) I like deep learning.">
+<link rel="preload" href="/scss/main.min.a52b2e54f3e921e61502207760f8ecb468b09dc55f348cc42d9b9b9132637847.css" as="style" integrity="sha256-pSsuVPPpIeYVAiB3YPjstGiwncVfNIzELZubkTJjeEc=" crossorigin="anonymous">
+<link href="/scss/main.min.a52b2e54f3e921e61502207760f8ecb468b09dc55f348cc42d9b9b9132637847.css" rel="stylesheet" integrity="sha256-pSsuVPPpIeYVAiB3YPjstGiwncVfNIzELZubkTJjeEc=" crossorigin="anonymous">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda+SC:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Bodoni+Moda:ital,opsz,wght@1,6..96,800&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Sen:wght@400..800&display=swap" rel="stylesheet">
+<script
+  src="https://code.jquery.com/jquery-3.7.1.min.js"
+  integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+  crossorigin="anonymous"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: '\\[', right: '\\]', display: true},   
+        {left: '$$', right: '$$', display: true},     
+        {left: '\\(', right: '\\)', display: false},  
+      ],
+      throwOnError : false
+    });
+  });
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+  </head>
+  <body class="td-page">
+    <header>
+      
+    </header>
+    <div class="container-fluid td-outer">
+      <div class="td-main">
+        <div class="row flex-xl-nowrap">
+          <aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none">
+            <div id="td-sidebar-menu" class="td-sidebar__inner">
+  <image src="/logo.png" style="width: 100%;" />
+
+
+  <form class="td-sidebar__search d-flex align-items-center">
+    
+    <button class="btn btn-link td-sidebar__toggle d-md-none p-0 ms-3 fas fa-bars" type="button" data-bs-toggle="collapse" data-bs-target="#td-section-nav" aria-controls="td-section-nav" aria-expanded="false" aria-label="Toggle section navigation">
+    </button>
+  </form>
+  <nav class="td-sidebar-nav collapse" id="td-section-nav">
+    <ul class="td-sidebar-nav__section pe-md-3 ul-0">
+      <li> <a href="/">首页</a></li>
+      <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m--li">
+  <a href="/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id="m-"><span class=""></span></a>
+  <ul class="ul-1">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-1-e695b0e5ada6e59fbae7a180-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" title="数学基础" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-1-e695b0e5ada6e59fbae7a180"><span class="">1-数学基础</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math1-e7babfe680a7e4bba3e695b0-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math1-%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math1-e7babfe680a7e4bba3e695b0"><span class="">线性代数</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math2-e5beaee7a7afe58886-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math2-%E5%BE%AE%E7%A7%AF%E5%88%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math2-e5beaee7a7afe58886"><span class="">微积分</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math3-e695b0e5ada6e4bc98e58c96-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math3-%E6%95%B0%E5%AD%A6%E4%BC%98%E5%8C%96/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math3-e695b0e5ada6e4bc98e58c96"><span class="">数学优化</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math4-e6a682e78e87e7bb9fe8aea1-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math4-%E6%A6%82%E7%8E%87%E7%BB%9F%E8%AE%A1/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math4-e6a682e78e87e7bb9fe8aea1"><span class="">概率统计</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math5-e4bfa1e681afe8aeba-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math5-%E4%BF%A1%E6%81%AF%E8%AE%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math5-e4bfa1e681afe8aeba"><span class="">信息论</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-2-e69cbae599a8e5ada6e4b9a0-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-2-e69cbae599a8e5ada6e4b9a0"><span class="">2-机器学习</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml1-e69cbae599a8e5ada6e4b9a0e59fbae7a180-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml1-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%9F%BA%E7%A1%80/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml1-e69cbae599a8e5ada6e4b9a0e59fbae7a180"><span class="">机器学习基础</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml2-e7babfe680a7e59b9ee5bd92-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml2-%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml2-e7babfe680a7e59b9ee5bd92"><span class="">线性回归</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml3-ke8bf91e982bbe7ae97e6b395-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml3-k%E8%BF%91%E9%82%BB%E7%AE%97%E6%B3%95/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml3-ke8bf91e982bbe7ae97e6b395"><span class="">近邻算法</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml4-e6849fe79fa5e69cba-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml4-%E6%84%9F%E7%9F%A5%E6%9C%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml4-e6849fe79fa5e69cba"><span class="">感知机</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml5-e8b49de58fb6e696afe58886e7b1bbe599a8-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml5-%E8%B4%9D%E5%8F%B6%E6%96%AF%E5%88%86%E7%B1%BB%E5%99%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml5-e8b49de58fb6e696afe58886e7b1bbe599a8"><span class="">贝叶斯分类器</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml6-e980bbe8be91e59b9ee5bd92e4b88ee69c80e5a4a7e786b5e6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml6-%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92%E4%B8%8E%E6%9C%80%E5%A4%A7%E7%86%B5%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml6-e980bbe8be91e59b9ee5bd92e4b88ee69c80e5a4a7e786b5e6a8a1e59e8b"><span class="">逻辑回归与最大熵模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml7-e694afe68c81e59091e9878fe69cba-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml7-%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml7-e694afe68c81e59091e9878fe69cba"><span class="">支持向量机</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml8-e586b3e7ad96e6a091-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml8-%E5%86%B3%E7%AD%96%E6%A0%91/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml8-e586b3e7ad96e6a091"><span class="">决策树</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml9-e99b86e68890e5ada6e4b9a0-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml9-%E9%9B%86%E6%88%90%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml9-e99b86e68890e5ada6e4b9a0"><span class="">集成学习</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml10-eme7ae97e6b395-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml10-em%E7%AE%97%E6%B3%95/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml10-eme7ae97e6b395"><span class="">EM算法</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml11-e8819ae7b1bb-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml11-%E8%81%9A%E7%B1%BB/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml11-e8819ae7b1bb"><span class="">聚类</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml12-e9998de7bbb4-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml12-%E9%99%8D%E7%BB%B4/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml12-e9998de7bbb4"><span class="">降维</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml13-e789b9e5be81e98089e68ba9-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml13-%E7%89%B9%E5%BE%81%E9%80%89%E6%8B%A9/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml13-e789b9e5be81e98089e68ba9"><span class="">特征选择</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml14-e8af9de9a298e6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml14-%E8%AF%9D%E9%A2%98%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml14-e8af9de9a298e6a8a1e59e8b"><span class="">话题模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml15-e6a682e78e87e59bbee6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml15-%E6%A6%82%E7%8E%87%E5%9B%BE%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml15-e6a682e78e87e59bbee6a8a1e59e8b"><span class="">概率图模型</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-3-e6b7b1e5baa6e5ada6e4b9a0"><span class="">3-深度学习</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl1-e6b7b1e5baa6e5ada6e4b9a0e6a682e8bfb0-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl1-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E6%A6%82%E8%BF%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl1-e6b7b1e5baa6e5ada6e4b9a0e6a682e8bfb0"><span class="">深度学习概述</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl2-e7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl2-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl2-e7a59ee7bb8fe7bd91e7bb9c"><span class="">神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl3-e58db7e7a7afe7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl3-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl3-e58db7e7a7afe7a59ee7bb8fe7bd91e7bb9c"><span class="">卷积神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl4-e5beaae78eafe7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl4-%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl4-e5beaae78eafe7a59ee7bb8fe7bd91e7bb9c"><span class="">循环神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl5-e7a59ee7bb8fe7bd91e7bb9ce79a84e4bc98e58c96-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl5-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E7%9A%84%E4%BC%98%E5%8C%96/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl5-e7a59ee7bb8fe7bd91e7bb9ce79a84e4bc98e58c96"><span class="">神经网络的优化</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl6-e887aae7bc96e7a081e599a8-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl6-%E8%87%AA%E7%BC%96%E7%A0%81%E5%99%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl6-e887aae7bc96e7a081e599a8"><span class="">自编码器</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl7-e6b7b1e5baa6e7949fe68890e6a8a1e59e8b-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl7-%E6%B7%B1%E5%BA%A6%E7%94%9F%E6%88%90%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl7-e6b7b1e5baa6e7949fe68890e6a8a1e59e8b"><span class="">深度生成模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl8-e6b3a8e6848fe58a9be69cbae588b6e4b88ee5a496e983a8e8aeb0e5bf86-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl8-%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%E4%B8%8E%E5%A4%96%E9%83%A8%E8%AE%B0%E5%BF%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl8-e6b3a8e6848fe58a9be69cbae588b6e4b88ee5a496e983a8e8aeb0e5bf86"><span class="">注意力机制与外部记忆</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl9-e59bbee7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl9-%E5%9B%BE%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl9-e59bbee7a59ee7bb8fe7bd91e7bb9c"><span class="">图神经网络</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m-4-e887aae784b6e8afade8a880e5a484e79086-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-4-e887aae784b6e8afade8a880e5a484e79086"><span class="">4-自然语言处理</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp1-e887aae784b6e8afade8a880e5a484e79086e6a682e8bfb0-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp1-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E6%A6%82%E8%BF%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp1-e887aae784b6e8afade8a880e5a484e79086e6a682e8bfb0"><span class="">自然语言处理概述</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp2-e8af8de59091e9878f-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp2-%E8%AF%8D%E5%90%91%E9%87%8F/" class="align-left ps-0 active td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp2-e8af8de59091e9878f"><span class="td-sidebar-nav-active-item">词向量</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp3-e8afade8a880e6a8a1e59e8b-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp3-%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp3-e8afade8a880e6a8a1e59e8b"><span class="">语言模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp4-seq2seqe4b88eattention-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp4-seq2seq%E4%B8%8Eattention/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp4-seq2seqe4b88eattention"><span class="">seq2seq与attention</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp5-e9a284e8aeade7bb83e6a8a1e59e8b-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp5-%E9%A2%84%E8%AE%AD%E7%BB%83%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp5-e9a284e8aeade7bb83e6a8a1e59e8b"><span class="">预训练模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp6-e887aae784b6e8afade8a880e5a484e79086e5ba94e794a8-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp6-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E5%BA%94%E7%94%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp6-e887aae784b6e8afade8a880e5a484e79086e5ba94e794a8"><span class="">自然语言处理应用</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-5-aie7a094e7a9b6e6898be5868c-li">
+  <a href="/5-ai%E7%A0%94%E7%A9%B6%E6%89%8B%E5%86%8C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-5-aie7a094e7a9b6e6898be5868c"><span class="">5-AI研究手册</span></a>
+</li>
+  </ul>
+</li>
+    </ul>
+  </nav>
+</div>
+
+
+          </aside>
+          <aside class="d-none d-xl-block col-xl-2 td-sidebar-toc d-print-none">
+            <div class="td-page-meta ms-2 pb-1 pt-2 mb-0">
+
+</div>
+
+            <div class="td-toc">
+        <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#词向量概述">词向量概述</a></li>
+        <li><a href="#cbow">CBOW</a></li>
+        <li><a href="#skip-gram">skip-gram</a></li>
+        <li><a href="#word2vec的优化">word2vec的优化</a></li>
+        <li><a href="#glove">GloVe</a></li>
+        <li><a href="#词向量的评估">词向量的评估</a></li>
+        <li><a href="#句子与文档的嵌入">句子与文档的嵌入</a></li>
+        <li><a href="#使用gensim中的word2vec工具训练词向量">使用gensim中的word2vec工具训练词向量</a></li>
+        <li><a href="#参考资料">参考资料</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+      </div>
+    
+            
+
+          </aside>
+          <main class="col-12 col-md-9 col-xl-8 " role="main">
+            <nav class="td-navbar js-navbar-scroll" data-bs-theme="dark">
+<div class="container-fluid flex-column flex-md-row">
+  <a class="navbar-brand" href="/"><span class="navbar-brand__logo navbar-logo"><svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" style="enable-background:new 0 0 500 500"><g><path style="fill:#fff" d="M116.8525 421.9722c-5.7041.0-10.3442-4.3127-10.3442-9.6129V88.183c0-5.3002 4.6401-9.6117 10.3442-9.6117H320.858c3.0347.0 9.3959.5498 11.7506 2.6302l.3545.3442 58.905 63.2912c2.3101 2.491 2.9202 8.4928 2.9202 11.3184v256.2039c0 5.3002-4.6407 9.6129-10.3436 9.6129H116.8525z"/><g><g><g><path style="fill:#767676" d="M384.4445 423.2066H116.852c-6.3839.0-11.5786-4.8658-11.5786-10.8474V88.1831c0-5.9804 5.1947-10.8461 11.5786-10.8461h204.0062c.377.0 9.2786.0329 12.568 2.9389l.3947.3833 58.9508 63.337c3.2135 3.4652 3.2514 11.7924 3.2514 12.1593v256.2036C396.0231 418.3408 390.8284 423.2066 384.4445 423.2066zM116.5079 411.9189c.0848.0278.1999.0531.3441.0531h267.5925c.1442.0.2581-.0253.3441-.0531V156.1556c-.0076-.9033-.3593-3.7347-.7034-5.0037l-57.6527-61.9416c-1.4651-.3176-4.4533-.6389-5.5742-.6389H116.852c-.143.0-.2594.024-.3441.0531V411.9189zm267.4533-261.149zM327.0321 89.371v.0013V89.371z"/></g></g></g><g><g><path style="fill:#5b7fc0" d="M189.0874 210.1754l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4473C177.5953 212.627 183.0601 210.1742 189.0874 210.1754zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 234.1722 197.0804 232.033z"/><path style="opacity:.3;fill:#fff" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/><g><defs><path id="SVGID_1_" d="M194.7376 237.6875c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 234.2399 196.1861 236.239 194.7376 237.6875z"/></defs><clipPath id="SVGID_2_"><use xlink:href="#SVGID_1_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_2_);fill:#fff" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/><path style="opacity:.13;clip-path:url(#SVGID_2_);fill:#020202" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/></g><g><defs><path id="SVGID_3_" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/></defs><clipPath id="SVGID_4_"><use xlink:href="#SVGID_3_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_4_);fill:#5b7fc0" d="M172.6595 215.6045c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8475-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 209.1953 176.6171 211.647 172.6595 215.6045z"/></g></g><rect x="198.8952" y="225.1043" style="fill:#5b7fc0" width="122.6266" height="13.8671"/></g><g><path style="fill:#d95140" d="M189.0874 155.7611l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.0249 2.454-11.4897 6.4116-15.4473C177.5953 158.2128 183.0601 155.7599 189.0874 155.7611zm7.993 21.8577c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.2508 181.7667 197.0816 179.758 197.0804 177.6188z"/><path style="opacity:.3;fill:#fff" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/><g><defs><path id="SVGID_5_" d="M194.7376 183.2733c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 179.8256 196.1861 181.8248 194.7376 183.2733z"/></defs><clipPath id="SVGID_6_"><use xlink:href="#SVGID_5_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_6_);fill:#fff" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/><path style="opacity:.13;clip-path:url(#SVGID_6_);fill:#020202" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/></g><g><defs><path id="SVGID_7_" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/></defs><clipPath id="SVGID_8_"><use xlink:href="#SVGID_7_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_8_);fill:#d95140" d="M172.6595 161.1903c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 154.7811 176.6171 157.2327 172.6595 161.1903z"/></g><rect x="198.8952" y="170.69" style="fill:#d95140" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#56a55c" d="M189.5379 264.6147l.0012-.0012c7.7751.0012 15.0294 4.1862 18.932 10.9235 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032-5.8394.0-11.3281-2.2733-15.458-6.4032-4.13-4.13-6.4032-9.6186-6.4056-15.4628.0012-6.0249 2.454-11.4897 6.4116-15.4472C178.0458 267.0663 183.5105 264.6135 189.5379 264.6147zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6538 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.7013 290.6202 197.5321 288.6115 197.5309 286.4723z"/><path style="opacity:.3;fill:#fff" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/><g><defs><path id="SVGID_9_" d="M195.1881 292.1268c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9941 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.5344 288.6792 196.6366 290.6783 195.1881 292.1268z"/></defs><clipPath id="SVGID_10_"><use xlink:href="#SVGID_9_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_10_);fill:#fff" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/><path style="opacity:.13;clip-path:url(#SVGID_10_);fill:#020202" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/></g><g><defs><path id="SVGID_11_" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/></defs><clipPath id="SVGID_12_"><use xlink:href="#SVGID_11_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_12_);fill:#56a55c" d="M173.11 270.0439c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7325-11.1497-10.9151-18.926-10.9151C182.5311 263.6346 177.0676 266.0863 173.11 270.0439z"/></g></g><rect x="199.3456" y="279.5436" style="fill:#56a55c" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#f1bc42" d="M189.0874 318.7208l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3305-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4472C177.5953 321.1724 183.0601 318.7196 189.0874 318.7208zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 342.7176 197.0804 340.5784z"/><path style="opacity:.3;fill:#fff" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/><g><defs><path id="SVGID_13_" d="M194.7376 346.2329c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 342.7853 196.1861 344.7844 194.7376 346.2329z"/></defs><clipPath id="SVGID_14_"><use xlink:href="#SVGID_13_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_14_);fill:#fff" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/><path style="opacity:.13;clip-path:url(#SVGID_14_);fill:#020202" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/></g><g><defs><path id="SVGID_15_" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/></defs><clipPath id="SVGID_16_"><use xlink:href="#SVGID_15_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_16_);fill:#f1bc42" d="M172.6595 324.15c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8474-1.0151-7.6327-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 317.7407 176.6171 320.1924 172.6595 324.15z"/></g></g><rect x="198.8952" y="333.6497" style="fill:#f1bc42" width="122.6266" height="13.8671"/></g></g></svg></span><span class="navbar-brand__name">知予AI</span></a>
+  <div class="td-navbar-nav-scroll ms-md-auto" id="main_navbar">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="https://github.com/knove-ai" target="_blank" rel="noopener"><i class="fa fa-github"></i><span>Github</span></a>
+      </li>
+      </ul>
+  </div>
+  <div class="d-none d-lg-block">
+    
+  </div>
+</div>
+</nav>
+
+            <div class="ps-md-5">
+              
+  
+
+              <nav aria-label="breadcrumb" class="td-breadcrumbs">
+  <ol class="breadcrumb">
+  <li class="breadcrumb-item">
+    <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/">4-自然语言处理</a></li>
+  <li class="breadcrumb-item active" aria-current="page">
+    词向量</li>
+  </ol>
+</nav>
+              
+<div class="td-content">
+	<h1>词向量</h1>
+	
+	<header class="article-meta">
+		
+</header>
+	<h3 id="词向量概述">词向量概述</h3>
+<p>在自然语言处理领域，词的<strong>表示(representation)</strong> 是一个核心问题。我们希望将单词通过某种嵌入的形式表示，以捕获词的<strong>含义(meaning)<strong>以及词和词之间的</strong>关系(relationship)</strong>。一个解决方法是，使用wordnet(a thesaurus containing lists of <strong>synonym sets</strong> and <strong>hypernyms</strong>)，如下所示：</p>
+<div align="center">
+<img src="/images/4/image-20200426111111921.png" style="zoom:35%;" />
+</div>
+<p>然而，wordnet存在着许多问题，例如新词汇含义的缺失、上下文无关以及对人类劳动力的需求过大等。</p>
+$$
+w^{\text {aardvark}}=\left[\begin{array}{c}1 \\0 \\0 \\\vdots \\0\end{array}\right], w^{a}=\left[\begin{array}{c}0 \\1 \\0 \\\vdots \\0\end{array}\right], w^{a t}=\left[\begin{array}{c}0 \\0 \\1 \\\vdots \\0\end{array}\right], \cdots w^{z e b r a}=\left[\begin{array}{c}0 \\0 \\0 \\\vdots \\1\end{array}\right]
+$$<p>
+即<strong>每个向量中只有一个位置为1，其余位置为0，为1的位置的下标对应单词的id</strong>。这样的词表示存在两个问题：(1) 没有给出两个单词之间的相似性，即任何两个向量的余弦相似度为0，这样会丢失语义信息；(2) 当词汇表很大时，每个单词对应的向量是一个高维稀疏向量。</p>
+<p>因此，或许可以尝试降低维度，使用一个<strong>子空间</strong>(维度为$N$，$N\ll |V|$)来表达单词。在传统机器学习方法中，可以利用**奇异值分解(single value decomposition, SVD)**实现该过程。</p>
+<p>首先遍历一个很大的数据集，统计词的共现计数矩阵$X$，然后对矩阵$X$进行奇异值分解得到$USV^\text T$，然后我们使用矩阵$U$的行来作为字典中所有词的词向量。$X$矩阵有两种选择的方式：(1) 统计每个单词在每个文档中出现的次数，生成<strong>单词-文本矩阵(word-document matrix)</strong>，这种方式称为<strong>潜在语义分析(latent semantic analysis)</strong>；(2) 计算每个单词在感兴趣单词的<strong>附近特定大小的窗口</strong>中出现的次数，生成<strong>基于窗口的单词-单词共现矩阵(window based co-occurence matrix)</strong>。以下为该方法的示例(假定窗口大小为1)：</p>
+<p>(1) I enjoy flflying.</p>
+<p>(2) I like NLP.</p>
+<p>(3) I like deep learning.</p>
+<p>则基于窗口的共现矩阵如下所示：</p>
+<div align="center">
+<img src="/images/4/image-20200426114408414.png" style="zoom:25%;" />
+</div>
+<p>对矩阵$X$进行奇异值分解：</p>
+<div align="center">
+<img src="/images/4/image-20200426123148642.png" style="zoom:25%;" />
+</div>
+<p>通过选择前$k$个<strong>奇异向量</strong>来降低维度，该过程也称$k$-截断奇异值分解：</p>
+<div align="center">
+<img src="/images/4/image-20200426123257417.png" style="zoom:25%;" />
+</div>
+<p>词-文档矩阵和基于窗口的词共现矩阵都能<strong>使得到的词的表示充分编码语义和句法(词性标注)的信息</strong>，但是这些方法会存在许多问题：(1) 矩阵的维度会经常发生改变(增加<strong>新的单词</strong>导致语料库大小的变化)；(2) 矩阵会非常稀疏，因为很多词不会共现；(3) 矩阵的维度一般会非常高；(4) 基于SVD的方法的计算复杂度一般为$O(N^3)$。(5) 需要在$X$上加入一些技巧处理来解决词频的极剧的不平衡。</p>
+<p>对上述讨论中存在的问题存在以下的解决方法：(1) 忽略<strong>功能词</strong>，例如“the”，“he”，“has”等等；(2) 使用ramp window，即基于词与词之间的距离给共现计数加上一个<strong>权值</strong>；(3) 使用皮尔逊相关系数将负数的计数设为0，而不是使用原始的计数。</p>
+<p>word2vec[1][2]于2013年被提出，其核心思想是：<strong>一个词的含义由这个词旁边出现的词决定(You shall know a word by the company it keeps)</strong>。word2vec为每个单词创建一个**分布式表示(distributed representation)**的向量，其中上下文相似的单词的向量表示在向量空间内距离会更近，上下文不相似的单词的词向量距离会更远。word2vec通过以下步骤完成词向量的训练：</p>
+<p>(1) 获取足够大的<strong>文本语料库(text corpus)</strong>；</p>
+<p>(2) 创建一个<strong>词汇表(vocabulary)</strong>，词汇表中的每个单词都有一个向量表示；</p>
+<p>(3) 遍历文本中的每一个位置$t$，将位置$t$的单词记为$c$(center)，$c$的上下文(比如左右各$n$个单词)记为$o$(outside)；</p>
+<p>(4) 使用$c$和$o$的<strong>词向量的相似性</strong>来计算给定$c$的条件下$o$的概率(或者计算给定$c$的条件下$o$的概率)；</p>
+<p>(5) 不断调整词向量以最大化此概率。</p>
+<p>通过中间词$c$预测周围词$o$的概率分布的示意图如下所示：</p>
+<div align="center">
+<img src="/images/4/image-20200426173339902.png" style="zoom:30%;" />
+</div>
+$$
+P(o|c)=\frac{\exp(u_o^\text T v_c)}{\sum_{w \in V}\exp(u_w^\text T v_c)}
+$$<p>
+上式中，分子计算出中心词$c$和周围词$o$的相似性，分母将这种相似性归一化，这是典型的<strong>softmax函数</strong>的实例。通过语料可以构建这种有标签的训练数据($X$是中间词，$Y$是周围词)，然后通过梯度优化的方式进行求解。</p>
+<p>值得注意的是，对于每个单词$w$，word2vec将学得两个词向量，即当$w$<strong>作为中心词时的词向量</strong>$v_w$和当$w$<strong>作为周围词时的词向量</strong>$u_w$。可以让$w$最终的词向量表示等于$u_w+v_w$或者二者取平均，这样可以获得最好的学习效果，并且使用两个单独的矩阵<strong>使优化过程更简单</strong>，但一个词仅使用一个向量也可以实现。上例是word2vec中的一种训练词向量的算法。总的来说，word2vec主要包括如下模块：</p>
+<p>(1) 两个算法：<strong>CBOW和skip-gram</strong>。CBOW是根据中心词周围的上下文单词来预测该词的词向量。skip-gram则相反，是根据中心词预测周围上下文的词的概率分布。</p>
+<div align="center">
+<img src="/images/4/image-20200430120424549.png" style="zoom:30%;" />
+</div>
+<p>(2) 两个训练优化方法：<strong>负采样(negative sampling)和层次化softmax(hierarchical softmax)</strong>。前者通过抽取负样本来定义目标，后者通过使用一个有效的树结构计算所有词的概率来定义目标。</p>
+<h3 id="cbow">CBOW</h3>
+<p><strong>CBOW(Continuous Bag of Words)</strong> 模型通过中心词的上下文来预测该中心词。首先假设句子中的单词由one-hot编码表示，在CBOW模型中，我们创建两个矩阵：$\mathcal V \in \mathbb R^{n\times |V|},\mathcal U \in \mathbb R^{|V|\times n}$，其中$n$是人为设定的<strong>词向量的维度</strong>。$\mathcal V$是输入词向量矩阵，其第$i$<strong>列</strong>是单词$w_i$作为输入时的$n$维词向量表示，记为$v_i$；类似地，$\mathcal U$是输出词向量矩阵，其第$j$<strong>行</strong>是单词$w_j$作为输出时的$n$维词向量表示，记为$u_j$。</p>
+<p>CBOW的执行过程如下：</p>
+<div align="center">
+<img src="/images/4/image-20200427093946905.png" style="zoom:30%;" />
+</div>
+<p><strong>所预测的输出向量和真实的单词one-hot向量</strong>分别为$\hat y$和$y$，二者之间的<strong>交叉熵(cross entropy)</strong> 为：</p>
+$$
+H(\hat y,y)=-\sum_{j=1}^{|V|}y_j\log(\hat y_j)
+$$$$
+\begin{aligned}
+\operatorname{minimize} J &=-\log P(w_{c} | w_{c-m}, \ldots, w_{c-1}, w_{c+1}, \ldots, w_{c+m}) \\
+&=-\log P(u_{c} | \hat{v}) \\
+&=-\log \frac{\exp (u_{c}^{T} \hat{v})}{\sum_{j=1}^{|V|} \exp (u_{j}^{T} \hat{v})} \\
+&=-u_{c}^{T} \hat{v}+\log \sum_{j=1}^{|V|} \exp (u_{j}^{T} \hat{v})
+\end{aligned}
+$$<p>
+实现损失函数后，便可以使用梯度法对$u_c$和每个位置$j$的$v_j$不断进行优化。</p>
+<h3 id="skip-gram">skip-gram</h3>
+<p><strong>skip-gram</strong>模型通过中心词来预测其上下文中的单词，其执行过程如下：</p>
+<div align="center">
+<img src="/images/4/image-20200427095840636.png" style="zoom:25%;" />
+</div>
+$$
+\begin{aligned}
+\operatorname{minimize} J&=-\log P\left(w_{c-m}, \ldots, w_{c-1}, w_{c+1}, \ldots, w_{c+m} | w_{c}\right)\\
+&=-\log \prod_{j=0, j \neq m}^{2 m} P(w_{c-m+j} | w_{c}) \\
+&=-\log \prod_{j=0, j \neq m}^{2 m} P(u_{c-m+j} | v_{c}) \\
+&=-\log \prod_{j=0, j \neq m}^{2 m} \frac{\exp (u_{c-m+j}^{T} v_{c})}{\sum_{k=1}^{|V|} \exp (u_{k}^{T} v_{c})} \\
+&=-\sum_{j=0, j \neq m}^{2 m} u_{c-m+j}^{T} v_{c}+2 m \log \sum_{k=1}^{|V|} \exp (u_{k}^{T} v_{c})
+\end{aligned}
+$$$$
+\begin{aligned}
+J &=-\sum_{j=0, j \neq m}^{2 m} \log P(u_{c-m+j} | v_{c}) \\
+&=\sum_{j=0, j \neq m}^{2 m} H(\hat{y}, y_{c-m+j})
+\end{aligned}
+$$<p>
+可以看出，skip-gram的损失函数为$2m$个交叉熵之和CBOW和skip-gram在损失函数上的区别是，CBOW的每次计算只需要计算一个单词的损失，因为其一次预测的目标仅仅是一个单词；而skip-gram的每次计算需要计算$2m$个位置的单词上的损失，因为其一次要预测两个大小为$m$的窗口内的所有单词。</p>
+<h3 id="word2vec的优化">word2vec的优化</h3>
+<h4 id="负采样">负采样</h4>
+<p>由于CBOW和skip-gram模型的损失函数中涉及softmax计算，因此需要遍历整个词汇表$V$，这会耗费相当长的时间，每一次更新权重的时间复杂度都为$O(|V|)$。负采样(negative sampling)技术不直接计算损失函数，而是通过采样负样例的方式进行损失函数的逼近。</p>
+$$
+P(D=1 | w, c, \theta)=\sigma(u_{w}^{\text T} v_{c})=\frac{1}{1+e^{(-u_{w}^{\text T} v_{c})}}
+$$$$
+\begin{aligned}
+\theta &=\underset{\theta}{\operatorname{argmax}} \prod_{(w, c) \in D} P(D=1 | w, c, \theta) \prod_{(w, c) \in \tilde{D}} P(D=0 | w, c, \theta) \\
+&=\underset{\theta}{\operatorname{argmax}} \prod_{(w, c) \in D} P(D=1 | w, c, \theta) \prod_{(w, c) \in \tilde{D}}(1-P(D=1 | w, c, \theta)) \\
+&=\underset{\theta}{\operatorname{argmax}} \sum_{(w, c) \in D} \log P(D=1 | w, c, \theta)+\sum_{(w, c) \in \tilde{D}} \log (1-P(D=1 | w, c, \theta)) \\
+&=\underset{\theta}{\operatorname{argmax}} \sum_{(w, c) \in D} \log \frac{1}{1+\exp (-u_{w}^{\text T} v_{c})}+\sum_{(w, c) \in \tilde{D}} \log (1-\frac{1}{1+\exp (-u_{w}^{\text T} v_{c})}) \\
+&=\underset{\theta}{\operatorname{argmax}} \sum_{(w, c) \in D} \log \frac{1}{1+\exp (-u_{w}^{\text T} v_{c})}+\sum_{(w, c) \in \tilde{D}} \log (\frac{1}{1+\exp (u_{w}^{\text T} v_{c})})
+\end{aligned}
+$$$$
+J=-\sum_{(w, c) \in D} \log \frac{1}{1+\exp (-u_{w}^{\text T} v_{c})}-\sum_{(w, c) \in \tilde{D}} \log (\frac{1}{1+\exp (u_{w}^{\text T} v_{c})})
+$$<p>
+注意，$\tilde D$是“假的”或者“负的”语料。例如我们有句子类似“stock boil fish is toy”，这种无意义的句子出现时会得到一个很低的概率。</p>
+$$
+-\log \sigma(u_{c-m+j}^{\text T} \cdot v_{c})-\sum_{k=1}^{K} \log \sigma(-\tilde{u}_{k}^{\text T} \cdot v_{c})
+$$$$
+-\log \sigma(u_{c}^{\text T} \cdot \hat{v})-\sum_{k=1}^{K} \log \sigma(-\tilde{u}_{k}^{\text T} \cdot \hat{v})
+$$$$
+\begin{aligned}
+&\text { is: } 0.9^{3 / 4}=0.92\\
+&\text { Constitution: } 0.09^{3 / 4}=0.16\\
+&\text { bombastic: } 0.01^{3 / 4}=0.032
+\end{aligned}
+$$<p>
+可以看出，当词频变为原来的3/4次方后，<strong>低频词“bombastic”被采样的概率变为原来的三倍，而高频词is被采样的概率仅有微小的增加</strong>，这便启发性地解释了为什么要取3/4次方。</p>
+<h4 id="层次化softmax">层次化softmax</h4>
+<p><strong>层次化softmax(hierarchical softmax)</strong> 可以替换输出层softmax，使得word2vec的训练过程具有更好的效率，通常对于<strong>低频词</strong>有效。而negative sampling通常对于<strong>高频词和低维词向量</strong>有效。</p>
+<p>hierarchical softmax使用一个二叉树来表示词表中的所有词。树中的每个叶结点都是一个单词，而且只有一条路径从根结点到叶结点。在这个模型中，没有词的输出表示。相反，<strong>图的每个结点(根结点和叶结点除外)关联一个模型要学习的向量</strong>。<strong>每个单词作为输出单词的概率被定义为从根结点随机游走到该单词对应的叶子结点的概率</strong>。</p>
+<p>在这个模型中，给定一个向量$w_i$的下的单词$w$的概率$P(w|w_i)$，等于从根结点开始到对应$w$的叶结点结束的随机漫步概率。这个方法最大的优势是将计算复杂度从$O(|V|)$降低至$O(\log|V|)$，对应着路径的长度。</p>
+<div align="center">
+<img src="/images/4/image-20200501151127981.png" style="zoom:20%;" />
+</div>
+$$
+P(w | w_{i})=\prod_{j=1}^{L(w)-1} \sigma([n(w, j+1)=\operatorname{ch}(n(w, j))] \cdot v_{n(w, j)}^{T} v_{w_{i}})
+$$$$
+[x]=\left\{\begin{array}{l}
+1 \text { if } x \text { is true } \\
+-1 \text { otherwise }
+\end{array}\right.
+$$<p>
+$\sigma(\cdot)$是sigmoid函数。上式的解释如下，首先，我们将根据从根结点$n(w,1)$到叶结点$w$的<strong>路径的形状</strong>来计算<strong>相乘的项</strong>。如果我们假设$ch(n)$一直都是$n$的左结点，然后当路径往左时公式$[n(w,j+1)=ch(n(w,j))]$返回1，往右则返回-1。此外，$[n(w,j+1)=ch(n(w,j))]$提供了<strong>归一化</strong>的作用。在节点$n$处，如果我们将去往左和右结点的概率相加，对于$v_{n}^{T} v_{w_{i}}$的任何值，$\sigma\left(v_{n}^{T} v_{w_{i}}\right)+\sigma\left(-v_{n}^{T} v_{w_{i}}\right)=1$总是成立。</p>
+<p>归一化也保证了$\sum_{w=1}^{|V|}P(w | w_{i})=1$，这与原始的softmax是一致的。</p>
+$$
+\begin{aligned}
+P(w_{2} | w_{i}) &=p(n(w_{2}, 1), \text {left}) \cdot p(n(w_{2}, 2), \text{left}) \cdot p(n(w_{2}, 3), \text {right}) \\
+&=\sigma(v_{n(w_{2}, 1)}^{T} v_{w_{i}}) \cdot \sigma(v_{n(w_{2}, 2)}^{T} v_{w_{i}}) \cdot \sigma(-v_{n(w_{2}, 3)}^{T} v_{w_{i}})
+\end{aligned}
+$$<p>
+训练含hierarchical softmax的模型的目标仍然是最小化负对数似然$-\log P(w | w_{i})$。但是与传统softmax的参数更新过程不同的是，<strong>传统的softmax每次会更新全部单词的输出向量，而hierarchical softmax仅更新二叉树中位于走过的路径上结点的向量</strong>。</p>
+<p>二叉树的选取通常决定了hierarchical softmax的速度，论文中选取的是<strong>赫夫曼树</strong>，即最优二叉树。</p>
+<h4 id="其他优化">其他优化</h4>
+<p>除了负采样和层次化softmax之外，word2vec原文中还包含两个较为细节的优化：</p>
+<p>(1) <strong>窗口大小的设置</strong>：除了设置一个固定值以外，还可以设置一个窗口的最大值$M$，然后每次取一个$[1,M]$区间内的随机数作为一次训练的窗口大小。这样做使得更相近的单词被选择的概率更大，能够更好地编码更近的单词。</p>
+$$
+P(w_i)=1-\sqrt{\frac{t}{f(w_i)}}
+$$<p>
+其中，$f(w_i)$是单词$w_i$的频率，$t$是人工设置的一个阈值，典型的$t$值大概为$10^{-5}$。词频越高，$P(w_i)$就越大，即高频单词会以更大的概率会剔除，而词频小于$t$的单词则不会被剔除。将高频词降采样带来的另一个好处是，<strong>每个词实际上关注的其上下文的范围增加了</strong>，因为这些没有实际意义的高频词都被去除了。</p>
+<h3 id="glove">GloVe</h3>
+<p><strong>基于奇异值分解的词嵌入方法</strong>有效地利用了词的全局统计信息，主要用于捕获单词的相似性，但是对类似<strong>词类比</strong>的任务上表现不好。而<strong>基于浅层窗口的词嵌入方法(CBOW、skip-gram)</strong> 通过在局部上下文窗口预测来学习词向量，其除了在单词相似性任务上表现良好外，还展示了捕获复杂语言模式能力，但<strong>未能利用到全局共现统计数据</strong>。</p>
+<p>相比之下，<strong>GloVe[3]<strong>使用</strong>全局统计信息</strong>，以<strong>最小二乘</strong>为目标，来预测单词$i$出现在单词$j$的上下文中的概率。这个模型生成了具有有意义的子结构的单词向量空间，在词类比任务上表现非常出色，在多种单词相似性任务中超过了其他方法。令$X$表示为单词共现矩阵，其中$X_{ij}$表示词$j$出现在词$i$的上下文的<strong>次数</strong>。令$X_{i}=\sum_{k} X_{i k}$为任意词$k$出现在词$i$的上下文的次数。最后，令$P_{ij}=P(w_{j}|w_{i})=\frac{X_{ij}}{X_{i}}$为词$j$出现在词$i$上下文的<strong>概率</strong>。显然$X$是一个对称矩阵。计算这个矩阵需要遍历一次整个语料库获得统计信息。对庞大的语料库，这样的遍历会产生非常大的计算量，但是这只是一次性的前期投入成本。</p>
+$$
+Q_{i j}=\frac{\exp (\vec{u}_{j}^{T} \vec{v}_{i})}{\sum_{w=1}^{W} \exp (\vec{u}_{w}^{T} \vec{v}_{i})}
+$$$$
+J=-\sum_{i \in \text {corpus}} \sum_{j \in \text {context}(i)} \log Q_{ij}
+$$$$
+J=-\sum_{i=1}^{W} \sum_{j=1}^{W} X_{i j} \log Q_{i j}
+$$$$
+\hat{J}=\sum_{i=1}^{W} \sum_{j=1}^{W} X_{i}(\hat{P}_{i j}-\hat{Q}_{i j})^{2}
+$$$$
+\hat{J}=\sum_{i=1}^{W} \sum_{j=1}^{W} f(X_{i j})(\vec{u}_{j}^{T} \vec{v}_{i}-\log X_{i j})^{2}
+$$<h3 id="词向量的评估">词向量的评估</h3>
+<h4 id="内部评估">内部评估</h4>
+<p>词向量的<strong>内部评估(intrinsic evaluation)</strong> 是对一组由如word2vec或GloVe生成的词向量在特定<strong>的中间子任务(如词类比)</strong> 上的评估。这些子任务通常简单而且计算速度快，从而能够帮助我们理解生成的的词向量。内部评估通常应该返回一个数值，来表示这些词向量在评估子任务上的表现。</p>
+<p>在下图中，左子系统(红色，<strong>目标系统</strong>)训练的计算量大，因此改为一个简单的子系统(绿色，<strong>词类比</strong>)作内部评估。例如，在对话系统任务中，训练一个端到端的对话系统需要很大的计算量，因此通过对话结果直接评估词向量是不现实的，需要使用内部任务进行评估。</p>
+<div align="center">
+<img src="/images/4/image-20200426151817373.png" style="zoom:25%;" />
+</div>
+<h4 id="外部评估">外部评估</h4>
+<p>词向量的<strong>外部评估(extrinsic evaluation)<strong>是在</strong>实际任务</strong>中对一组生成的词向量的评估。这些任务通常复杂而且计算速度慢。在问答系统的例子中，外部评估系统对问题对应的答案进行评估。通常，优化表现不佳的外部评估系统使我们难以确定哪个特定子系统存在错误，这就需要进一步的内部评估。</p>
+<h4 id="内部评估的例子词类比">内部评估的例子：词类比</h4>
+$$
+a : b : : c : ?
+$$$$
+d=\underset{i}{\operatorname{argmax}} \frac{\left(x_{b}-x_{a}+x_{c}\right)^{\text T} x_{i}}{\left\|x_{b}-x_{a}+x_{c}\right\|}
+$$<p>
+上式的解释如下：理想情况下，我们希望$x_b-x_a=x_d-x_c$(例如，$queen-king=actress-actor$)。这暗含着我们希望$x_b-x_a+x_c=x_d$。因此，我们的目标是寻找向量$x_d$，该向量与$x_b-x_a+x_c$的<strong>余弦相似度最大</strong>。</p>
+<p>使用诸如词类比等内部评估技术应该小心处理(考虑到预训练的语料库的各个方面)。例如，考虑以下的类比形式：</p>
+<div align="center">
+<img src="/images/4/image-20200426154035382.png" style="zoom:40%;" />
+</div>
+<p>上图是可能受到具有相同名称的不同城市的影响的语义词向量类比(内在评估)。再考虑如下的类比形式：</p>
+<div align="center">
+<img src="/images/4/image-20200426154323292.png" style="zoom:40%;" />
+</div>
+<p>在以上词类比中，一个国家在不同的时期可能有不同首都。前两个例子说明如何使用词向量进行<strong>语义(semantic)<strong>测试，也可以使用词向量进行</strong>语法(syntactic)<strong>测试。以下内部评估测试词向量捕获形容词的</strong>最高级</strong>的能力：</p>
+<div align="center">
+<img src="/images/4/image-20200426154503738.png" style="zoom:40%;" />
+</div>
+<p>类似地，下图的内部评估展示了测试词向量捕获<strong>过去时态</strong>的能力：</p>
+<div align="center">
+<img src="/images/4/image-20200426154746687.png" style="zoom:40%;" />
+</div>
+<p>在完成词向量的训练后，可以在NLP任务中直接使用；但也可以在训练外部任务的时候，<strong>重新训练</strong>输入的词向量。我们用于外部评估的词向量是通过一个简单的内部评估来进行优化并初始化。在许多情况下，这些预训练的词向量在外部评估中表现良好。但是，这些预训练的词向量在外部评估中的表现仍然有提高的可能。</p>
+<p>然而，重新训练存在着一定的风险。如果我们在外部评估中重新训练词向量，这就需要<strong>外部任务的训练集足够大并能覆盖词汇表中大部分的单词</strong>。这是因为word2vec或GloVe产生的词向量中，原本语义相关测词向量位于单词向量空间的相近的部分，但如果我们在很小的词汇表上重新训练这些词，这些词就会在词空间移动，因此在最终的任务上，模型的表现反而会降低。</p>
+<h3 id="句子与文档的嵌入">句子与文档的嵌入</h3>
+<p>许多机器学习任务要求输入的表示为定长的。word2vec已经能够实现将每个词映射到定长的空间中，但是对于文档或是段落这类长文本，仅依赖于词向量是不够的。一个常用的定长文本特征表示是<strong>词袋模型</strong>，但词袋模型忽略了单词的顺序以及其语法结构。为了解决该问题，Tomas Mikolov在2014年提出了<strong>paragraph vector</strong>[4]，用于从<strong>变长文本(例如句子、段落以及文档)<strong>中学习定长特征表示。该算法通过</strong>预测文档内单词</strong>的方式进行训练，从而能够为每个文档学习出一个定长的“文档向量”。</p>
+<p>论文中paragraph vector的学习方式受启发于神经语言模型学习词向量的方式，即通过某个单词$w$的前$k$个单词来预测$w$。其模型示意图如下：</p>
+<div align="center">
+<img src="/images/4/image-20200501173330267.png" style="zoom:30%;" />
+</div>
+<p>在该模型当中，<strong>每个paragraph被映射为一个单独的向量</strong>，使用矩阵$D$中的一列来表示；<strong>每个词也同样被映射为一个单独的向量</strong>，使用矩阵$W$中的一列来表示。一个文档可以采样出一些上下文，例如图中的“the cat sat on”，而该模型将paragraph vector和“the”、“cat”和“sat”这三个单词的word vectors以拼接或相加的方式组合在一起，用于预测其下一个单词“on”。文档中所采样的上下文长度都是相等的，可以用一个滑动窗口来进行采样。<strong>一个paragraph vector在本paragraph的context预测内是共享的，但是在paragraph之间不共享</strong>。</p>
+<p>在训练后，我们得到了word vectors $W$、paragraph vectors $D$以及其他神经网络的权重参数。对于不在语料库中的测试paragraphs，首先随机初始化这些paragraphs的权重参数，然后将其添加到$D$中，再通过和训练时相同的方式训练每个paragraph在$D$中的向量，但保持词向量矩阵$W$和神经网络的<strong>其他参数不变</strong>。在获取其paragraph vector后，便可以用于其他任务，例如文本分类等。</p>
+<h3 id="使用gensim中的word2vec工具训练词向量">使用gensim中的word2vec工具训练词向量</h3>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 语料库选用某IT招聘网站的信息</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">gensim.models</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">Word2Vec</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">matplotlib.pyplot</span> <span style="color:#204a87;font-weight:bold">as</span> <span style="color:#000">plt</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">sklearn.manifold</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">TSNE</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 需要将数据导入当前目录</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">f_obj</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#204a87">open</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;word2vec_data_split.txt&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#4e9a06">&#39;r&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">encoding</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;utf-8&#39;</span><span style="color:#000;font-weight:bold">)</span>  <span style="color:#8f5902;font-style:italic"># 语料库中的单词被空格分隔</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">data</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">f_obj</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">read</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">data</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">data</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">split</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;</span><span style="color:#4e9a06">\n</span><span style="color:#4e9a06">&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87">len</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">data</span><span style="color:#000;font-weight:bold">))</span>  <span style="color:#8f5902;font-style:italic"># 85399条数据</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 按空格分离单词串为列表</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">i</span> <span style="color:#204a87;font-weight:bold">in</span> <span style="color:#204a87">range</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87">len</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">data</span><span style="color:#000;font-weight:bold">)):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">data</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">i</span><span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">data</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">i</span><span style="color:#000;font-weight:bold">][:</span><span style="color:#ce5c00;font-weight:bold">-</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">]</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">split</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39; &#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 构建word2vec模型</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">word2vec_model</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">Word2Vec</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">data</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">size</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">300</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">min_count</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">10</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87">iter</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">5</span><span style="color:#000;font-weight:bold">)</span>  <span style="color:#8f5902;font-style:italic"># 300维</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 获取正向词典和反向词典</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">vocab</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">{</span><span style="color:#000">word</span><span style="color:#000;font-weight:bold">:</span> <span style="color:#000">index</span> <span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">index</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">word</span> <span style="color:#204a87;font-weight:bold">in</span> <span style="color:#204a87">enumerate</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">word2vec_model</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">wv</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">index2word</span><span style="color:#000;font-weight:bold">)}</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">reverse_vocab</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">{</span><span style="color:#000">index</span><span style="color:#000;font-weight:bold">:</span> <span style="color:#000">word</span> <span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">index</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">word</span> <span style="color:#204a87;font-weight:bold">in</span> <span style="color:#204a87">enumerate</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">word2vec_model</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">wv</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">index2word</span><span style="color:#000;font-weight:bold">)}</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">vocab</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">reverse_vocab</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 获取词嵌入矩阵</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">embedding_matrix</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">word2vec_model</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">wv</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">vectors</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;shape of embedded matrix: &#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">embedding_matrix</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">)</span>  <span style="color:#8f5902;font-style:italic"># 词典大小：15368</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 寻找某个单词在向量空间中最近的10个单词</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;most similar top 10 words with &#34;python&#34;: &#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">word2vec_model</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">wv</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">most_similar</span><span style="color:#000;font-weight:bold">([</span><span style="color:#4e9a06">&#39;python&#39;</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">topn</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">10</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;most similar top 10 words with &#34;产品&#34;: &#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">word2vec_model</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">wv</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">most_similar</span><span style="color:#000;font-weight:bold">([</span><span style="color:#4e9a06">&#39;产品&#39;</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">topn</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">10</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;most similar top 10 words with &#34;良好&#34;: &#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">word2vec_model</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">wv</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">most_similar</span><span style="color:#000;font-weight:bold">([</span><span style="color:#4e9a06">&#39;良好&#39;</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">topn</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">10</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">SAVE_MODEL_PATH</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#4e9a06">&#39;word2vec.model&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 保存模型</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">word2vec_model</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">save</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">SAVE_MODEL_PATH</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 加载模型</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">word2vec_model_load</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">Word2Vec</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">load</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">SAVE_MODEL_PATH</span><span style="color:#000;font-weight:bold">)</span>
+</span></span></code></pre></div><h3 id="参考资料">参考资料</h3>
+<ul>
+<li>
+<p>Mikolov T, Chen K, Corrado G, et al. Efficient estimation of word representations in vector space. arXiv preprint arXiv:1301.3781, 2013.</p>
+</li>
+<li>
+<p>Mikolov T, Sutskever I, Chen K, et al. Distributed representations of words and phrases and their compositionality. Advances in neural information processing systems. 2013: 3111-3119.</p>
+</li>
+<li>
+<p>Pennington J, Socher R, Manning C D. Glove: Global vectors for word representation. Proceedings of the 2014 conference on empirical methods in natural language processing (EMNLP). 2014: 1532-1543.</p>
+</li>
+<li>
+<p>Le Q, Mikolov T. Distributed representations of sentences and documents. International conference on machine learning. 2014: 1188-1196.</p>
+</li>
+<li>
+<p>Stanford University CS224n课程官网：http://web.stanford.edu/class/cs224n/</p>
+</li>
+</ul>
+
+	
+</div>
+
+
+            </div>
+
+          </main>
+        </div>
+      </div>
+      <footer class="td-footer row d-print-none">
+  <div class="container-fluid">
+    <div class="row mx-md-2">
+      <div class="td-footer__left col-6 col-sm-4 order-sm-1">
+        
+      </div><div class="td-footer__right col-6 col-sm-4 order-sm-3">
+        
+      </div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2">
+        
+      </div>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css"
+      integrity="sha512-r2+FkHzf1u0+SQbZOoIz2RxWOIWfdEzRuYybGjzKq18jG9zaSfEy9s3+jMqG/zPtRor/q4qaUCYQpmSjTw8M+g==" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"
+        integrity="sha512-INps9zQ2GUEMCQD7xiZQbGUVnqnzEvlynVy6eqcTcHN4+aQiLo9/uaQqckDpdJ8Zm3M0QBs+Pktg4pz0kEklUg=="
+        crossorigin="anonymous">
+</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"
+       integrity="sha512-YJVxTjqttjsU3cSvaTRqsSl0wbRgZUNF+NGGCgto/MUbIvaLdXQzGTCQu4CvyJZbZctgflVB0PXw9LLmTWm5/w==" crossorigin="anonymous"
+       onload='renderMathInElement(document.body, {"delimiters":[{"display":true,"left":"$$","right":"$$"},{"display":false,"left":"$","right":"$"},{"display":false,"left":"\\(","right":"\\)"},{"display":true,"left":"\\[","right":"\\]"}],"errorcolor":"#CD5C5C","throwonerror":false});'>
+</script>
+<script src="/js/main.min.613b131e2c315a570f2f0f22f51f752a53e30fc078f674f7ab0885a6ce15ad68.js" integrity="sha256-YTsTHiwxWlcPLw8i9R91KlPjD8B49nT3qwiFps4VrWg=" crossorigin="anonymous"></script>
+<script defer src="/js/click-to-copy.min.73478a7d4807698aed7e355eb23f9890ca18fea3158604c8471746d046702bad.js" integrity="sha256-c0eKfUgHaYrtfjVesj&#43;YkMoY/qMVhgTIRxdG0EZwK60=" crossorigin="anonymous"></script>
+<script src='/js/tabpane-persist.js'></script>
+
+  </body>
+</html>

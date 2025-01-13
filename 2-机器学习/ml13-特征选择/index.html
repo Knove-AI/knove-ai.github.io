@@ -1,0 +1,481 @@
+<!doctype html>
+<html itemscope itemtype="http://schema.org/WebPage" lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+
+
+<link rel="shortcut icon" href="/favicons/favicon.ico" >
+<link rel="apple-touch-icon" href="/favicons/apple-touch-icon-180x180.png" sizes="180x180">
+<link rel="icon" type="image/png" href="/favicons/favicon-16x16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="/favicons/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/favicons/android-36x36.png" sizes="36x36">
+<link rel="icon" type="image/png" href="/favicons/android-48x48.png" sizes="48x48">
+<link rel="icon" type="image/png" href="/favicons/android-72x72.png" sizes="72x72">
+<link rel="icon" type="image/png" href="/favicons/android-96x96.png" sizes="96x96">
+<link rel="icon" type="image/png" href="/favicons/android-144x144.png" sizes="144x144">
+<link rel="icon" type="image/png" href="/favicons/android-192x192.png" sizes="192x192">
+
+<title>特征选择 | 知予AI</title>
+<meta name="description" content="子集搜索与评价 给定属性集，其中有些属性可能很关键、很有用，另一些属性则可能没什么用。对当前学习任务有用的属性称为相关特征(relevant feature)，无用的属性称为无关特征(irrelevant feature)。**特征选择(feature selection)**是一个重要的数据预处理过程，指从给定的特征集合中选择出相关特征的子集的过程。特征选择能够减少维数灾难问题，同时降低学习任务的难度。
+如果我们想从特征集合中选区一个包含了所有重要信息的特征子集，如果我们没有任何先验知识，那么就只能遍历可能的子集，这会带来很高的计算复杂度；可行的一种做法是先产生一个“候选子集&#34;，评价它的好坏，然后在此基础之上产生下一个子集。这里涉及到两个关键环节，一是如何根据评价结果选择下一个候选子集，二是如何评价子集的好坏。
+第一个环节是子集搜索(subset search)，给定特征集合${a_1,a_2,\cdots,a_d}$，可以将每个单独的特征看作一个候选子集，对这$d$个候选单特征子集进行评定，假如${a_2}$最优，那么我们就把${a_2}$作为第一轮的选定集；然后，在上一轮选定集中加入一个特征，构成两个特征的候选子集，我们假定${a_2,a_4}$最优且优于${a_2}$，那么我们就得到了新的候选子集，以此类推。这是一种前向搜索。我们也可以从完整的属性集合开始，每次去掉一个无关特征，这样的方法叫后向搜索。还可以将前向和后向搜索结合起来进行双向搜索。显然，该策略是贪心的。
+$$\operatorname{Gain}(A)=\operatorname{Ent}(D)-\sum_{v=1}^{V} \frac{\left|D^{v}\right|}{|D|} \operatorname{Ent}\left(D^{v}\right)$$$$\operatorname{Ent}(D)=- \sum_{k=1}^{|\mathcal Y|}p_k\log_2p_k$$ 信息增益越大，意味着特征子集$A$包含的有助于分类的信息更多。于是，对每个候选特征子集，我们可基于训练数据$D$来计算其信息增益，以此作为评价准则。
+更一般地，特征子集$A$实际上确定了对数据集$D$的一个划分，每个划分区域对应着$A$上的一个取值，而样本标记信息$Y$则对应着对$D$的真实划分，通过估算这两个划分的差异，就能对$A$进行评价。与$Y$对应的划分的差异越小，则说明$A$越好。信息熵仅是判断这个差异的一种途径，其他能判断两个划分差异的机制都能用于特征子集评价。
+将特征子集搜索机制与子集评价机制相结合，即可得到特征选择方法。例如，将前向搜索与信息熵相结合，这与决策树算法非常相似。事实上，决策树可用于特征选择，树结点的划分属性组成的集合就是选择出的特征子集。其他的特征选择方法未必像决策树特征选择这么明显，但其本质上都是显式或隐式地结合了子集搜索和子集评价机制。
+常见的特征选择方法大致可分为三类：过滤式(filter)、包裹式(wrapper)和嵌入式(embedding)。
+过滤式选择 过滤式方法先对数据集进行特征选择，然后训练学习器，特征选择过程与后续学习器无关。这相当于先用特征选择过程对初始特征进行过滤，再用过滤后的特征来训练模型。
+Relief是一种著名的过滤式选择方法，该方法设计了一个“相关统计量”来度量特征的重要性。该统计量是一个向量，其每个分量分别对应于一个初始特征，而特征子集的重要性则是由子集中每个特征锁对应的相关统计量分量之和来决定。于是，最终只需指定一个阈值，然后选择比该阈值大的相关统计量分量对应的特征即可；也可指定欲选取的特征个数$k$，然后选择相关统计量分量最大的$k$个特征。
+$$\delta^j=\sum_i -\operatorname{diff}(x_i^j,x_{i,nh}^j)^2&#43;\operatorname{diff}(x_i^j,x_{i,nm}^j)^2$$ 其中，diff体现了两个样本对应属性的差异性，对于离散属性，我们可以取0/1，对连续属性，我们可以作差取绝对值。我们可以看到，如果同类样本越近，异类样本越远，向量对应位置的值的统计量分量越大，也就是这个属性对分类越有用。
+包裹式选择 与过滤特征选择不考虑后续学习器不同，包裹式特征选择直接把最终将要使用的学习器的性能作为特征子集的评价标准。一般而言，由于包裹式选择的直接性，它一般比过滤式的特征选择性能更好；但另一方面，由于在特征选择过程中需要多次训练学习器，因此包裹式特征选择的计算开销通常比过滤式特征选择大得多。
+LVW(las vegas wrapper)算法是一个典型的包裹式特征选择算法。它在拉斯维加斯算法(las vegas method)框架下使用随机策略来进行子集搜索，并以最终分类器的误差作为特征子集评价准则。该算法的具体做法是：
+(1) 设置初始最优误差$E$为无穷大，目前最优特征子集为属性全集$A$，重复次数$t=0$；
+(2) 随机产生一组特征子集$A’$，计算使用该特征子集时分类器的误差$E’$；
+(3) 如果$E’$比$E$小，则令$A’=A,E’=E$并重复(2)(3)步；否则$t&#43;&#43;$，当$t$大于等于停止控制参数$T$时跳出循环。
+LVW算法简单明了，但是由于是使用随机子集筛选，并且每次筛选都要重新计算学习器误差，若$A$和$T$很大时，算法可能会长时间都达不到停止条件。即若有运行时间限制，则可能会得不到解。
+嵌入式选择与$\boldsymbol{L_1}$正则化 在过滤式和包裹式特征选择方法中，特征选择过程与学习器训练过程由明显的分别。与此不同的是，嵌入式特征选择是将特征选择的过程与学习器训练过程融为一体，两者在同一个优化过程中完成，即在学习器训练过程中自动地进行了特征选择。
+常用的正则化方法如$L_1$范数(LASSO回归)和$L_2$范数(岭回归)都有助于降低过拟合风险，但$L_1$范数还会有一个额外的好处：它比$L_2$范数更易于获得稀疏解，即它求得的$w$会有更少的非零分量。
+注意到$w$取得稀疏解意味着初始的$d$个特征中仅有对应着$w$的非零分量的特征才会出现在最终模型中，于是，求解$L_1$范数正则化的结果是得到了仅采用一部分初始特征的模型。换言之，基于$L_1$正则化的学习方法就是一种嵌入式特征选择方法，其特征选择过程与学习器训练过程融为一体，同时完成。
+稀疏表示与字典学习 不妨把数据集$D$考虑为一个矩阵，其每一行对应一个样本，每一列对应一个特征。特征选择锁考虑的问题是特征具有稀疏性，即矩阵中的许多列与当前学习任务无关，通过特征选择去除这些列，则学习器训练过程仅需在较小的矩阵上进行，学习任务的难度可能有所降低，设计的计算和存储开销会减小，学得模型的可解释性也会提高。
+考虑另一种稀疏性：$D$对应的矩阵中存在很多零元素，但这些零元素并不是以整行或整列的形式存在的。现实中有很多这种情况，比如文档分类任务中，若一个文档用词袋模型进行表示，矩阵的每一行都有大量的零元素，而对于不同的文档，这些零元素出现的列往往很不相同。
+然而，当样本具有这样的稀疏表达形式时，对学习任务来说会有不少好处。例如线性支持向量机之所以能在文本数据上有很好的性能，恰是由于文本数据在使用上述字频表示后具有高度的稀疏性，使大多数问题变得线性可分。同时，稀疏性样本并不会造成存储上的负担，因为稀疏矩阵已经有很多高效的存储方法。
+那么，若给定的数据集$D$是稠密的，可以将其转化为适度的**稀疏表示(sparse representation)**形式，从而享有稀疏性带来的好处。
+显然，在一般的学习任务(例如图像分类)中并没有字典可用，我们需要学习出一个字典，为普通稠密表达的样本找到合适的字典，将样本转化为合适的稀疏表示形式，从而使学习任务得以简化，模型的复杂度得以降低，这个过程通常称为字典学习(dictionary learning)。
+scikit-learn实现几种特征选择方法 # 1. 去除低方差特征 from sklearn.feature_selection import VarianceThreshold X = [[0, 0, 1], [0, 1, 0], [1, 0, 0], [0, 1, 1], [0, 1, 0], [0, 1, 1]] sel = VarianceThreshold(threshold=(.8 * (1 - .8))) print(sel.fit_transform(X)) # 2. 单变量特征选择 from sklearn.datasets import load_iris from sklearn.feature_selection import SelectKBest from sklearn.feature_selection import chi2 X, y = load_iris(return_X_y=True) print(X.shape) X_new = SelectKBest(chi2, k=2).fit_transform(X, y) print(X_new.shape) # 3. 基于L1正则化的特征选择 from sklearn.svm import LinearSVC from sklearn.datasets import load_iris from sklearn.feature_selection import SelectFromModel X, y = load_iris(return_X_y=True) print(X.shape) lsvc = LinearSVC(C=0.01, penalty=&#34;l1&#34;, dual=False).fit(X, y) model = SelectFromModel(lsvc, prefit=True) X_new = model.transform(X) print(X_new.shape) # 4. 基于树结构的特征选择 from sklearn.ensemble import ExtraTreesClassifier from sklearn.datasets import load_iris from sklearn.feature_selection import SelectFromModel X, y = load_iris(return_X_y=True) print(X.shape) clf = ExtraTreesClassifier(n_estimators=50) clf = clf.fit(X, y) print(clf.feature_importances_) model = SelectFromModel(clf, prefit=True) X_new = model.transform(X) print(X_new.shape) 参考资料 周志华. 机器学习. 北京: 清华大学出版社, 2016.">
+<meta property="og:url" content="https://knove-ai.github.io/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml13-%E7%89%B9%E5%BE%81%E9%80%89%E6%8B%A9/">
+  <meta property="og:site_name" content="知予AI">
+  <meta property="og:title" content="特征选择">
+  <meta property="og:description" content="子集搜索与评价 给定属性集，其中有些属性可能很关键、很有用，另一些属性则可能没什么用。对当前学习任务有用的属性称为相关特征(relevant feature)，无用的属性称为无关特征(irrelevant feature)。**特征选择(feature selection)**是一个重要的数据预处理过程，指从给定的特征集合中选择出相关特征的子集的过程。特征选择能够减少维数灾难问题，同时降低学习任务的难度。
+如果我们想从特征集合中选区一个包含了所有重要信息的特征子集，如果我们没有任何先验知识，那么就只能遍历可能的子集，这会带来很高的计算复杂度；可行的一种做法是先产生一个“候选子集&#34;，评价它的好坏，然后在此基础之上产生下一个子集。这里涉及到两个关键环节，一是如何根据评价结果选择下一个候选子集，二是如何评价子集的好坏。
+第一个环节是子集搜索(subset search)，给定特征集合${a_1,a_2,\cdots,a_d}$，可以将每个单独的特征看作一个候选子集，对这$d$个候选单特征子集进行评定，假如${a_2}$最优，那么我们就把${a_2}$作为第一轮的选定集；然后，在上一轮选定集中加入一个特征，构成两个特征的候选子集，我们假定${a_2,a_4}$最优且优于${a_2}$，那么我们就得到了新的候选子集，以此类推。这是一种前向搜索。我们也可以从完整的属性集合开始，每次去掉一个无关特征，这样的方法叫后向搜索。还可以将前向和后向搜索结合起来进行双向搜索。显然，该策略是贪心的。
+$$\operatorname{Gain}(A)=\operatorname{Ent}(D)-\sum_{v=1}^{V} \frac{\left|D^{v}\right|}{|D|} \operatorname{Ent}\left(D^{v}\right)$$$$\operatorname{Ent}(D)=- \sum_{k=1}^{|\mathcal Y|}p_k\log_2p_k$$ 信息增益越大，意味着特征子集$A$包含的有助于分类的信息更多。于是，对每个候选特征子集，我们可基于训练数据$D$来计算其信息增益，以此作为评价准则。
+更一般地，特征子集$A$实际上确定了对数据集$D$的一个划分，每个划分区域对应着$A$上的一个取值，而样本标记信息$Y$则对应着对$D$的真实划分，通过估算这两个划分的差异，就能对$A$进行评价。与$Y$对应的划分的差异越小，则说明$A$越好。信息熵仅是判断这个差异的一种途径，其他能判断两个划分差异的机制都能用于特征子集评价。
+将特征子集搜索机制与子集评价机制相结合，即可得到特征选择方法。例如，将前向搜索与信息熵相结合，这与决策树算法非常相似。事实上，决策树可用于特征选择，树结点的划分属性组成的集合就是选择出的特征子集。其他的特征选择方法未必像决策树特征选择这么明显，但其本质上都是显式或隐式地结合了子集搜索和子集评价机制。
+常见的特征选择方法大致可分为三类：过滤式(filter)、包裹式(wrapper)和嵌入式(embedding)。
+过滤式选择 过滤式方法先对数据集进行特征选择，然后训练学习器，特征选择过程与后续学习器无关。这相当于先用特征选择过程对初始特征进行过滤，再用过滤后的特征来训练模型。
+Relief是一种著名的过滤式选择方法，该方法设计了一个“相关统计量”来度量特征的重要性。该统计量是一个向量，其每个分量分别对应于一个初始特征，而特征子集的重要性则是由子集中每个特征锁对应的相关统计量分量之和来决定。于是，最终只需指定一个阈值，然后选择比该阈值大的相关统计量分量对应的特征即可；也可指定欲选取的特征个数$k$，然后选择相关统计量分量最大的$k$个特征。
+$$\delta^j=\sum_i -\operatorname{diff}(x_i^j,x_{i,nh}^j)^2&#43;\operatorname{diff}(x_i^j,x_{i,nm}^j)^2$$ 其中，diff体现了两个样本对应属性的差异性，对于离散属性，我们可以取0/1，对连续属性，我们可以作差取绝对值。我们可以看到，如果同类样本越近，异类样本越远，向量对应位置的值的统计量分量越大，也就是这个属性对分类越有用。
+包裹式选择 与过滤特征选择不考虑后续学习器不同，包裹式特征选择直接把最终将要使用的学习器的性能作为特征子集的评价标准。一般而言，由于包裹式选择的直接性，它一般比过滤式的特征选择性能更好；但另一方面，由于在特征选择过程中需要多次训练学习器，因此包裹式特征选择的计算开销通常比过滤式特征选择大得多。
+LVW(las vegas wrapper)算法是一个典型的包裹式特征选择算法。它在拉斯维加斯算法(las vegas method)框架下使用随机策略来进行子集搜索，并以最终分类器的误差作为特征子集评价准则。该算法的具体做法是：
+(1) 设置初始最优误差$E$为无穷大，目前最优特征子集为属性全集$A$，重复次数$t=0$；
+(2) 随机产生一组特征子集$A’$，计算使用该特征子集时分类器的误差$E’$；
+(3) 如果$E’$比$E$小，则令$A’=A,E’=E$并重复(2)(3)步；否则$t&#43;&#43;$，当$t$大于等于停止控制参数$T$时跳出循环。
+LVW算法简单明了，但是由于是使用随机子集筛选，并且每次筛选都要重新计算学习器误差，若$A$和$T$很大时，算法可能会长时间都达不到停止条件。即若有运行时间限制，则可能会得不到解。
+嵌入式选择与$\boldsymbol{L_1}$正则化 在过滤式和包裹式特征选择方法中，特征选择过程与学习器训练过程由明显的分别。与此不同的是，嵌入式特征选择是将特征选择的过程与学习器训练过程融为一体，两者在同一个优化过程中完成，即在学习器训练过程中自动地进行了特征选择。
+常用的正则化方法如$L_1$范数(LASSO回归)和$L_2$范数(岭回归)都有助于降低过拟合风险，但$L_1$范数还会有一个额外的好处：它比$L_2$范数更易于获得稀疏解，即它求得的$w$会有更少的非零分量。
+注意到$w$取得稀疏解意味着初始的$d$个特征中仅有对应着$w$的非零分量的特征才会出现在最终模型中，于是，求解$L_1$范数正则化的结果是得到了仅采用一部分初始特征的模型。换言之，基于$L_1$正则化的学习方法就是一种嵌入式特征选择方法，其特征选择过程与学习器训练过程融为一体，同时完成。
+稀疏表示与字典学习 不妨把数据集$D$考虑为一个矩阵，其每一行对应一个样本，每一列对应一个特征。特征选择锁考虑的问题是特征具有稀疏性，即矩阵中的许多列与当前学习任务无关，通过特征选择去除这些列，则学习器训练过程仅需在较小的矩阵上进行，学习任务的难度可能有所降低，设计的计算和存储开销会减小，学得模型的可解释性也会提高。
+考虑另一种稀疏性：$D$对应的矩阵中存在很多零元素，但这些零元素并不是以整行或整列的形式存在的。现实中有很多这种情况，比如文档分类任务中，若一个文档用词袋模型进行表示，矩阵的每一行都有大量的零元素，而对于不同的文档，这些零元素出现的列往往很不相同。
+然而，当样本具有这样的稀疏表达形式时，对学习任务来说会有不少好处。例如线性支持向量机之所以能在文本数据上有很好的性能，恰是由于文本数据在使用上述字频表示后具有高度的稀疏性，使大多数问题变得线性可分。同时，稀疏性样本并不会造成存储上的负担，因为稀疏矩阵已经有很多高效的存储方法。
+那么，若给定的数据集$D$是稠密的，可以将其转化为适度的**稀疏表示(sparse representation)**形式，从而享有稀疏性带来的好处。
+显然，在一般的学习任务(例如图像分类)中并没有字典可用，我们需要学习出一个字典，为普通稠密表达的样本找到合适的字典，将样本转化为合适的稀疏表示形式，从而使学习任务得以简化，模型的复杂度得以降低，这个过程通常称为字典学习(dictionary learning)。
+scikit-learn实现几种特征选择方法 # 1. 去除低方差特征 from sklearn.feature_selection import VarianceThreshold X = [[0, 0, 1], [0, 1, 0], [1, 0, 0], [0, 1, 1], [0, 1, 0], [0, 1, 1]] sel = VarianceThreshold(threshold=(.8 * (1 - .8))) print(sel.fit_transform(X)) # 2. 单变量特征选择 from sklearn.datasets import load_iris from sklearn.feature_selection import SelectKBest from sklearn.feature_selection import chi2 X, y = load_iris(return_X_y=True) print(X.shape) X_new = SelectKBest(chi2, k=2).fit_transform(X, y) print(X_new.shape) # 3. 基于L1正则化的特征选择 from sklearn.svm import LinearSVC from sklearn.datasets import load_iris from sklearn.feature_selection import SelectFromModel X, y = load_iris(return_X_y=True) print(X.shape) lsvc = LinearSVC(C=0.01, penalty=&#34;l1&#34;, dual=False).fit(X, y) model = SelectFromModel(lsvc, prefit=True) X_new = model.transform(X) print(X_new.shape) # 4. 基于树结构的特征选择 from sklearn.ensemble import ExtraTreesClassifier from sklearn.datasets import load_iris from sklearn.feature_selection import SelectFromModel X, y = load_iris(return_X_y=True) print(X.shape) clf = ExtraTreesClassifier(n_estimators=50) clf = clf.fit(X, y) print(clf.feature_importances_) model = SelectFromModel(clf, prefit=True) X_new = model.transform(X) print(X_new.shape) 参考资料 周志华. 机器学习. 北京: 清华大学出版社, 2016.">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="2-机器学习">
+    <meta property="article:published_time" content="2017-01-01T00:00:00+00:00">
+    <meta property="article:modified_time" content="2017-01-01T00:00:00+00:00">
+
+  <meta itemprop="name" content="特征选择">
+  <meta itemprop="description" content="子集搜索与评价 给定属性集，其中有些属性可能很关键、很有用，另一些属性则可能没什么用。对当前学习任务有用的属性称为相关特征(relevant feature)，无用的属性称为无关特征(irrelevant feature)。**特征选择(feature selection)**是一个重要的数据预处理过程，指从给定的特征集合中选择出相关特征的子集的过程。特征选择能够减少维数灾难问题，同时降低学习任务的难度。
+如果我们想从特征集合中选区一个包含了所有重要信息的特征子集，如果我们没有任何先验知识，那么就只能遍历可能的子集，这会带来很高的计算复杂度；可行的一种做法是先产生一个“候选子集&#34;，评价它的好坏，然后在此基础之上产生下一个子集。这里涉及到两个关键环节，一是如何根据评价结果选择下一个候选子集，二是如何评价子集的好坏。
+第一个环节是子集搜索(subset search)，给定特征集合${a_1,a_2,\cdots,a_d}$，可以将每个单独的特征看作一个候选子集，对这$d$个候选单特征子集进行评定，假如${a_2}$最优，那么我们就把${a_2}$作为第一轮的选定集；然后，在上一轮选定集中加入一个特征，构成两个特征的候选子集，我们假定${a_2,a_4}$最优且优于${a_2}$，那么我们就得到了新的候选子集，以此类推。这是一种前向搜索。我们也可以从完整的属性集合开始，每次去掉一个无关特征，这样的方法叫后向搜索。还可以将前向和后向搜索结合起来进行双向搜索。显然，该策略是贪心的。
+$$\operatorname{Gain}(A)=\operatorname{Ent}(D)-\sum_{v=1}^{V} \frac{\left|D^{v}\right|}{|D|} \operatorname{Ent}\left(D^{v}\right)$$$$\operatorname{Ent}(D)=- \sum_{k=1}^{|\mathcal Y|}p_k\log_2p_k$$ 信息增益越大，意味着特征子集$A$包含的有助于分类的信息更多。于是，对每个候选特征子集，我们可基于训练数据$D$来计算其信息增益，以此作为评价准则。
+更一般地，特征子集$A$实际上确定了对数据集$D$的一个划分，每个划分区域对应着$A$上的一个取值，而样本标记信息$Y$则对应着对$D$的真实划分，通过估算这两个划分的差异，就能对$A$进行评价。与$Y$对应的划分的差异越小，则说明$A$越好。信息熵仅是判断这个差异的一种途径，其他能判断两个划分差异的机制都能用于特征子集评价。
+将特征子集搜索机制与子集评价机制相结合，即可得到特征选择方法。例如，将前向搜索与信息熵相结合，这与决策树算法非常相似。事实上，决策树可用于特征选择，树结点的划分属性组成的集合就是选择出的特征子集。其他的特征选择方法未必像决策树特征选择这么明显，但其本质上都是显式或隐式地结合了子集搜索和子集评价机制。
+常见的特征选择方法大致可分为三类：过滤式(filter)、包裹式(wrapper)和嵌入式(embedding)。
+过滤式选择 过滤式方法先对数据集进行特征选择，然后训练学习器，特征选择过程与后续学习器无关。这相当于先用特征选择过程对初始特征进行过滤，再用过滤后的特征来训练模型。
+Relief是一种著名的过滤式选择方法，该方法设计了一个“相关统计量”来度量特征的重要性。该统计量是一个向量，其每个分量分别对应于一个初始特征，而特征子集的重要性则是由子集中每个特征锁对应的相关统计量分量之和来决定。于是，最终只需指定一个阈值，然后选择比该阈值大的相关统计量分量对应的特征即可；也可指定欲选取的特征个数$k$，然后选择相关统计量分量最大的$k$个特征。
+$$\delta^j=\sum_i -\operatorname{diff}(x_i^j,x_{i,nh}^j)^2&#43;\operatorname{diff}(x_i^j,x_{i,nm}^j)^2$$ 其中，diff体现了两个样本对应属性的差异性，对于离散属性，我们可以取0/1，对连续属性，我们可以作差取绝对值。我们可以看到，如果同类样本越近，异类样本越远，向量对应位置的值的统计量分量越大，也就是这个属性对分类越有用。
+包裹式选择 与过滤特征选择不考虑后续学习器不同，包裹式特征选择直接把最终将要使用的学习器的性能作为特征子集的评价标准。一般而言，由于包裹式选择的直接性，它一般比过滤式的特征选择性能更好；但另一方面，由于在特征选择过程中需要多次训练学习器，因此包裹式特征选择的计算开销通常比过滤式特征选择大得多。
+LVW(las vegas wrapper)算法是一个典型的包裹式特征选择算法。它在拉斯维加斯算法(las vegas method)框架下使用随机策略来进行子集搜索，并以最终分类器的误差作为特征子集评价准则。该算法的具体做法是：
+(1) 设置初始最优误差$E$为无穷大，目前最优特征子集为属性全集$A$，重复次数$t=0$；
+(2) 随机产生一组特征子集$A’$，计算使用该特征子集时分类器的误差$E’$；
+(3) 如果$E’$比$E$小，则令$A’=A,E’=E$并重复(2)(3)步；否则$t&#43;&#43;$，当$t$大于等于停止控制参数$T$时跳出循环。
+LVW算法简单明了，但是由于是使用随机子集筛选，并且每次筛选都要重新计算学习器误差，若$A$和$T$很大时，算法可能会长时间都达不到停止条件。即若有运行时间限制，则可能会得不到解。
+嵌入式选择与$\boldsymbol{L_1}$正则化 在过滤式和包裹式特征选择方法中，特征选择过程与学习器训练过程由明显的分别。与此不同的是，嵌入式特征选择是将特征选择的过程与学习器训练过程融为一体，两者在同一个优化过程中完成，即在学习器训练过程中自动地进行了特征选择。
+常用的正则化方法如$L_1$范数(LASSO回归)和$L_2$范数(岭回归)都有助于降低过拟合风险，但$L_1$范数还会有一个额外的好处：它比$L_2$范数更易于获得稀疏解，即它求得的$w$会有更少的非零分量。
+注意到$w$取得稀疏解意味着初始的$d$个特征中仅有对应着$w$的非零分量的特征才会出现在最终模型中，于是，求解$L_1$范数正则化的结果是得到了仅采用一部分初始特征的模型。换言之，基于$L_1$正则化的学习方法就是一种嵌入式特征选择方法，其特征选择过程与学习器训练过程融为一体，同时完成。
+稀疏表示与字典学习 不妨把数据集$D$考虑为一个矩阵，其每一行对应一个样本，每一列对应一个特征。特征选择锁考虑的问题是特征具有稀疏性，即矩阵中的许多列与当前学习任务无关，通过特征选择去除这些列，则学习器训练过程仅需在较小的矩阵上进行，学习任务的难度可能有所降低，设计的计算和存储开销会减小，学得模型的可解释性也会提高。
+考虑另一种稀疏性：$D$对应的矩阵中存在很多零元素，但这些零元素并不是以整行或整列的形式存在的。现实中有很多这种情况，比如文档分类任务中，若一个文档用词袋模型进行表示，矩阵的每一行都有大量的零元素，而对于不同的文档，这些零元素出现的列往往很不相同。
+然而，当样本具有这样的稀疏表达形式时，对学习任务来说会有不少好处。例如线性支持向量机之所以能在文本数据上有很好的性能，恰是由于文本数据在使用上述字频表示后具有高度的稀疏性，使大多数问题变得线性可分。同时，稀疏性样本并不会造成存储上的负担，因为稀疏矩阵已经有很多高效的存储方法。
+那么，若给定的数据集$D$是稠密的，可以将其转化为适度的**稀疏表示(sparse representation)**形式，从而享有稀疏性带来的好处。
+显然，在一般的学习任务(例如图像分类)中并没有字典可用，我们需要学习出一个字典，为普通稠密表达的样本找到合适的字典，将样本转化为合适的稀疏表示形式，从而使学习任务得以简化，模型的复杂度得以降低，这个过程通常称为字典学习(dictionary learning)。
+scikit-learn实现几种特征选择方法 # 1. 去除低方差特征 from sklearn.feature_selection import VarianceThreshold X = [[0, 0, 1], [0, 1, 0], [1, 0, 0], [0, 1, 1], [0, 1, 0], [0, 1, 1]] sel = VarianceThreshold(threshold=(.8 * (1 - .8))) print(sel.fit_transform(X)) # 2. 单变量特征选择 from sklearn.datasets import load_iris from sklearn.feature_selection import SelectKBest from sklearn.feature_selection import chi2 X, y = load_iris(return_X_y=True) print(X.shape) X_new = SelectKBest(chi2, k=2).fit_transform(X, y) print(X_new.shape) # 3. 基于L1正则化的特征选择 from sklearn.svm import LinearSVC from sklearn.datasets import load_iris from sklearn.feature_selection import SelectFromModel X, y = load_iris(return_X_y=True) print(X.shape) lsvc = LinearSVC(C=0.01, penalty=&#34;l1&#34;, dual=False).fit(X, y) model = SelectFromModel(lsvc, prefit=True) X_new = model.transform(X) print(X_new.shape) # 4. 基于树结构的特征选择 from sklearn.ensemble import ExtraTreesClassifier from sklearn.datasets import load_iris from sklearn.feature_selection import SelectFromModel X, y = load_iris(return_X_y=True) print(X.shape) clf = ExtraTreesClassifier(n_estimators=50) clf = clf.fit(X, y) print(clf.feature_importances_) model = SelectFromModel(clf, prefit=True) X_new = model.transform(X) print(X_new.shape) 参考资料 周志华. 机器学习. 北京: 清华大学出版社, 2016.">
+  <meta itemprop="datePublished" content="2017-01-01T00:00:00+00:00">
+  <meta itemprop="dateModified" content="2017-01-01T00:00:00+00:00">
+  <meta itemprop="wordCount" content="193">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="特征选择">
+  <meta name="twitter:description" content="子集搜索与评价 给定属性集，其中有些属性可能很关键、很有用，另一些属性则可能没什么用。对当前学习任务有用的属性称为相关特征(relevant feature)，无用的属性称为无关特征(irrelevant feature)。**特征选择(feature selection)**是一个重要的数据预处理过程，指从给定的特征集合中选择出相关特征的子集的过程。特征选择能够减少维数灾难问题，同时降低学习任务的难度。
+如果我们想从特征集合中选区一个包含了所有重要信息的特征子集，如果我们没有任何先验知识，那么就只能遍历可能的子集，这会带来很高的计算复杂度；可行的一种做法是先产生一个“候选子集&#34;，评价它的好坏，然后在此基础之上产生下一个子集。这里涉及到两个关键环节，一是如何根据评价结果选择下一个候选子集，二是如何评价子集的好坏。
+第一个环节是子集搜索(subset search)，给定特征集合${a_1,a_2,\cdots,a_d}$，可以将每个单独的特征看作一个候选子集，对这$d$个候选单特征子集进行评定，假如${a_2}$最优，那么我们就把${a_2}$作为第一轮的选定集；然后，在上一轮选定集中加入一个特征，构成两个特征的候选子集，我们假定${a_2,a_4}$最优且优于${a_2}$，那么我们就得到了新的候选子集，以此类推。这是一种前向搜索。我们也可以从完整的属性集合开始，每次去掉一个无关特征，这样的方法叫后向搜索。还可以将前向和后向搜索结合起来进行双向搜索。显然，该策略是贪心的。
+$$\operatorname{Gain}(A)=\operatorname{Ent}(D)-\sum_{v=1}^{V} \frac{\left|D^{v}\right|}{|D|} \operatorname{Ent}\left(D^{v}\right)$$$$\operatorname{Ent}(D)=- \sum_{k=1}^{|\mathcal Y|}p_k\log_2p_k$$ 信息增益越大，意味着特征子集$A$包含的有助于分类的信息更多。于是，对每个候选特征子集，我们可基于训练数据$D$来计算其信息增益，以此作为评价准则。
+更一般地，特征子集$A$实际上确定了对数据集$D$的一个划分，每个划分区域对应着$A$上的一个取值，而样本标记信息$Y$则对应着对$D$的真实划分，通过估算这两个划分的差异，就能对$A$进行评价。与$Y$对应的划分的差异越小，则说明$A$越好。信息熵仅是判断这个差异的一种途径，其他能判断两个划分差异的机制都能用于特征子集评价。
+将特征子集搜索机制与子集评价机制相结合，即可得到特征选择方法。例如，将前向搜索与信息熵相结合，这与决策树算法非常相似。事实上，决策树可用于特征选择，树结点的划分属性组成的集合就是选择出的特征子集。其他的特征选择方法未必像决策树特征选择这么明显，但其本质上都是显式或隐式地结合了子集搜索和子集评价机制。
+常见的特征选择方法大致可分为三类：过滤式(filter)、包裹式(wrapper)和嵌入式(embedding)。
+过滤式选择 过滤式方法先对数据集进行特征选择，然后训练学习器，特征选择过程与后续学习器无关。这相当于先用特征选择过程对初始特征进行过滤，再用过滤后的特征来训练模型。
+Relief是一种著名的过滤式选择方法，该方法设计了一个“相关统计量”来度量特征的重要性。该统计量是一个向量，其每个分量分别对应于一个初始特征，而特征子集的重要性则是由子集中每个特征锁对应的相关统计量分量之和来决定。于是，最终只需指定一个阈值，然后选择比该阈值大的相关统计量分量对应的特征即可；也可指定欲选取的特征个数$k$，然后选择相关统计量分量最大的$k$个特征。
+$$\delta^j=\sum_i -\operatorname{diff}(x_i^j,x_{i,nh}^j)^2&#43;\operatorname{diff}(x_i^j,x_{i,nm}^j)^2$$ 其中，diff体现了两个样本对应属性的差异性，对于离散属性，我们可以取0/1，对连续属性，我们可以作差取绝对值。我们可以看到，如果同类样本越近，异类样本越远，向量对应位置的值的统计量分量越大，也就是这个属性对分类越有用。
+包裹式选择 与过滤特征选择不考虑后续学习器不同，包裹式特征选择直接把最终将要使用的学习器的性能作为特征子集的评价标准。一般而言，由于包裹式选择的直接性，它一般比过滤式的特征选择性能更好；但另一方面，由于在特征选择过程中需要多次训练学习器，因此包裹式特征选择的计算开销通常比过滤式特征选择大得多。
+LVW(las vegas wrapper)算法是一个典型的包裹式特征选择算法。它在拉斯维加斯算法(las vegas method)框架下使用随机策略来进行子集搜索，并以最终分类器的误差作为特征子集评价准则。该算法的具体做法是：
+(1) 设置初始最优误差$E$为无穷大，目前最优特征子集为属性全集$A$，重复次数$t=0$；
+(2) 随机产生一组特征子集$A’$，计算使用该特征子集时分类器的误差$E’$；
+(3) 如果$E’$比$E$小，则令$A’=A,E’=E$并重复(2)(3)步；否则$t&#43;&#43;$，当$t$大于等于停止控制参数$T$时跳出循环。
+LVW算法简单明了，但是由于是使用随机子集筛选，并且每次筛选都要重新计算学习器误差，若$A$和$T$很大时，算法可能会长时间都达不到停止条件。即若有运行时间限制，则可能会得不到解。
+嵌入式选择与$\boldsymbol{L_1}$正则化 在过滤式和包裹式特征选择方法中，特征选择过程与学习器训练过程由明显的分别。与此不同的是，嵌入式特征选择是将特征选择的过程与学习器训练过程融为一体，两者在同一个优化过程中完成，即在学习器训练过程中自动地进行了特征选择。
+常用的正则化方法如$L_1$范数(LASSO回归)和$L_2$范数(岭回归)都有助于降低过拟合风险，但$L_1$范数还会有一个额外的好处：它比$L_2$范数更易于获得稀疏解，即它求得的$w$会有更少的非零分量。
+注意到$w$取得稀疏解意味着初始的$d$个特征中仅有对应着$w$的非零分量的特征才会出现在最终模型中，于是，求解$L_1$范数正则化的结果是得到了仅采用一部分初始特征的模型。换言之，基于$L_1$正则化的学习方法就是一种嵌入式特征选择方法，其特征选择过程与学习器训练过程融为一体，同时完成。
+稀疏表示与字典学习 不妨把数据集$D$考虑为一个矩阵，其每一行对应一个样本，每一列对应一个特征。特征选择锁考虑的问题是特征具有稀疏性，即矩阵中的许多列与当前学习任务无关，通过特征选择去除这些列，则学习器训练过程仅需在较小的矩阵上进行，学习任务的难度可能有所降低，设计的计算和存储开销会减小，学得模型的可解释性也会提高。
+考虑另一种稀疏性：$D$对应的矩阵中存在很多零元素，但这些零元素并不是以整行或整列的形式存在的。现实中有很多这种情况，比如文档分类任务中，若一个文档用词袋模型进行表示，矩阵的每一行都有大量的零元素，而对于不同的文档，这些零元素出现的列往往很不相同。
+然而，当样本具有这样的稀疏表达形式时，对学习任务来说会有不少好处。例如线性支持向量机之所以能在文本数据上有很好的性能，恰是由于文本数据在使用上述字频表示后具有高度的稀疏性，使大多数问题变得线性可分。同时，稀疏性样本并不会造成存储上的负担，因为稀疏矩阵已经有很多高效的存储方法。
+那么，若给定的数据集$D$是稠密的，可以将其转化为适度的**稀疏表示(sparse representation)**形式，从而享有稀疏性带来的好处。
+显然，在一般的学习任务(例如图像分类)中并没有字典可用，我们需要学习出一个字典，为普通稠密表达的样本找到合适的字典，将样本转化为合适的稀疏表示形式，从而使学习任务得以简化，模型的复杂度得以降低，这个过程通常称为字典学习(dictionary learning)。
+scikit-learn实现几种特征选择方法 # 1. 去除低方差特征 from sklearn.feature_selection import VarianceThreshold X = [[0, 0, 1], [0, 1, 0], [1, 0, 0], [0, 1, 1], [0, 1, 0], [0, 1, 1]] sel = VarianceThreshold(threshold=(.8 * (1 - .8))) print(sel.fit_transform(X)) # 2. 单变量特征选择 from sklearn.datasets import load_iris from sklearn.feature_selection import SelectKBest from sklearn.feature_selection import chi2 X, y = load_iris(return_X_y=True) print(X.shape) X_new = SelectKBest(chi2, k=2).fit_transform(X, y) print(X_new.shape) # 3. 基于L1正则化的特征选择 from sklearn.svm import LinearSVC from sklearn.datasets import load_iris from sklearn.feature_selection import SelectFromModel X, y = load_iris(return_X_y=True) print(X.shape) lsvc = LinearSVC(C=0.01, penalty=&#34;l1&#34;, dual=False).fit(X, y) model = SelectFromModel(lsvc, prefit=True) X_new = model.transform(X) print(X_new.shape) # 4. 基于树结构的特征选择 from sklearn.ensemble import ExtraTreesClassifier from sklearn.datasets import load_iris from sklearn.feature_selection import SelectFromModel X, y = load_iris(return_X_y=True) print(X.shape) clf = ExtraTreesClassifier(n_estimators=50) clf = clf.fit(X, y) print(clf.feature_importances_) model = SelectFromModel(clf, prefit=True) X_new = model.transform(X) print(X_new.shape) 参考资料 周志华. 机器学习. 北京: 清华大学出版社, 2016.">
+<link rel="preload" href="/scss/main.min.a52b2e54f3e921e61502207760f8ecb468b09dc55f348cc42d9b9b9132637847.css" as="style" integrity="sha256-pSsuVPPpIeYVAiB3YPjstGiwncVfNIzELZubkTJjeEc=" crossorigin="anonymous">
+<link href="/scss/main.min.a52b2e54f3e921e61502207760f8ecb468b09dc55f348cc42d9b9b9132637847.css" rel="stylesheet" integrity="sha256-pSsuVPPpIeYVAiB3YPjstGiwncVfNIzELZubkTJjeEc=" crossorigin="anonymous">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda+SC:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Bodoni+Moda:ital,opsz,wght@1,6..96,800&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Sen:wght@400..800&display=swap" rel="stylesheet">
+<script
+  src="https://code.jquery.com/jquery-3.7.1.min.js"
+  integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+  crossorigin="anonymous"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: '\\[', right: '\\]', display: true},   
+        {left: '$$', right: '$$', display: true},     
+        {left: '\\(', right: '\\)', display: false},  
+      ],
+      throwOnError : false
+    });
+  });
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+  </head>
+  <body class="td-page">
+    <header>
+      
+    </header>
+    <div class="container-fluid td-outer">
+      <div class="td-main">
+        <div class="row flex-xl-nowrap">
+          <aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none">
+            <div id="td-sidebar-menu" class="td-sidebar__inner">
+  <image src="/logo.png" style="width: 100%;" />
+
+
+  <form class="td-sidebar__search d-flex align-items-center">
+    
+    <button class="btn btn-link td-sidebar__toggle d-md-none p-0 ms-3 fas fa-bars" type="button" data-bs-toggle="collapse" data-bs-target="#td-section-nav" aria-controls="td-section-nav" aria-expanded="false" aria-label="Toggle section navigation">
+    </button>
+  </form>
+  <nav class="td-sidebar-nav collapse" id="td-section-nav">
+    <ul class="td-sidebar-nav__section pe-md-3 ul-0">
+      <li> <a href="/">首页</a></li>
+      <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m--li">
+  <a href="/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id="m-"><span class=""></span></a>
+  <ul class="ul-1">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-1-e695b0e5ada6e59fbae7a180-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" title="数学基础" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-1-e695b0e5ada6e59fbae7a180"><span class="">1-数学基础</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math1-e7babfe680a7e4bba3e695b0-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math1-%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math1-e7babfe680a7e4bba3e695b0"><span class="">线性代数</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math2-e5beaee7a7afe58886-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math2-%E5%BE%AE%E7%A7%AF%E5%88%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math2-e5beaee7a7afe58886"><span class="">微积分</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math3-e695b0e5ada6e4bc98e58c96-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math3-%E6%95%B0%E5%AD%A6%E4%BC%98%E5%8C%96/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math3-e695b0e5ada6e4bc98e58c96"><span class="">数学优化</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math4-e6a682e78e87e7bb9fe8aea1-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math4-%E6%A6%82%E7%8E%87%E7%BB%9F%E8%AE%A1/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math4-e6a682e78e87e7bb9fe8aea1"><span class="">概率统计</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math5-e4bfa1e681afe8aeba-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math5-%E4%BF%A1%E6%81%AF%E8%AE%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math5-e4bfa1e681afe8aeba"><span class="">信息论</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m-2-e69cbae599a8e5ada6e4b9a0-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-2-e69cbae599a8e5ada6e4b9a0"><span class="">2-机器学习</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml1-e69cbae599a8e5ada6e4b9a0e59fbae7a180-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml1-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%9F%BA%E7%A1%80/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml1-e69cbae599a8e5ada6e4b9a0e59fbae7a180"><span class="">机器学习基础</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml2-e7babfe680a7e59b9ee5bd92-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml2-%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml2-e7babfe680a7e59b9ee5bd92"><span class="">线性回归</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml3-ke8bf91e982bbe7ae97e6b395-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml3-k%E8%BF%91%E9%82%BB%E7%AE%97%E6%B3%95/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml3-ke8bf91e982bbe7ae97e6b395"><span class="">近邻算法</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml4-e6849fe79fa5e69cba-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml4-%E6%84%9F%E7%9F%A5%E6%9C%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml4-e6849fe79fa5e69cba"><span class="">感知机</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml5-e8b49de58fb6e696afe58886e7b1bbe599a8-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml5-%E8%B4%9D%E5%8F%B6%E6%96%AF%E5%88%86%E7%B1%BB%E5%99%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml5-e8b49de58fb6e696afe58886e7b1bbe599a8"><span class="">贝叶斯分类器</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml6-e980bbe8be91e59b9ee5bd92e4b88ee69c80e5a4a7e786b5e6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml6-%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92%E4%B8%8E%E6%9C%80%E5%A4%A7%E7%86%B5%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml6-e980bbe8be91e59b9ee5bd92e4b88ee69c80e5a4a7e786b5e6a8a1e59e8b"><span class="">逻辑回归与最大熵模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml7-e694afe68c81e59091e9878fe69cba-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml7-%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml7-e694afe68c81e59091e9878fe69cba"><span class="">支持向量机</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml8-e586b3e7ad96e6a091-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml8-%E5%86%B3%E7%AD%96%E6%A0%91/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml8-e586b3e7ad96e6a091"><span class="">决策树</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml9-e99b86e68890e5ada6e4b9a0-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml9-%E9%9B%86%E6%88%90%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml9-e99b86e68890e5ada6e4b9a0"><span class="">集成学习</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml10-eme7ae97e6b395-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml10-em%E7%AE%97%E6%B3%95/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml10-eme7ae97e6b395"><span class="">EM算法</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml11-e8819ae7b1bb-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml11-%E8%81%9A%E7%B1%BB/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml11-e8819ae7b1bb"><span class="">聚类</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml12-e9998de7bbb4-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml12-%E9%99%8D%E7%BB%B4/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml12-e9998de7bbb4"><span class="">降维</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id="m-2-e69cbae599a8e5ada6e4b9a0ml13-e789b9e5be81e98089e68ba9-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml13-%E7%89%B9%E5%BE%81%E9%80%89%E6%8B%A9/" class="align-left ps-0 active td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml13-e789b9e5be81e98089e68ba9"><span class="td-sidebar-nav-active-item">特征选择</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml14-e8af9de9a298e6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml14-%E8%AF%9D%E9%A2%98%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml14-e8af9de9a298e6a8a1e59e8b"><span class="">话题模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml15-e6a682e78e87e59bbee6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml15-%E6%A6%82%E7%8E%87%E5%9B%BE%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml15-e6a682e78e87e59bbee6a8a1e59e8b"><span class="">概率图模型</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-3-e6b7b1e5baa6e5ada6e4b9a0"><span class="">3-深度学习</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl1-e6b7b1e5baa6e5ada6e4b9a0e6a682e8bfb0-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl1-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E6%A6%82%E8%BF%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl1-e6b7b1e5baa6e5ada6e4b9a0e6a682e8bfb0"><span class="">深度学习概述</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl2-e7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl2-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl2-e7a59ee7bb8fe7bd91e7bb9c"><span class="">神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl3-e58db7e7a7afe7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl3-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl3-e58db7e7a7afe7a59ee7bb8fe7bd91e7bb9c"><span class="">卷积神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl4-e5beaae78eafe7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl4-%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl4-e5beaae78eafe7a59ee7bb8fe7bd91e7bb9c"><span class="">循环神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl5-e7a59ee7bb8fe7bd91e7bb9ce79a84e4bc98e58c96-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl5-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E7%9A%84%E4%BC%98%E5%8C%96/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl5-e7a59ee7bb8fe7bd91e7bb9ce79a84e4bc98e58c96"><span class="">神经网络的优化</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl6-e887aae7bc96e7a081e599a8-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl6-%E8%87%AA%E7%BC%96%E7%A0%81%E5%99%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl6-e887aae7bc96e7a081e599a8"><span class="">自编码器</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl7-e6b7b1e5baa6e7949fe68890e6a8a1e59e8b-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl7-%E6%B7%B1%E5%BA%A6%E7%94%9F%E6%88%90%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl7-e6b7b1e5baa6e7949fe68890e6a8a1e59e8b"><span class="">深度生成模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl8-e6b3a8e6848fe58a9be69cbae588b6e4b88ee5a496e983a8e8aeb0e5bf86-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl8-%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%E4%B8%8E%E5%A4%96%E9%83%A8%E8%AE%B0%E5%BF%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl8-e6b3a8e6848fe58a9be69cbae588b6e4b88ee5a496e983a8e8aeb0e5bf86"><span class="">注意力机制与外部记忆</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl9-e59bbee7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl9-%E5%9B%BE%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl9-e59bbee7a59ee7bb8fe7bd91e7bb9c"><span class="">图神经网络</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-4-e887aae784b6e8afade8a880e5a484e79086-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-4-e887aae784b6e8afade8a880e5a484e79086"><span class="">4-自然语言处理</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp1-e887aae784b6e8afade8a880e5a484e79086e6a682e8bfb0-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp1-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E6%A6%82%E8%BF%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp1-e887aae784b6e8afade8a880e5a484e79086e6a682e8bfb0"><span class="">自然语言处理概述</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp2-e8af8de59091e9878f-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp2-%E8%AF%8D%E5%90%91%E9%87%8F/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp2-e8af8de59091e9878f"><span class="">词向量</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp3-e8afade8a880e6a8a1e59e8b-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp3-%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp3-e8afade8a880e6a8a1e59e8b"><span class="">语言模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp4-seq2seqe4b88eattention-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp4-seq2seq%E4%B8%8Eattention/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp4-seq2seqe4b88eattention"><span class="">seq2seq与attention</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp5-e9a284e8aeade7bb83e6a8a1e59e8b-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp5-%E9%A2%84%E8%AE%AD%E7%BB%83%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp5-e9a284e8aeade7bb83e6a8a1e59e8b"><span class="">预训练模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp6-e887aae784b6e8afade8a880e5a484e79086e5ba94e794a8-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp6-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E5%BA%94%E7%94%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp6-e887aae784b6e8afade8a880e5a484e79086e5ba94e794a8"><span class="">自然语言处理应用</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-5-aie7a094e7a9b6e6898be5868c-li">
+  <a href="/5-ai%E7%A0%94%E7%A9%B6%E6%89%8B%E5%86%8C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-5-aie7a094e7a9b6e6898be5868c"><span class="">5-AI研究手册</span></a>
+</li>
+  </ul>
+</li>
+    </ul>
+  </nav>
+</div>
+
+
+          </aside>
+          <aside class="d-none d-xl-block col-xl-2 td-sidebar-toc d-print-none">
+            <div class="td-page-meta ms-2 pb-1 pt-2 mb-0">
+
+</div>
+
+            <div class="td-toc">
+        <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#子集搜索与评价">子集搜索与评价</a></li>
+        <li><a href="#过滤式选择">过滤式选择</a></li>
+        <li><a href="#包裹式选择">包裹式选择</a></li>
+        <li><a href="#嵌入式选择与boldsymboll_1正则化">嵌入式选择与$\boldsymbol{L_1}$正则化</a></li>
+        <li><a href="#稀疏表示与字典学习">稀疏表示与字典学习</a></li>
+        <li><a href="#scikit-learn实现几种特征选择方法">scikit-learn实现几种特征选择方法</a></li>
+        <li><a href="#参考资料">参考资料</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+      </div>
+    
+            
+
+          </aside>
+          <main class="col-12 col-md-9 col-xl-8 " role="main">
+            <nav class="td-navbar js-navbar-scroll" data-bs-theme="dark">
+<div class="container-fluid flex-column flex-md-row">
+  <a class="navbar-brand" href="/"><span class="navbar-brand__logo navbar-logo"><svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" style="enable-background:new 0 0 500 500"><g><path style="fill:#fff" d="M116.8525 421.9722c-5.7041.0-10.3442-4.3127-10.3442-9.6129V88.183c0-5.3002 4.6401-9.6117 10.3442-9.6117H320.858c3.0347.0 9.3959.5498 11.7506 2.6302l.3545.3442 58.905 63.2912c2.3101 2.491 2.9202 8.4928 2.9202 11.3184v256.2039c0 5.3002-4.6407 9.6129-10.3436 9.6129H116.8525z"/><g><g><g><path style="fill:#767676" d="M384.4445 423.2066H116.852c-6.3839.0-11.5786-4.8658-11.5786-10.8474V88.1831c0-5.9804 5.1947-10.8461 11.5786-10.8461h204.0062c.377.0 9.2786.0329 12.568 2.9389l.3947.3833 58.9508 63.337c3.2135 3.4652 3.2514 11.7924 3.2514 12.1593v256.2036C396.0231 418.3408 390.8284 423.2066 384.4445 423.2066zM116.5079 411.9189c.0848.0278.1999.0531.3441.0531h267.5925c.1442.0.2581-.0253.3441-.0531V156.1556c-.0076-.9033-.3593-3.7347-.7034-5.0037l-57.6527-61.9416c-1.4651-.3176-4.4533-.6389-5.5742-.6389H116.852c-.143.0-.2594.024-.3441.0531V411.9189zm267.4533-261.149zM327.0321 89.371v.0013V89.371z"/></g></g></g><g><g><path style="fill:#5b7fc0" d="M189.0874 210.1754l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4473C177.5953 212.627 183.0601 210.1742 189.0874 210.1754zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 234.1722 197.0804 232.033z"/><path style="opacity:.3;fill:#fff" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/><g><defs><path id="SVGID_1_" d="M194.7376 237.6875c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 234.2399 196.1861 236.239 194.7376 237.6875z"/></defs><clipPath id="SVGID_2_"><use xlink:href="#SVGID_1_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_2_);fill:#fff" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/><path style="opacity:.13;clip-path:url(#SVGID_2_);fill:#020202" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/></g><g><defs><path id="SVGID_3_" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/></defs><clipPath id="SVGID_4_"><use xlink:href="#SVGID_3_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_4_);fill:#5b7fc0" d="M172.6595 215.6045c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8475-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 209.1953 176.6171 211.647 172.6595 215.6045z"/></g></g><rect x="198.8952" y="225.1043" style="fill:#5b7fc0" width="122.6266" height="13.8671"/></g><g><path style="fill:#d95140" d="M189.0874 155.7611l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.0249 2.454-11.4897 6.4116-15.4473C177.5953 158.2128 183.0601 155.7599 189.0874 155.7611zm7.993 21.8577c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.2508 181.7667 197.0816 179.758 197.0804 177.6188z"/><path style="opacity:.3;fill:#fff" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/><g><defs><path id="SVGID_5_" d="M194.7376 183.2733c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 179.8256 196.1861 181.8248 194.7376 183.2733z"/></defs><clipPath id="SVGID_6_"><use xlink:href="#SVGID_5_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_6_);fill:#fff" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/><path style="opacity:.13;clip-path:url(#SVGID_6_);fill:#020202" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/></g><g><defs><path id="SVGID_7_" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/></defs><clipPath id="SVGID_8_"><use xlink:href="#SVGID_7_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_8_);fill:#d95140" d="M172.6595 161.1903c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 154.7811 176.6171 157.2327 172.6595 161.1903z"/></g><rect x="198.8952" y="170.69" style="fill:#d95140" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#56a55c" d="M189.5379 264.6147l.0012-.0012c7.7751.0012 15.0294 4.1862 18.932 10.9235 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032-5.8394.0-11.3281-2.2733-15.458-6.4032-4.13-4.13-6.4032-9.6186-6.4056-15.4628.0012-6.0249 2.454-11.4897 6.4116-15.4472C178.0458 267.0663 183.5105 264.6135 189.5379 264.6147zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6538 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.7013 290.6202 197.5321 288.6115 197.5309 286.4723z"/><path style="opacity:.3;fill:#fff" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/><g><defs><path id="SVGID_9_" d="M195.1881 292.1268c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9941 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.5344 288.6792 196.6366 290.6783 195.1881 292.1268z"/></defs><clipPath id="SVGID_10_"><use xlink:href="#SVGID_9_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_10_);fill:#fff" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/><path style="opacity:.13;clip-path:url(#SVGID_10_);fill:#020202" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/></g><g><defs><path id="SVGID_11_" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/></defs><clipPath id="SVGID_12_"><use xlink:href="#SVGID_11_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_12_);fill:#56a55c" d="M173.11 270.0439c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7325-11.1497-10.9151-18.926-10.9151C182.5311 263.6346 177.0676 266.0863 173.11 270.0439z"/></g></g><rect x="199.3456" y="279.5436" style="fill:#56a55c" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#f1bc42" d="M189.0874 318.7208l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3305-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4472C177.5953 321.1724 183.0601 318.7196 189.0874 318.7208zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 342.7176 197.0804 340.5784z"/><path style="opacity:.3;fill:#fff" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/><g><defs><path id="SVGID_13_" d="M194.7376 346.2329c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 342.7853 196.1861 344.7844 194.7376 346.2329z"/></defs><clipPath id="SVGID_14_"><use xlink:href="#SVGID_13_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_14_);fill:#fff" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/><path style="opacity:.13;clip-path:url(#SVGID_14_);fill:#020202" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/></g><g><defs><path id="SVGID_15_" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/></defs><clipPath id="SVGID_16_"><use xlink:href="#SVGID_15_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_16_);fill:#f1bc42" d="M172.6595 324.15c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8474-1.0151-7.6327-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 317.7407 176.6171 320.1924 172.6595 324.15z"/></g></g><rect x="198.8952" y="333.6497" style="fill:#f1bc42" width="122.6266" height="13.8671"/></g></g></svg></span><span class="navbar-brand__name">知予AI</span></a>
+  <div class="td-navbar-nav-scroll ms-md-auto" id="main_navbar">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="https://github.com/knove-ai" target="_blank" rel="noopener"><i class="fa fa-github"></i><span>Github</span></a>
+      </li>
+      </ul>
+  </div>
+  <div class="d-none d-lg-block">
+    
+  </div>
+</div>
+</nav>
+
+            <div class="ps-md-5">
+              
+  
+
+              <nav aria-label="breadcrumb" class="td-breadcrumbs">
+  <ol class="breadcrumb">
+  <li class="breadcrumb-item">
+    <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">2-机器学习</a></li>
+  <li class="breadcrumb-item active" aria-current="page">
+    特征选择</li>
+  </ol>
+</nav>
+              
+<div class="td-content">
+	<h1>特征选择</h1>
+	
+	<header class="article-meta">
+		
+</header>
+	<h3 id="子集搜索与评价">子集搜索与评价</h3>
+<p>给定属性集，其中有些属性可能很关键、很有用，另一些属性则可能没什么用。对当前学习任务有用的属性称为<strong>相关特征(relevant feature)</strong>，无用的属性称为<strong>无关特征(irrelevant feature)</strong>。**特征选择(feature selection)**是一个重要的数据预处理过程，指从给定的特征集合中选择出相关特征的子集的过程。特征选择能够减少维数灾难问题，同时降低学习任务的难度。</p>
+<p>如果我们想从特征集合中选区一个包含了所有重要信息的特征子集，如果我们没有任何先验知识，那么就只能遍历可能的子集，这会带来很高的计算复杂度；可行的一种做法是先产生一个“<strong>候选子集</strong>&quot;，评价它的好坏，然后在此基础之上产生下一个子集。这里涉及到两个关键环节，一是如何根据评价结果选择下一个候选子集，二是如何评价子集的好坏。</p>
+<p>第一个环节是<strong>子集搜索(subset search)</strong>，给定特征集合${a_1,a_2,\cdots,a_d}$，可以将<strong>每个单独的特征</strong>看作一个候选子集，对这$d$个候选单特征子集进行评定，假如${a_2}$最优，那么我们就把${a_2}$作为第一轮的选定集；然后，在上一轮选定集中加入一个特征，构成两个特征的候选子集，我们假定${a_2,a_4}$最优且优于${a_2}$，那么我们就得到了新的候选子集，以此类推。这是一种<strong>前向搜索</strong>。我们也可以从完整的属性集合开始，每次去掉一个无关特征，这样的方法叫<strong>后向搜索</strong>。还可以将前向和后向搜索结合起来进行<strong>双向搜索</strong>。显然，<strong>该策略是贪心的</strong>。</p>
+$$
+\operatorname{Gain}(A)=\operatorname{Ent}(D)-\sum_{v=1}^{V} \frac{\left|D^{v}\right|}{|D|} \operatorname{Ent}\left(D^{v}\right)
+$$$$
+\operatorname{Ent}(D)=- \sum_{k=1}^{|\mathcal Y|}p_k\log_2p_k
+$$<p>
+信息增益越大，意味着特征子集$A$包含的有助于分类的信息更多。于是，对每个候选特征子集，我们可基于训练数据$D$来计算其<strong>信息增益</strong>，以此作为评价准则。</p>
+<p>更一般地，特征子集$A$实际上确定了对数据集$D$的一个划分，每个划分区域对应着$A$上的一个取值，而样本标记信息$Y$则对应着对$D$的真实划分，通过估算这两个划分的差异，就能对$A$进行评价。与$Y$对应的划分的差异越小，则说明$A$越好。信息熵仅是判断这个差异的一种途径，其他能判断两个划分差异的机制都能用于特征子集评价。</p>
+<p><strong>将特征子集搜索机制与子集评价机制相结合，即可得到特征选择方法</strong>。例如，<strong>将前向搜索与信息熵相结合，这与决策树算法非常相似</strong>。事实上，决策树可用于特征选择，树结点的划分属性组成的集合就是选择出的特征子集。其他的特征选择方法未必像决策树特征选择这么明显，但其<strong>本质上都是显式或隐式地结合了子集搜索和子集评价机制</strong>。</p>
+<p>常见的特征选择方法大致可分为三类：<strong>过滤式(filter)、包裹式(wrapper)和嵌入式(embedding)</strong>。</p>
+<h3 id="过滤式选择">过滤式选择</h3>
+<p>过滤式方法先对数据集进行特征选择，然后训练学习器，<strong>特征选择过程与后续学习器无关</strong>。这相当于先用特征选择过程对初始特征进行过滤，再用过滤后的特征来训练模型。</p>
+<p><strong>Relief</strong>是一种著名的过滤式选择方法，该方法设计了一个“相关统计量”来度量特征的重要性。该统计量是一个向量，其每个分量分别对应于一个初始特征，而特征子集的重要性则是由子集中每个特征锁对应的相关统计量分量之和来决定。于是，最终只需指定一个阈值，然后选择比该阈值大的相关统计量分量对应的特征即可；也可指定欲选取的特征个数$k$，然后选择相关统计量分量最大的$k$个特征。</p>
+$$
+\delta^j=\sum_i -\operatorname{diff}(x_i^j,x_{i,nh}^j)^2+\operatorname{diff}(x_i^j,x_{i,nm}^j)^2
+$$<p>
+其中，diff体现了两个样本对应属性的差异性，<strong>对于离散属性，我们可以取0/1，对连续属性，我们可以作差取绝对值</strong>。我们可以看到，如果同类样本越近，异类样本越远，向量对应位置的值的统计量分量越大，也就是这个属性对分类越有用。</p>
+<h3 id="包裹式选择">包裹式选择</h3>
+<p>与过滤特征选择不考虑后续学习器不同，包裹式特征选择<strong>直接把最终将要使用的学习器的性能作为特征子集的评价标准</strong>。一般而言，由于包裹式选择的直接性，它一般比过滤式的特征选择性能更好；但另一方面，由于在特征选择过程中需要多次训练学习器，因此包裹式特征选择的计算开销通常比过滤式特征选择大得多。</p>
+<p><strong>LVW(las vegas wrapper)算法</strong>是一个典型的包裹式特征选择算法。它在拉斯维加斯算法(las vegas method)框架下使用随机策略来进行子集搜索，并以最终分类器的误差作为特征子集评价准则。该算法的具体做法是：</p>
+<p>(1) 设置初始最优误差$E$为无穷大，目前最优特征子集为属性全集$A$，重复次数$t=0$；</p>
+<p>(2) 随机产生一组特征子集$A&rsquo;$，计算使用该特征子集时分类器的误差$E&rsquo;$；</p>
+<p>(3) 如果$E&rsquo;$比$E$小，则令$A&rsquo;=A,E&rsquo;=E$并重复(2)(3)步；否则$t++$，当$t$大于等于停止控制参数$T$时跳出循环。</p>
+<p>LVW算法简单明了，但是由于是使用随机子集筛选，并且每次筛选都要重新计算学习器误差，若$A$和$T$很大时，算法可能会长时间都达不到停止条件。即若有运行时间限制，则可能会得不到解。</p>
+<h3 id="嵌入式选择与boldsymboll_1正则化">嵌入式选择与$\boldsymbol{L_1}$正则化</h3>
+<p>在过滤式和包裹式特征选择方法中，特征选择过程与学习器训练过程由明显的分别。与此不同的是，<strong>嵌入式特征选择是将特征选择的过程与学习器训练过程融为一体</strong>，两者在同一个优化过程中完成，即在学习器训练过程中自动地进行了特征选择。</p>
+<p>常用的正则化方法如$L_1$范数(LASSO回归)和$L_2$范数(岭回归)都有助于降低过拟合风险，但$L_1$范数还会有一个额外的好处：它比$L_2$范数更易于获得稀疏解，即它求得的$w$会有更少的非零分量。</p>
+<p>注意到$w$取得稀疏解意味着初始的$d$个特征中仅有对应着$w$的非零分量的特征才会出现在最终模型中，于是，求解$L_1$范数正则化的结果是得到了仅采用一部分初始特征的模型。换言之，基于$L_1$正则化的学习方法就是一种嵌入式特征选择方法，其特征选择过程与学习器训练过程融为一体，同时完成。</p>
+<h3 id="稀疏表示与字典学习">稀疏表示与字典学习</h3>
+<p>不妨把数据集$D$考虑为一个矩阵，<strong>其每一行对应一个样本，每一列对应一个特征</strong>。特征选择锁考虑的问题是特征具有稀疏性，即矩阵中的许多列与当前学习任务无关，通过特征选择去除这些列，则学习器训练过程仅需在较小的矩阵上进行，学习任务的难度可能有所降低，设计的计算和存储开销会减小，学得模型的可解释性也会提高。</p>
+<p>考虑另一种稀疏性：$D$对应的矩阵中存在很多零元素，但这些零元素并不是以整行或整列的形式存在的。现实中有很多这种情况，比如文档分类任务中，若一个文档用词袋模型进行表示，矩阵的每一行都有大量的零元素，而对于不同的文档，这些零元素出现的列往往很不相同。</p>
+<p>然而，当样本具有这样的稀疏表达形式时，对学习任务来说会有不少好处。例如<strong>线性支持向量机之所以能在文本数据上有很好的性能，恰是由于文本数据在使用上述字频表示后具有高度的稀疏性，使大多数问题变得线性可分</strong>。同时，稀疏性样本并不会造成存储上的负担，因为稀疏矩阵已经有很多高效的存储方法。</p>
+<p>那么，若给定的数据集$D$是稠密的，可以将其转化为适度的**稀疏表示(sparse representation)**形式，从而享有稀疏性带来的好处。</p>
+<p>显然，在一般的学习任务(例如图像分类)中并没有字典可用，我们需要学习出一个字典，为普通稠密表达的样本找到合适的字典，将样本转化为合适的稀疏表示形式，从而使学习任务得以简化，模型的复杂度得以降低，这个过程通常称为<strong>字典学习(dictionary learning)</strong>。</p>
+<h3 id="scikit-learn实现几种特征选择方法">scikit-learn实现几种特征选择方法</h3>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 1. 去除低方差特征</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">sklearn.feature_selection</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">VarianceThreshold</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">X</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">[[</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">]]</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">sel</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">VarianceThreshold</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">threshold</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">.8</span> <span style="color:#ce5c00;font-weight:bold">*</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">1</span> <span style="color:#ce5c00;font-weight:bold">-</span> <span style="color:#0000cf;font-weight:bold">.8</span><span style="color:#000;font-weight:bold">)))</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">sel</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">fit_transform</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 2. 单变量特征选择</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">sklearn.datasets</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">load_iris</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">sklearn.feature_selection</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">SelectKBest</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">sklearn.feature_selection</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">chi2</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">X</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">load_iris</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">return_X_y</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#204a87;font-weight:bold">True</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">X_new</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">SelectKBest</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">chi2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">k</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">)</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">fit_transform</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_new</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 3. 基于L1正则化的特征选择</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">sklearn.svm</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">LinearSVC</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">sklearn.datasets</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">load_iris</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">sklearn.feature_selection</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">SelectFromModel</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">X</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">load_iris</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">return_X_y</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#204a87;font-weight:bold">True</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">lsvc</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">LinearSVC</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">C</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">0.01</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">penalty</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#34;l1&#34;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">dual</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#204a87;font-weight:bold">False</span><span style="color:#000;font-weight:bold">)</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">fit</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">model</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">SelectFromModel</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">lsvc</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">prefit</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#204a87;font-weight:bold">True</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">X_new</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">model</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">transform</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_new</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 4. 基于树结构的特征选择</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">sklearn.ensemble</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">ExtraTreesClassifier</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">sklearn.datasets</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">load_iris</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">sklearn.feature_selection</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">SelectFromModel</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">X</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">load_iris</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">return_X_y</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#204a87;font-weight:bold">True</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">clf</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">ExtraTreesClassifier</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">n_estimators</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">50</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">clf</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">clf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">fit</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">clf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">feature_importances_</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">model</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">SelectFromModel</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">clf</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">prefit</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#204a87;font-weight:bold">True</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">X_new</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">model</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">transform</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_new</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">)</span>
+</span></span></code></pre></div><h3 id="参考资料">参考资料</h3>
+<ul>
+<li>周志华. 机器学习. 北京: 清华大学出版社, 2016.</li>
+</ul>
+
+	
+</div>
+
+
+            </div>
+
+          </main>
+        </div>
+      </div>
+      <footer class="td-footer row d-print-none">
+  <div class="container-fluid">
+    <div class="row mx-md-2">
+      <div class="td-footer__left col-6 col-sm-4 order-sm-1">
+        
+      </div><div class="td-footer__right col-6 col-sm-4 order-sm-3">
+        
+      </div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2">
+        
+      </div>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css"
+      integrity="sha512-r2+FkHzf1u0+SQbZOoIz2RxWOIWfdEzRuYybGjzKq18jG9zaSfEy9s3+jMqG/zPtRor/q4qaUCYQpmSjTw8M+g==" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"
+        integrity="sha512-INps9zQ2GUEMCQD7xiZQbGUVnqnzEvlynVy6eqcTcHN4+aQiLo9/uaQqckDpdJ8Zm3M0QBs+Pktg4pz0kEklUg=="
+        crossorigin="anonymous">
+</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"
+       integrity="sha512-YJVxTjqttjsU3cSvaTRqsSl0wbRgZUNF+NGGCgto/MUbIvaLdXQzGTCQu4CvyJZbZctgflVB0PXw9LLmTWm5/w==" crossorigin="anonymous"
+       onload='renderMathInElement(document.body, {"delimiters":[{"display":true,"left":"$$","right":"$$"},{"display":false,"left":"$","right":"$"},{"display":false,"left":"\\(","right":"\\)"},{"display":true,"left":"\\[","right":"\\]"}],"errorcolor":"#CD5C5C","throwonerror":false});'>
+</script>
+<script src="/js/main.min.613b131e2c315a570f2f0f22f51f752a53e30fc078f674f7ab0885a6ce15ad68.js" integrity="sha256-YTsTHiwxWlcPLw8i9R91KlPjD8B49nT3qwiFps4VrWg=" crossorigin="anonymous"></script>
+<script defer src="/js/click-to-copy.min.73478a7d4807698aed7e355eb23f9890ca18fea3158604c8471746d046702bad.js" integrity="sha256-c0eKfUgHaYrtfjVesj&#43;YkMoY/qMVhgTIRxdG0EZwK60=" crossorigin="anonymous"></script>
+<script src='/js/tabpane-persist.js'></script>
+
+  </body>
+</html>

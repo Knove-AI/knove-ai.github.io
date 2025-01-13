@@ -1,0 +1,553 @@
+<!doctype html>
+<html itemscope itemtype="http://schema.org/WebPage" lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+
+
+<link rel="shortcut icon" href="/favicons/favicon.ico" >
+<link rel="apple-touch-icon" href="/favicons/apple-touch-icon-180x180.png" sizes="180x180">
+<link rel="icon" type="image/png" href="/favicons/favicon-16x16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="/favicons/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/favicons/android-36x36.png" sizes="36x36">
+<link rel="icon" type="image/png" href="/favicons/android-48x48.png" sizes="48x48">
+<link rel="icon" type="image/png" href="/favicons/android-72x72.png" sizes="72x72">
+<link rel="icon" type="image/png" href="/favicons/android-96x96.png" sizes="96x96">
+<link rel="icon" type="image/png" href="/favicons/android-144x144.png" sizes="144x144">
+<link rel="icon" type="image/png" href="/favicons/android-192x192.png" sizes="192x192">
+
+<title>决策树 | 知予AI</title>
+<meta name="description" content="决策树模型 决策树(decision tree) 是一种基本的分类与回归算法。决策树呈树形结构，在分类问题中表示基于特征对实例进行分类的过程，它可以认为是if-then规则的集合，也可以认为是定义在特征空间与类空间上的条件概率分布。其主要优点是模型具有可读性，分类速度快。学习时，利用训练数据，根据损失函数最小化的原则建立决策树模型。预测时，对新的数据，利用训练好的决策模型进行分类。
+分类决策树模型是一种由结点(node)和有向边(directed edge) 组成的树形结构。结点有两种类型：内部节点(internal node)，表示一个特征或属性；叶结点(leaf node)，表示一个类。用决策树分类，从根结点开始，对实例的某一特征进行测试，根据测试结果，将实例分配到其子结点；这时，每一个子结点对应着该特征的一个取值。如此递归地对实例进行测试并分配，直至到达叶结点。对吼将实例分到叶结点对应的类中。
+决策树可以看成一个if-then规则的集合，满足互斥并且完备的性质。决策树根结点到叶结点的每一条路径中，路径上的内部结点的特征对应着规则的条件，而叶结点的类对应着规则的结论。
+决策树还表示给定特征条件下类的条件概率分布，这一分布定义在特征空间的一个划分(partition)上。将特征空间划分为互不相交的单元(cell)或区域(region)，并在每个单元定义一个类的概率分布就构成了一个条件概率分布。决策树的一条路径对应于划分中的一个单元，决策树所表示的条件概率分布由各个单元给定条件下类的条件概率分布组成。假设$X$为表示特征的随机变量，$Y$为表示类的随机变量，那么该条件概率分布可以表示为$P(Y|X)$。$X$取值于给定划分下单元的集合，$Y$取值于类的集合。各叶结点(单元)上的条件概率往往偏向某一个类，即属于某一类的概率较大。决策树分类时将该结点的实例强行分到条件概率大的一类去。
+决策树学习的本质是从训练数据集中归纳出一组分类规则。与训练集不相矛盾的决策树(即能对训练数据进行正确分类的决策树)可能有多个，也可能一个都没有。我们需要的是一个与训练数据矛盾较小的，同时具有很好的泛化能力的决策树。从另一个角度看，决策树学习是由训练数据集估计条件概率模型。基于特征空间的类的条件概率模型有无穷多个，我们选择的条件概率模型应该不仅对训练数据有很好的拟合，而且对未知数据有很好的预测。
+决策树的学习算法通常是一个递归地选择最优特征，并根据该特征对训练数据进行分割，使得对各个子数据集有一个最好的分类的过程。这一过程对应着特征空间的，也对应着决策树的构建。大致过程如下：
+开始，构建根结点，将所有训练数据都放在根结点。选择一个最优特征，按照这一特征将训练数据集分割成子集，使得各个子集有一个在当前条件下最好的分类。如果这些子集已经能够被基本正确分类，那么构建叶结点并将这些子集分到所对应的叶结点中去；如果还有子集不能被基本正确分类，那么就对这些子集选择新的最优特征，继续对其进行分割，构建相应的结点。如此递归地进行下去，直至所有训练数据子集被基本正确分类，或者没有合适的特征为止。最后每个子集都被分到叶结点上，即都有了明确的类。这就生成了一棵决策树。
+以上方法生成的决策树可能对训练数据有很好的分类能力，但对未知的测试数据却未必有很好的分类能力，即可能发生过拟合现象。我们需要对已生成的树自下而上进行剪枝，使树变得简单，从而使其具有更好的泛化能力。具体地，去掉过于细分的叶结点，使其退回到父结点，甚至更高的结点，然后将父结点或更高的结点改为新的叶结点。通常，层数越多即越深的决策树的复杂性越高，层数越少即越浅的决策树的复杂性越低。
+特征选择 特征选择(feature selection) 是决定用哪个特征来划分特征空间。特征选择在于选取对训练数据具有分类能力的特征，以提高决策树的学习效率。通常特征选择的准则是信息增益或信息增益比。
+信息增益 $$H(X)=\sum_{i=1}^{n}p_i\log p_i$$$$H(p)=\sum_{i=1}^{n}p_i \log p_i$$$$P(X=x_{i}, Y=y_{j})=p_{ij},\ \ i=1,2,\cdots,n;\ \ j=i=1,2,\cdots,m$$$$H(Y|X)=\sum_{i=1}^{n}p_i H(Y|X=x_i),\ \ p_i=P(X=x_i),\ \ i=1,2,\cdots,n$$ 当熵和条件熵中的概率由数据估计(特别是极大似然估计)得到时，所对应的熵与条件熵分别称为经验熵(empirical entropy) 和 经验条件熵(empirical conditional entropy)。
+$$g(D,A)=H(D)-H(D|A)$$ 一般地，熵$H(Y)$与条件熵$H(Y|X)$之差称为互信息(mutual information)，决策树中的信息增益等价于训练数据集中类与特征的互信息。
+信息增益表示由于特征$A$使得对数据集$D$的分类的不确定性减少的程度。显然，对数据集$D$而言，信息增益依赖于特征，不同的特征往往具有不同的信息增益。信息增益大的特征具有更强的分类能力。根据信息增益准则的特征选择方法是：对训练数据集(或子集)$D$，计算其每个特征的信息增益，选择信息增益最大的特征。
+设训练数据集为$D$，$|D|$表示其样本容量。设有$K$个类$C_k,k=1,2,\cdots,K$，$|C_k|$为术语类$C_k$的样本个数。设特征$A$有$n$个不同的取值${a_1,a_2,\cdots,a_n}$，根据特征$A$的取值将$D$划分为$n$个子集$D_1,D_2,\cdots,D_n$，$|D_i|$为$D_i$的样本个数记子集$D_i$中属于类$C_k$的样本集合为$D_{ik}$，即$D_{ik}=D_i \cap C_k$，$|D_{ik}|$为$D_{ik}$的样本个数。
+信息增益算法如下：
+输入：训练数据集$D$和$A$；
+输出：特征$A$对训练数据集$D$的信息增益$g(D,A)$
+$$H(D)=-\sum_{k=1}^{K}\frac{|C_k|}{|D|}\log \frac{|C_k|}{|D|}$$$$H(D|A)=\sum_{i=1}^{n}\frac{|D_i|}{|D|}H(D_i)=-\sum_{i=1}^{n}\frac{|D_i|}{|D|}\sum_{k=1}^{K}\frac{|D_{ik}|}{|D_i|}\log \frac{|D_{ik}|}{|D_i|}$$$$g(D,A)=H(D)-H(D|A)$$信息增益比 以信息增益作为划分训练数据集的特征，存在偏向于选择取值角度的特征的问题。使用信息增益比(information gain ratio)可以对这一问题进行校正，这是特征选择的另一准则。">
+<meta property="og:url" content="https://knove-ai.github.io/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml8-%E5%86%B3%E7%AD%96%E6%A0%91/">
+  <meta property="og:site_name" content="知予AI">
+  <meta property="og:title" content="决策树">
+  <meta property="og:description" content="决策树模型 决策树(decision tree) 是一种基本的分类与回归算法。决策树呈树形结构，在分类问题中表示基于特征对实例进行分类的过程，它可以认为是if-then规则的集合，也可以认为是定义在特征空间与类空间上的条件概率分布。其主要优点是模型具有可读性，分类速度快。学习时，利用训练数据，根据损失函数最小化的原则建立决策树模型。预测时，对新的数据，利用训练好的决策模型进行分类。
+分类决策树模型是一种由结点(node)和有向边(directed edge) 组成的树形结构。结点有两种类型：内部节点(internal node)，表示一个特征或属性；叶结点(leaf node)，表示一个类。用决策树分类，从根结点开始，对实例的某一特征进行测试，根据测试结果，将实例分配到其子结点；这时，每一个子结点对应着该特征的一个取值。如此递归地对实例进行测试并分配，直至到达叶结点。对吼将实例分到叶结点对应的类中。
+决策树可以看成一个if-then规则的集合，满足互斥并且完备的性质。决策树根结点到叶结点的每一条路径中，路径上的内部结点的特征对应着规则的条件，而叶结点的类对应着规则的结论。
+决策树还表示给定特征条件下类的条件概率分布，这一分布定义在特征空间的一个划分(partition)上。将特征空间划分为互不相交的单元(cell)或区域(region)，并在每个单元定义一个类的概率分布就构成了一个条件概率分布。决策树的一条路径对应于划分中的一个单元，决策树所表示的条件概率分布由各个单元给定条件下类的条件概率分布组成。假设$X$为表示特征的随机变量，$Y$为表示类的随机变量，那么该条件概率分布可以表示为$P(Y|X)$。$X$取值于给定划分下单元的集合，$Y$取值于类的集合。各叶结点(单元)上的条件概率往往偏向某一个类，即属于某一类的概率较大。决策树分类时将该结点的实例强行分到条件概率大的一类去。
+决策树学习的本质是从训练数据集中归纳出一组分类规则。与训练集不相矛盾的决策树(即能对训练数据进行正确分类的决策树)可能有多个，也可能一个都没有。我们需要的是一个与训练数据矛盾较小的，同时具有很好的泛化能力的决策树。从另一个角度看，决策树学习是由训练数据集估计条件概率模型。基于特征空间的类的条件概率模型有无穷多个，我们选择的条件概率模型应该不仅对训练数据有很好的拟合，而且对未知数据有很好的预测。
+决策树的学习算法通常是一个递归地选择最优特征，并根据该特征对训练数据进行分割，使得对各个子数据集有一个最好的分类的过程。这一过程对应着特征空间的，也对应着决策树的构建。大致过程如下：
+开始，构建根结点，将所有训练数据都放在根结点。选择一个最优特征，按照这一特征将训练数据集分割成子集，使得各个子集有一个在当前条件下最好的分类。如果这些子集已经能够被基本正确分类，那么构建叶结点并将这些子集分到所对应的叶结点中去；如果还有子集不能被基本正确分类，那么就对这些子集选择新的最优特征，继续对其进行分割，构建相应的结点。如此递归地进行下去，直至所有训练数据子集被基本正确分类，或者没有合适的特征为止。最后每个子集都被分到叶结点上，即都有了明确的类。这就生成了一棵决策树。
+以上方法生成的决策树可能对训练数据有很好的分类能力，但对未知的测试数据却未必有很好的分类能力，即可能发生过拟合现象。我们需要对已生成的树自下而上进行剪枝，使树变得简单，从而使其具有更好的泛化能力。具体地，去掉过于细分的叶结点，使其退回到父结点，甚至更高的结点，然后将父结点或更高的结点改为新的叶结点。通常，层数越多即越深的决策树的复杂性越高，层数越少即越浅的决策树的复杂性越低。
+特征选择 特征选择(feature selection) 是决定用哪个特征来划分特征空间。特征选择在于选取对训练数据具有分类能力的特征，以提高决策树的学习效率。通常特征选择的准则是信息增益或信息增益比。
+信息增益 $$H(X)=\sum_{i=1}^{n}p_i\log p_i$$$$H(p)=\sum_{i=1}^{n}p_i \log p_i$$$$P(X=x_{i}, Y=y_{j})=p_{ij},\ \ i=1,2,\cdots,n;\ \ j=i=1,2,\cdots,m$$$$H(Y|X)=\sum_{i=1}^{n}p_i H(Y|X=x_i),\ \ p_i=P(X=x_i),\ \ i=1,2,\cdots,n$$ 当熵和条件熵中的概率由数据估计(特别是极大似然估计)得到时，所对应的熵与条件熵分别称为经验熵(empirical entropy) 和 经验条件熵(empirical conditional entropy)。
+$$g(D,A)=H(D)-H(D|A)$$ 一般地，熵$H(Y)$与条件熵$H(Y|X)$之差称为互信息(mutual information)，决策树中的信息增益等价于训练数据集中类与特征的互信息。
+信息增益表示由于特征$A$使得对数据集$D$的分类的不确定性减少的程度。显然，对数据集$D$而言，信息增益依赖于特征，不同的特征往往具有不同的信息增益。信息增益大的特征具有更强的分类能力。根据信息增益准则的特征选择方法是：对训练数据集(或子集)$D$，计算其每个特征的信息增益，选择信息增益最大的特征。
+设训练数据集为$D$，$|D|$表示其样本容量。设有$K$个类$C_k,k=1,2,\cdots,K$，$|C_k|$为术语类$C_k$的样本个数。设特征$A$有$n$个不同的取值${a_1,a_2,\cdots,a_n}$，根据特征$A$的取值将$D$划分为$n$个子集$D_1,D_2,\cdots,D_n$，$|D_i|$为$D_i$的样本个数记子集$D_i$中属于类$C_k$的样本集合为$D_{ik}$，即$D_{ik}=D_i \cap C_k$，$|D_{ik}|$为$D_{ik}$的样本个数。
+信息增益算法如下：
+输入：训练数据集$D$和$A$；
+输出：特征$A$对训练数据集$D$的信息增益$g(D,A)$
+$$H(D)=-\sum_{k=1}^{K}\frac{|C_k|}{|D|}\log \frac{|C_k|}{|D|}$$$$H(D|A)=\sum_{i=1}^{n}\frac{|D_i|}{|D|}H(D_i)=-\sum_{i=1}^{n}\frac{|D_i|}{|D|}\sum_{k=1}^{K}\frac{|D_{ik}|}{|D_i|}\log \frac{|D_{ik}|}{|D_i|}$$$$g(D,A)=H(D)-H(D|A)$$信息增益比 以信息增益作为划分训练数据集的特征，存在偏向于选择取值角度的特征的问题。使用信息增益比(information gain ratio)可以对这一问题进行校正，这是特征选择的另一准则。">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="2-机器学习">
+    <meta property="article:published_time" content="2017-01-01T00:00:00+00:00">
+    <meta property="article:modified_time" content="2017-01-01T00:00:00+00:00">
+
+  <meta itemprop="name" content="决策树">
+  <meta itemprop="description" content="决策树模型 决策树(decision tree) 是一种基本的分类与回归算法。决策树呈树形结构，在分类问题中表示基于特征对实例进行分类的过程，它可以认为是if-then规则的集合，也可以认为是定义在特征空间与类空间上的条件概率分布。其主要优点是模型具有可读性，分类速度快。学习时，利用训练数据，根据损失函数最小化的原则建立决策树模型。预测时，对新的数据，利用训练好的决策模型进行分类。
+分类决策树模型是一种由结点(node)和有向边(directed edge) 组成的树形结构。结点有两种类型：内部节点(internal node)，表示一个特征或属性；叶结点(leaf node)，表示一个类。用决策树分类，从根结点开始，对实例的某一特征进行测试，根据测试结果，将实例分配到其子结点；这时，每一个子结点对应着该特征的一个取值。如此递归地对实例进行测试并分配，直至到达叶结点。对吼将实例分到叶结点对应的类中。
+决策树可以看成一个if-then规则的集合，满足互斥并且完备的性质。决策树根结点到叶结点的每一条路径中，路径上的内部结点的特征对应着规则的条件，而叶结点的类对应着规则的结论。
+决策树还表示给定特征条件下类的条件概率分布，这一分布定义在特征空间的一个划分(partition)上。将特征空间划分为互不相交的单元(cell)或区域(region)，并在每个单元定义一个类的概率分布就构成了一个条件概率分布。决策树的一条路径对应于划分中的一个单元，决策树所表示的条件概率分布由各个单元给定条件下类的条件概率分布组成。假设$X$为表示特征的随机变量，$Y$为表示类的随机变量，那么该条件概率分布可以表示为$P(Y|X)$。$X$取值于给定划分下单元的集合，$Y$取值于类的集合。各叶结点(单元)上的条件概率往往偏向某一个类，即属于某一类的概率较大。决策树分类时将该结点的实例强行分到条件概率大的一类去。
+决策树学习的本质是从训练数据集中归纳出一组分类规则。与训练集不相矛盾的决策树(即能对训练数据进行正确分类的决策树)可能有多个，也可能一个都没有。我们需要的是一个与训练数据矛盾较小的，同时具有很好的泛化能力的决策树。从另一个角度看，决策树学习是由训练数据集估计条件概率模型。基于特征空间的类的条件概率模型有无穷多个，我们选择的条件概率模型应该不仅对训练数据有很好的拟合，而且对未知数据有很好的预测。
+决策树的学习算法通常是一个递归地选择最优特征，并根据该特征对训练数据进行分割，使得对各个子数据集有一个最好的分类的过程。这一过程对应着特征空间的，也对应着决策树的构建。大致过程如下：
+开始，构建根结点，将所有训练数据都放在根结点。选择一个最优特征，按照这一特征将训练数据集分割成子集，使得各个子集有一个在当前条件下最好的分类。如果这些子集已经能够被基本正确分类，那么构建叶结点并将这些子集分到所对应的叶结点中去；如果还有子集不能被基本正确分类，那么就对这些子集选择新的最优特征，继续对其进行分割，构建相应的结点。如此递归地进行下去，直至所有训练数据子集被基本正确分类，或者没有合适的特征为止。最后每个子集都被分到叶结点上，即都有了明确的类。这就生成了一棵决策树。
+以上方法生成的决策树可能对训练数据有很好的分类能力，但对未知的测试数据却未必有很好的分类能力，即可能发生过拟合现象。我们需要对已生成的树自下而上进行剪枝，使树变得简单，从而使其具有更好的泛化能力。具体地，去掉过于细分的叶结点，使其退回到父结点，甚至更高的结点，然后将父结点或更高的结点改为新的叶结点。通常，层数越多即越深的决策树的复杂性越高，层数越少即越浅的决策树的复杂性越低。
+特征选择 特征选择(feature selection) 是决定用哪个特征来划分特征空间。特征选择在于选取对训练数据具有分类能力的特征，以提高决策树的学习效率。通常特征选择的准则是信息增益或信息增益比。
+信息增益 $$H(X)=\sum_{i=1}^{n}p_i\log p_i$$$$H(p)=\sum_{i=1}^{n}p_i \log p_i$$$$P(X=x_{i}, Y=y_{j})=p_{ij},\ \ i=1,2,\cdots,n;\ \ j=i=1,2,\cdots,m$$$$H(Y|X)=\sum_{i=1}^{n}p_i H(Y|X=x_i),\ \ p_i=P(X=x_i),\ \ i=1,2,\cdots,n$$ 当熵和条件熵中的概率由数据估计(特别是极大似然估计)得到时，所对应的熵与条件熵分别称为经验熵(empirical entropy) 和 经验条件熵(empirical conditional entropy)。
+$$g(D,A)=H(D)-H(D|A)$$ 一般地，熵$H(Y)$与条件熵$H(Y|X)$之差称为互信息(mutual information)，决策树中的信息增益等价于训练数据集中类与特征的互信息。
+信息增益表示由于特征$A$使得对数据集$D$的分类的不确定性减少的程度。显然，对数据集$D$而言，信息增益依赖于特征，不同的特征往往具有不同的信息增益。信息增益大的特征具有更强的分类能力。根据信息增益准则的特征选择方法是：对训练数据集(或子集)$D$，计算其每个特征的信息增益，选择信息增益最大的特征。
+设训练数据集为$D$，$|D|$表示其样本容量。设有$K$个类$C_k,k=1,2,\cdots,K$，$|C_k|$为术语类$C_k$的样本个数。设特征$A$有$n$个不同的取值${a_1,a_2,\cdots,a_n}$，根据特征$A$的取值将$D$划分为$n$个子集$D_1,D_2,\cdots,D_n$，$|D_i|$为$D_i$的样本个数记子集$D_i$中属于类$C_k$的样本集合为$D_{ik}$，即$D_{ik}=D_i \cap C_k$，$|D_{ik}|$为$D_{ik}$的样本个数。
+信息增益算法如下：
+输入：训练数据集$D$和$A$；
+输出：特征$A$对训练数据集$D$的信息增益$g(D,A)$
+$$H(D)=-\sum_{k=1}^{K}\frac{|C_k|}{|D|}\log \frac{|C_k|}{|D|}$$$$H(D|A)=\sum_{i=1}^{n}\frac{|D_i|}{|D|}H(D_i)=-\sum_{i=1}^{n}\frac{|D_i|}{|D|}\sum_{k=1}^{K}\frac{|D_{ik}|}{|D_i|}\log \frac{|D_{ik}|}{|D_i|}$$$$g(D,A)=H(D)-H(D|A)$$信息增益比 以信息增益作为划分训练数据集的特征，存在偏向于选择取值角度的特征的问题。使用信息增益比(information gain ratio)可以对这一问题进行校正，这是特征选择的另一准则。">
+  <meta itemprop="datePublished" content="2017-01-01T00:00:00+00:00">
+  <meta itemprop="dateModified" content="2017-01-01T00:00:00+00:00">
+  <meta itemprop="wordCount" content="497">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="决策树">
+  <meta name="twitter:description" content="决策树模型 决策树(decision tree) 是一种基本的分类与回归算法。决策树呈树形结构，在分类问题中表示基于特征对实例进行分类的过程，它可以认为是if-then规则的集合，也可以认为是定义在特征空间与类空间上的条件概率分布。其主要优点是模型具有可读性，分类速度快。学习时，利用训练数据，根据损失函数最小化的原则建立决策树模型。预测时，对新的数据，利用训练好的决策模型进行分类。
+分类决策树模型是一种由结点(node)和有向边(directed edge) 组成的树形结构。结点有两种类型：内部节点(internal node)，表示一个特征或属性；叶结点(leaf node)，表示一个类。用决策树分类，从根结点开始，对实例的某一特征进行测试，根据测试结果，将实例分配到其子结点；这时，每一个子结点对应着该特征的一个取值。如此递归地对实例进行测试并分配，直至到达叶结点。对吼将实例分到叶结点对应的类中。
+决策树可以看成一个if-then规则的集合，满足互斥并且完备的性质。决策树根结点到叶结点的每一条路径中，路径上的内部结点的特征对应着规则的条件，而叶结点的类对应着规则的结论。
+决策树还表示给定特征条件下类的条件概率分布，这一分布定义在特征空间的一个划分(partition)上。将特征空间划分为互不相交的单元(cell)或区域(region)，并在每个单元定义一个类的概率分布就构成了一个条件概率分布。决策树的一条路径对应于划分中的一个单元，决策树所表示的条件概率分布由各个单元给定条件下类的条件概率分布组成。假设$X$为表示特征的随机变量，$Y$为表示类的随机变量，那么该条件概率分布可以表示为$P(Y|X)$。$X$取值于给定划分下单元的集合，$Y$取值于类的集合。各叶结点(单元)上的条件概率往往偏向某一个类，即属于某一类的概率较大。决策树分类时将该结点的实例强行分到条件概率大的一类去。
+决策树学习的本质是从训练数据集中归纳出一组分类规则。与训练集不相矛盾的决策树(即能对训练数据进行正确分类的决策树)可能有多个，也可能一个都没有。我们需要的是一个与训练数据矛盾较小的，同时具有很好的泛化能力的决策树。从另一个角度看，决策树学习是由训练数据集估计条件概率模型。基于特征空间的类的条件概率模型有无穷多个，我们选择的条件概率模型应该不仅对训练数据有很好的拟合，而且对未知数据有很好的预测。
+决策树的学习算法通常是一个递归地选择最优特征，并根据该特征对训练数据进行分割，使得对各个子数据集有一个最好的分类的过程。这一过程对应着特征空间的，也对应着决策树的构建。大致过程如下：
+开始，构建根结点，将所有训练数据都放在根结点。选择一个最优特征，按照这一特征将训练数据集分割成子集，使得各个子集有一个在当前条件下最好的分类。如果这些子集已经能够被基本正确分类，那么构建叶结点并将这些子集分到所对应的叶结点中去；如果还有子集不能被基本正确分类，那么就对这些子集选择新的最优特征，继续对其进行分割，构建相应的结点。如此递归地进行下去，直至所有训练数据子集被基本正确分类，或者没有合适的特征为止。最后每个子集都被分到叶结点上，即都有了明确的类。这就生成了一棵决策树。
+以上方法生成的决策树可能对训练数据有很好的分类能力，但对未知的测试数据却未必有很好的分类能力，即可能发生过拟合现象。我们需要对已生成的树自下而上进行剪枝，使树变得简单，从而使其具有更好的泛化能力。具体地，去掉过于细分的叶结点，使其退回到父结点，甚至更高的结点，然后将父结点或更高的结点改为新的叶结点。通常，层数越多即越深的决策树的复杂性越高，层数越少即越浅的决策树的复杂性越低。
+特征选择 特征选择(feature selection) 是决定用哪个特征来划分特征空间。特征选择在于选取对训练数据具有分类能力的特征，以提高决策树的学习效率。通常特征选择的准则是信息增益或信息增益比。
+信息增益 $$H(X)=\sum_{i=1}^{n}p_i\log p_i$$$$H(p)=\sum_{i=1}^{n}p_i \log p_i$$$$P(X=x_{i}, Y=y_{j})=p_{ij},\ \ i=1,2,\cdots,n;\ \ j=i=1,2,\cdots,m$$$$H(Y|X)=\sum_{i=1}^{n}p_i H(Y|X=x_i),\ \ p_i=P(X=x_i),\ \ i=1,2,\cdots,n$$ 当熵和条件熵中的概率由数据估计(特别是极大似然估计)得到时，所对应的熵与条件熵分别称为经验熵(empirical entropy) 和 经验条件熵(empirical conditional entropy)。
+$$g(D,A)=H(D)-H(D|A)$$ 一般地，熵$H(Y)$与条件熵$H(Y|X)$之差称为互信息(mutual information)，决策树中的信息增益等价于训练数据集中类与特征的互信息。
+信息增益表示由于特征$A$使得对数据集$D$的分类的不确定性减少的程度。显然，对数据集$D$而言，信息增益依赖于特征，不同的特征往往具有不同的信息增益。信息增益大的特征具有更强的分类能力。根据信息增益准则的特征选择方法是：对训练数据集(或子集)$D$，计算其每个特征的信息增益，选择信息增益最大的特征。
+设训练数据集为$D$，$|D|$表示其样本容量。设有$K$个类$C_k,k=1,2,\cdots,K$，$|C_k|$为术语类$C_k$的样本个数。设特征$A$有$n$个不同的取值${a_1,a_2,\cdots,a_n}$，根据特征$A$的取值将$D$划分为$n$个子集$D_1,D_2,\cdots,D_n$，$|D_i|$为$D_i$的样本个数记子集$D_i$中属于类$C_k$的样本集合为$D_{ik}$，即$D_{ik}=D_i \cap C_k$，$|D_{ik}|$为$D_{ik}$的样本个数。
+信息增益算法如下：
+输入：训练数据集$D$和$A$；
+输出：特征$A$对训练数据集$D$的信息增益$g(D,A)$
+$$H(D)=-\sum_{k=1}^{K}\frac{|C_k|}{|D|}\log \frac{|C_k|}{|D|}$$$$H(D|A)=\sum_{i=1}^{n}\frac{|D_i|}{|D|}H(D_i)=-\sum_{i=1}^{n}\frac{|D_i|}{|D|}\sum_{k=1}^{K}\frac{|D_{ik}|}{|D_i|}\log \frac{|D_{ik}|}{|D_i|}$$$$g(D,A)=H(D)-H(D|A)$$信息增益比 以信息增益作为划分训练数据集的特征，存在偏向于选择取值角度的特征的问题。使用信息增益比(information gain ratio)可以对这一问题进行校正，这是特征选择的另一准则。">
+<link rel="preload" href="/scss/main.min.a52b2e54f3e921e61502207760f8ecb468b09dc55f348cc42d9b9b9132637847.css" as="style" integrity="sha256-pSsuVPPpIeYVAiB3YPjstGiwncVfNIzELZubkTJjeEc=" crossorigin="anonymous">
+<link href="/scss/main.min.a52b2e54f3e921e61502207760f8ecb468b09dc55f348cc42d9b9b9132637847.css" rel="stylesheet" integrity="sha256-pSsuVPPpIeYVAiB3YPjstGiwncVfNIzELZubkTJjeEc=" crossorigin="anonymous">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda+SC:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Bodoni+Moda:ital,opsz,wght@1,6..96,800&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Sen:wght@400..800&display=swap" rel="stylesheet">
+<script
+  src="https://code.jquery.com/jquery-3.7.1.min.js"
+  integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+  crossorigin="anonymous"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: '\\[', right: '\\]', display: true},   
+        {left: '$$', right: '$$', display: true},     
+        {left: '\\(', right: '\\)', display: false},  
+      ],
+      throwOnError : false
+    });
+  });
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+  </head>
+  <body class="td-page">
+    <header>
+      
+    </header>
+    <div class="container-fluid td-outer">
+      <div class="td-main">
+        <div class="row flex-xl-nowrap">
+          <aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none">
+            <div id="td-sidebar-menu" class="td-sidebar__inner">
+  <image src="/logo.png" style="width: 100%;" />
+
+
+  <form class="td-sidebar__search d-flex align-items-center">
+    
+    <button class="btn btn-link td-sidebar__toggle d-md-none p-0 ms-3 fas fa-bars" type="button" data-bs-toggle="collapse" data-bs-target="#td-section-nav" aria-controls="td-section-nav" aria-expanded="false" aria-label="Toggle section navigation">
+    </button>
+  </form>
+  <nav class="td-sidebar-nav collapse" id="td-section-nav">
+    <ul class="td-sidebar-nav__section pe-md-3 ul-0">
+      <li> <a href="/">首页</a></li>
+      <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m--li">
+  <a href="/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id="m-"><span class=""></span></a>
+  <ul class="ul-1">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-1-e695b0e5ada6e59fbae7a180-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" title="数学基础" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-1-e695b0e5ada6e59fbae7a180"><span class="">1-数学基础</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math1-e7babfe680a7e4bba3e695b0-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math1-%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math1-e7babfe680a7e4bba3e695b0"><span class="">线性代数</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math2-e5beaee7a7afe58886-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math2-%E5%BE%AE%E7%A7%AF%E5%88%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math2-e5beaee7a7afe58886"><span class="">微积分</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math3-e695b0e5ada6e4bc98e58c96-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math3-%E6%95%B0%E5%AD%A6%E4%BC%98%E5%8C%96/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math3-e695b0e5ada6e4bc98e58c96"><span class="">数学优化</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math4-e6a682e78e87e7bb9fe8aea1-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math4-%E6%A6%82%E7%8E%87%E7%BB%9F%E8%AE%A1/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math4-e6a682e78e87e7bb9fe8aea1"><span class="">概率统计</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math5-e4bfa1e681afe8aeba-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math5-%E4%BF%A1%E6%81%AF%E8%AE%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math5-e4bfa1e681afe8aeba"><span class="">信息论</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m-2-e69cbae599a8e5ada6e4b9a0-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-2-e69cbae599a8e5ada6e4b9a0"><span class="">2-机器学习</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml1-e69cbae599a8e5ada6e4b9a0e59fbae7a180-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml1-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%9F%BA%E7%A1%80/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml1-e69cbae599a8e5ada6e4b9a0e59fbae7a180"><span class="">机器学习基础</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml2-e7babfe680a7e59b9ee5bd92-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml2-%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml2-e7babfe680a7e59b9ee5bd92"><span class="">线性回归</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml3-ke8bf91e982bbe7ae97e6b395-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml3-k%E8%BF%91%E9%82%BB%E7%AE%97%E6%B3%95/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml3-ke8bf91e982bbe7ae97e6b395"><span class="">近邻算法</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml4-e6849fe79fa5e69cba-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml4-%E6%84%9F%E7%9F%A5%E6%9C%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml4-e6849fe79fa5e69cba"><span class="">感知机</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml5-e8b49de58fb6e696afe58886e7b1bbe599a8-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml5-%E8%B4%9D%E5%8F%B6%E6%96%AF%E5%88%86%E7%B1%BB%E5%99%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml5-e8b49de58fb6e696afe58886e7b1bbe599a8"><span class="">贝叶斯分类器</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml6-e980bbe8be91e59b9ee5bd92e4b88ee69c80e5a4a7e786b5e6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml6-%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92%E4%B8%8E%E6%9C%80%E5%A4%A7%E7%86%B5%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml6-e980bbe8be91e59b9ee5bd92e4b88ee69c80e5a4a7e786b5e6a8a1e59e8b"><span class="">逻辑回归与最大熵模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml7-e694afe68c81e59091e9878fe69cba-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml7-%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml7-e694afe68c81e59091e9878fe69cba"><span class="">支持向量机</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id="m-2-e69cbae599a8e5ada6e4b9a0ml8-e586b3e7ad96e6a091-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml8-%E5%86%B3%E7%AD%96%E6%A0%91/" class="align-left ps-0 active td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml8-e586b3e7ad96e6a091"><span class="td-sidebar-nav-active-item">决策树</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml9-e99b86e68890e5ada6e4b9a0-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml9-%E9%9B%86%E6%88%90%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml9-e99b86e68890e5ada6e4b9a0"><span class="">集成学习</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml10-eme7ae97e6b395-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml10-em%E7%AE%97%E6%B3%95/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml10-eme7ae97e6b395"><span class="">EM算法</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml11-e8819ae7b1bb-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml11-%E8%81%9A%E7%B1%BB/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml11-e8819ae7b1bb"><span class="">聚类</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml12-e9998de7bbb4-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml12-%E9%99%8D%E7%BB%B4/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml12-e9998de7bbb4"><span class="">降维</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml13-e789b9e5be81e98089e68ba9-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml13-%E7%89%B9%E5%BE%81%E9%80%89%E6%8B%A9/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml13-e789b9e5be81e98089e68ba9"><span class="">特征选择</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml14-e8af9de9a298e6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml14-%E8%AF%9D%E9%A2%98%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml14-e8af9de9a298e6a8a1e59e8b"><span class="">话题模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-2-e69cbae599a8e5ada6e4b9a0ml15-e6a682e78e87e59bbee6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml15-%E6%A6%82%E7%8E%87%E5%9B%BE%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml15-e6a682e78e87e59bbee6a8a1e59e8b"><span class="">概率图模型</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-3-e6b7b1e5baa6e5ada6e4b9a0"><span class="">3-深度学习</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl1-e6b7b1e5baa6e5ada6e4b9a0e6a682e8bfb0-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl1-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E6%A6%82%E8%BF%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl1-e6b7b1e5baa6e5ada6e4b9a0e6a682e8bfb0"><span class="">深度学习概述</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl2-e7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl2-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl2-e7a59ee7bb8fe7bd91e7bb9c"><span class="">神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl3-e58db7e7a7afe7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl3-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl3-e58db7e7a7afe7a59ee7bb8fe7bd91e7bb9c"><span class="">卷积神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl4-e5beaae78eafe7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl4-%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl4-e5beaae78eafe7a59ee7bb8fe7bd91e7bb9c"><span class="">循环神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl5-e7a59ee7bb8fe7bd91e7bb9ce79a84e4bc98e58c96-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl5-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E7%9A%84%E4%BC%98%E5%8C%96/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl5-e7a59ee7bb8fe7bd91e7bb9ce79a84e4bc98e58c96"><span class="">神经网络的优化</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl6-e887aae7bc96e7a081e599a8-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl6-%E8%87%AA%E7%BC%96%E7%A0%81%E5%99%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl6-e887aae7bc96e7a081e599a8"><span class="">自编码器</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl7-e6b7b1e5baa6e7949fe68890e6a8a1e59e8b-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl7-%E6%B7%B1%E5%BA%A6%E7%94%9F%E6%88%90%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl7-e6b7b1e5baa6e7949fe68890e6a8a1e59e8b"><span class="">深度生成模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl8-e6b3a8e6848fe58a9be69cbae588b6e4b88ee5a496e983a8e8aeb0e5bf86-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl8-%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%E4%B8%8E%E5%A4%96%E9%83%A8%E8%AE%B0%E5%BF%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl8-e6b3a8e6848fe58a9be69cbae588b6e4b88ee5a496e983a8e8aeb0e5bf86"><span class="">注意力机制与外部记忆</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl9-e59bbee7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl9-%E5%9B%BE%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl9-e59bbee7a59ee7bb8fe7bd91e7bb9c"><span class="">图神经网络</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-4-e887aae784b6e8afade8a880e5a484e79086-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-4-e887aae784b6e8afade8a880e5a484e79086"><span class="">4-自然语言处理</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp1-e887aae784b6e8afade8a880e5a484e79086e6a682e8bfb0-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp1-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E6%A6%82%E8%BF%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp1-e887aae784b6e8afade8a880e5a484e79086e6a682e8bfb0"><span class="">自然语言处理概述</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp2-e8af8de59091e9878f-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp2-%E8%AF%8D%E5%90%91%E9%87%8F/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp2-e8af8de59091e9878f"><span class="">词向量</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp3-e8afade8a880e6a8a1e59e8b-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp3-%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp3-e8afade8a880e6a8a1e59e8b"><span class="">语言模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp4-seq2seqe4b88eattention-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp4-seq2seq%E4%B8%8Eattention/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp4-seq2seqe4b88eattention"><span class="">seq2seq与attention</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp5-e9a284e8aeade7bb83e6a8a1e59e8b-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp5-%E9%A2%84%E8%AE%AD%E7%BB%83%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp5-e9a284e8aeade7bb83e6a8a1e59e8b"><span class="">预训练模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp6-e887aae784b6e8afade8a880e5a484e79086e5ba94e794a8-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp6-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E5%BA%94%E7%94%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp6-e887aae784b6e8afade8a880e5a484e79086e5ba94e794a8"><span class="">自然语言处理应用</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-5-aie7a094e7a9b6e6898be5868c-li">
+  <a href="/5-ai%E7%A0%94%E7%A9%B6%E6%89%8B%E5%86%8C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-5-aie7a094e7a9b6e6898be5868c"><span class="">5-AI研究手册</span></a>
+</li>
+  </ul>
+</li>
+    </ul>
+  </nav>
+</div>
+
+
+          </aside>
+          <aside class="d-none d-xl-block col-xl-2 td-sidebar-toc d-print-none">
+            <div class="td-page-meta ms-2 pb-1 pt-2 mb-0">
+
+</div>
+
+            <div class="td-toc">
+        <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#决策树模型">决策树模型</a></li>
+        <li><a href="#特征选择">特征选择</a></li>
+        <li><a href="#决策树的生成">决策树的生成</a></li>
+        <li><a href="#决策树的剪枝">决策树的剪枝</a></li>
+        <li><a href="#连续与缺失值">连续与缺失值</a></li>
+        <li><a href="#多变量决策树">多变量决策树</a></li>
+        <li><a href="#使用scikit-learn中的决策树算法对鸢尾花数据进行分类">使用scikit-learn中的决策树算法对鸢尾花数据进行分类</a></li>
+        <li><a href="#参考资料">参考资料</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+      </div>
+    
+            
+
+          </aside>
+          <main class="col-12 col-md-9 col-xl-8 " role="main">
+            <nav class="td-navbar js-navbar-scroll" data-bs-theme="dark">
+<div class="container-fluid flex-column flex-md-row">
+  <a class="navbar-brand" href="/"><span class="navbar-brand__logo navbar-logo"><svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" style="enable-background:new 0 0 500 500"><g><path style="fill:#fff" d="M116.8525 421.9722c-5.7041.0-10.3442-4.3127-10.3442-9.6129V88.183c0-5.3002 4.6401-9.6117 10.3442-9.6117H320.858c3.0347.0 9.3959.5498 11.7506 2.6302l.3545.3442 58.905 63.2912c2.3101 2.491 2.9202 8.4928 2.9202 11.3184v256.2039c0 5.3002-4.6407 9.6129-10.3436 9.6129H116.8525z"/><g><g><g><path style="fill:#767676" d="M384.4445 423.2066H116.852c-6.3839.0-11.5786-4.8658-11.5786-10.8474V88.1831c0-5.9804 5.1947-10.8461 11.5786-10.8461h204.0062c.377.0 9.2786.0329 12.568 2.9389l.3947.3833 58.9508 63.337c3.2135 3.4652 3.2514 11.7924 3.2514 12.1593v256.2036C396.0231 418.3408 390.8284 423.2066 384.4445 423.2066zM116.5079 411.9189c.0848.0278.1999.0531.3441.0531h267.5925c.1442.0.2581-.0253.3441-.0531V156.1556c-.0076-.9033-.3593-3.7347-.7034-5.0037l-57.6527-61.9416c-1.4651-.3176-4.4533-.6389-5.5742-.6389H116.852c-.143.0-.2594.024-.3441.0531V411.9189zm267.4533-261.149zM327.0321 89.371v.0013V89.371z"/></g></g></g><g><g><path style="fill:#5b7fc0" d="M189.0874 210.1754l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4473C177.5953 212.627 183.0601 210.1742 189.0874 210.1754zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 234.1722 197.0804 232.033z"/><path style="opacity:.3;fill:#fff" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/><g><defs><path id="SVGID_1_" d="M194.7376 237.6875c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 234.2399 196.1861 236.239 194.7376 237.6875z"/></defs><clipPath id="SVGID_2_"><use xlink:href="#SVGID_1_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_2_);fill:#fff" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/><path style="opacity:.13;clip-path:url(#SVGID_2_);fill:#020202" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/></g><g><defs><path id="SVGID_3_" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/></defs><clipPath id="SVGID_4_"><use xlink:href="#SVGID_3_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_4_);fill:#5b7fc0" d="M172.6595 215.6045c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8475-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 209.1953 176.6171 211.647 172.6595 215.6045z"/></g></g><rect x="198.8952" y="225.1043" style="fill:#5b7fc0" width="122.6266" height="13.8671"/></g><g><path style="fill:#d95140" d="M189.0874 155.7611l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.0249 2.454-11.4897 6.4116-15.4473C177.5953 158.2128 183.0601 155.7599 189.0874 155.7611zm7.993 21.8577c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.2508 181.7667 197.0816 179.758 197.0804 177.6188z"/><path style="opacity:.3;fill:#fff" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/><g><defs><path id="SVGID_5_" d="M194.7376 183.2733c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 179.8256 196.1861 181.8248 194.7376 183.2733z"/></defs><clipPath id="SVGID_6_"><use xlink:href="#SVGID_5_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_6_);fill:#fff" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/><path style="opacity:.13;clip-path:url(#SVGID_6_);fill:#020202" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/></g><g><defs><path id="SVGID_7_" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/></defs><clipPath id="SVGID_8_"><use xlink:href="#SVGID_7_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_8_);fill:#d95140" d="M172.6595 161.1903c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 154.7811 176.6171 157.2327 172.6595 161.1903z"/></g><rect x="198.8952" y="170.69" style="fill:#d95140" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#56a55c" d="M189.5379 264.6147l.0012-.0012c7.7751.0012 15.0294 4.1862 18.932 10.9235 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032-5.8394.0-11.3281-2.2733-15.458-6.4032-4.13-4.13-6.4032-9.6186-6.4056-15.4628.0012-6.0249 2.454-11.4897 6.4116-15.4472C178.0458 267.0663 183.5105 264.6135 189.5379 264.6147zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6538 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.7013 290.6202 197.5321 288.6115 197.5309 286.4723z"/><path style="opacity:.3;fill:#fff" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/><g><defs><path id="SVGID_9_" d="M195.1881 292.1268c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9941 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.5344 288.6792 196.6366 290.6783 195.1881 292.1268z"/></defs><clipPath id="SVGID_10_"><use xlink:href="#SVGID_9_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_10_);fill:#fff" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/><path style="opacity:.13;clip-path:url(#SVGID_10_);fill:#020202" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/></g><g><defs><path id="SVGID_11_" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/></defs><clipPath id="SVGID_12_"><use xlink:href="#SVGID_11_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_12_);fill:#56a55c" d="M173.11 270.0439c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7325-11.1497-10.9151-18.926-10.9151C182.5311 263.6346 177.0676 266.0863 173.11 270.0439z"/></g></g><rect x="199.3456" y="279.5436" style="fill:#56a55c" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#f1bc42" d="M189.0874 318.7208l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3305-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4472C177.5953 321.1724 183.0601 318.7196 189.0874 318.7208zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 342.7176 197.0804 340.5784z"/><path style="opacity:.3;fill:#fff" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/><g><defs><path id="SVGID_13_" d="M194.7376 346.2329c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 342.7853 196.1861 344.7844 194.7376 346.2329z"/></defs><clipPath id="SVGID_14_"><use xlink:href="#SVGID_13_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_14_);fill:#fff" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/><path style="opacity:.13;clip-path:url(#SVGID_14_);fill:#020202" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/></g><g><defs><path id="SVGID_15_" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/></defs><clipPath id="SVGID_16_"><use xlink:href="#SVGID_15_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_16_);fill:#f1bc42" d="M172.6595 324.15c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8474-1.0151-7.6327-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 317.7407 176.6171 320.1924 172.6595 324.15z"/></g></g><rect x="198.8952" y="333.6497" style="fill:#f1bc42" width="122.6266" height="13.8671"/></g></g></svg></span><span class="navbar-brand__name">知予AI</span></a>
+  <div class="td-navbar-nav-scroll ms-md-auto" id="main_navbar">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="https://github.com/knove-ai" target="_blank" rel="noopener"><i class="fa fa-github"></i><span>Github</span></a>
+      </li>
+      </ul>
+  </div>
+  <div class="d-none d-lg-block">
+    
+  </div>
+</div>
+</nav>
+
+            <div class="ps-md-5">
+              
+  
+
+              <nav aria-label="breadcrumb" class="td-breadcrumbs">
+  <ol class="breadcrumb">
+  <li class="breadcrumb-item">
+    <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">2-机器学习</a></li>
+  <li class="breadcrumb-item active" aria-current="page">
+    决策树</li>
+  </ol>
+</nav>
+              
+<div class="td-content">
+	<h1>决策树</h1>
+	
+	<header class="article-meta">
+		
+</header>
+	<h3 id="决策树模型">决策树模型</h3>
+<p><strong>决策树(decision tree)</strong> 是一种基本的<strong>分类</strong>与<strong>回归</strong>算法。决策树呈树形结构，在分类问题中表示基于特征对实例进行分类的过程，它可以认为是<strong>if-then规则</strong>的集合，也可以认为是定义在特征空间与类空间上的<strong>条件概率分布</strong>。其主要优点是模型具有可读性，分类速度快。学习时，利用训练数据，根据损失函数最小化的原则建立决策树模型。预测时，对新的数据，利用训练好的决策模型进行分类。</p>
+<p>分类决策树模型是一种由<strong>结点(node</strong>)和<strong>有向边(directed edge)</strong> 组成的树形结构。结点有两种类型：<strong>内部节点(internal node)，表示一个特征或属性；叶结点(leaf node)，表示一个类</strong>。用决策树分类，从根结点开始，对实例的某一特征进行测试，根据测试结果，将实例分配到其子结点；这时，每一个子结点对应着该特征的一个取值。如此递归地对实例进行测试并分配，直至到达叶结点。对吼将实例分到叶结点对应的类中。</p>
+<p>决策树可以看成一个if-then规则的集合，满足<strong>互斥并且完备</strong>的性质。决策树根结点到叶结点的每一条路径中，路径上的内部结点的特征对应着规则的<strong>条件</strong>，而叶结点的类对应着规则的<strong>结论</strong>。</p>
+<p>决策树还表示给定特征条件下类的条件概率分布，这一分布定义在特征空间的一个<strong>划分(partition)<strong>上。将特征空间划分为互不相交的</strong>单元(cell)<strong>或</strong>区域(region)</strong>，并在每个单元定义一个类的概率分布就构成了一个条件概率分布。决策树的一条路径对应于划分中的一个单元，决策树所表示的条件概率分布由各个单元给定条件下类的条件概率分布组成。假设$X$为表示特征的随机变量，$Y$为表示类的随机变量，那么该条件概率分布可以表示为$P(Y|X)$。$X$取值于给定划分下单元的集合，$Y$取值于类的集合。各叶结点(单元)上的条件概率往往偏向某一个类，即属于某一类的概率较大。决策树分类时将该结点的实例强行分到条件概率大的一类去。</p>
+<p>决策树学习的本质是从训练数据集中归纳出一组分类规则。与训练集不相矛盾的决策树(即能对训练数据进行正确分类的决策树)可能有多个，也可能一个都没有。我们需要的是一个<strong>与训练数据矛盾较小的，同时具有很好的泛化能力的决策树</strong>。从另一个角度看，决策树学习是由训练数据集估计条件概率模型。基于特征空间的类的条件概率模型有无穷多个，我们选择的条件概率模型应该不仅对训练数据有很好的拟合，而且对未知数据有很好的预测。</p>
+<p>决策树的学习算法通常是一个递归地选择最优特征，并根据该特征对训练数据进行分割，使得对各个子数据集有一个最好的分类的过程。这一过程对应着特征空间的，也对应着决策树的构建。大致过程如下：</p>
+<p>开始，构建根结点，将所有训练数据都放在根结点。选择一个<strong>最优特征</strong>，按照这一特征将训练数据集分割成子集，使得各个子集有一个在当前条件下最好的分类。如果这些子集已经能够被基本正确分类，那么构建叶结点并将这些子集分到所对应的叶结点中去；如果还有子集不能被基本正确分类，那么就对这些子集选择新的最优特征，继续对其进行分割，构建相应的结点。如此递归地进行下去，直至所有训练数据子集被基本正确分类，或者没有合适的特征为止。最后每个子集都被分到叶结点上，即都有了明确的类。这就生成了一棵决策树。</p>
+<p>以上方法生成的决策树可能对训练数据有很好的分类能力，但对未知的测试数据却未必有很好的分类能力，即可能发生过拟合现象。我们需要对已生成的树自下而上进行<strong>剪枝</strong>，使树变得简单，从而使其具有更好的泛化能力。具体地，去掉过于细分的叶结点，使其退回到父结点，甚至更高的结点，然后将父结点或更高的结点改为新的叶结点。通常，<strong>层数越多即越深的决策树的复杂性越高，层数越少即越浅的决策树的复杂性越低</strong>。</p>
+<div align="center">
+<img src="/images/2/image-20200428151625612.png" style="zoom:50%;" />
+</div>
+<h3 id="特征选择">特征选择</h3>
+<p><strong>特征选择(feature selection)</strong> 是决定用哪个特征来划分特征空间。特征选择在于选取对训练数据具有分类能力的特征，以提高决策树的学习效率。通常特征选择的准则是信息增益或信息增益比。</p>
+<h4 id="信息增益">信息增益</h4>
+$$
+H(X)=\sum_{i=1}^{n}p_i\log p_i
+$$$$
+H(p)=\sum_{i=1}^{n}p_i \log p_i
+$$$$
+P(X=x_{i}, Y=y_{j})=p_{ij},\ \ i=1,2,\cdots,n;\ \ j=i=1,2,\cdots,m
+$$$$
+H(Y|X)=\sum_{i=1}^{n}p_i H(Y|X=x_i),\ \ p_i=P(X=x_i),\ \ i=1,2,\cdots,n
+$$<p>
+当熵和条件熵中的概率由数据估计(特别是极大似然估计)得到时，所对应的熵与条件熵分别称为<strong>经验熵(empirical entropy)</strong> 和 <strong>经验条件熵(empirical conditional entropy)</strong>。</p>
+$$
+g(D,A)=H(D)-H(D|A)
+$$<p>
+一般地，熵$H(Y)$与条件熵$H(Y|X)$之差称为<strong>互信息(mutual information)</strong>，决策树中的信息增益等价于<strong>训练数据集中类与特征的互信息</strong>。</p>
+<p>信息增益表示由于特征$A$使得对数据集$D$的分类的不确定性减少的程度。显然，对数据集$D$而言，信息增益依赖于特征，不同的特征往往具有不同的信息增益。信息增益大的特征具有更强的分类能力。根据信息增益准则的特征选择方法是：对训练数据集(或子集)$D$，计算其每个特征的信息增益，<strong>选择信息增益最大的特征</strong>。</p>
+<p>设训练数据集为$D$，$|D|$表示其样本容量。设有$K$个类$C_k,k=1,2,\cdots,K$，$|C_k|$为术语类$C_k$的样本个数。设特征$A$有$n$个不同的取值${a_1,a_2,\cdots,a_n}$，根据特征$A$的取值将$D$划分为$n$个子集$D_1,D_2,\cdots,D_n$，$|D_i|$为$D_i$的样本个数记子集$D_i$中属于类$C_k$的样本集合为$D_{ik}$，即$D_{ik}=D_i \cap C_k$，$|D_{ik}|$为$D_{ik}$的样本个数。</p>
+<p>信息增益算法如下：</p>
+<p>输入：训练数据集$D$和$A$；</p>
+<p>输出：特征$A$对训练数据集$D$的信息增益$g(D,A)$</p>
+$$
+H(D)=-\sum_{k=1}^{K}\frac{|C_k|}{|D|}\log \frac{|C_k|}{|D|}
+$$$$
+H(D|A)=\sum_{i=1}^{n}\frac{|D_i|}{|D|}H(D_i)=-\sum_{i=1}^{n}\frac{|D_i|}{|D|}\sum_{k=1}^{K}\frac{|D_{ik}|}{|D_i|}\log \frac{|D_{ik}|}{|D_i|}
+$$$$
+g(D,A)=H(D)-H(D|A)
+$$<h4 id="信息增益比">信息增益比</h4>
+<p>以信息增益作为划分训练数据集的特征，存在<strong>偏向于选择取值角度的特征</strong>的问题。使用信息增益比(information gain ratio)可以对这一问题进行校正，这是特征选择的另一准则。</p>
+$$
+g_{R}(D, A)=\frac{g(D, A)}{H_{A}(D)}
+$$$$
+H_{A}(D)=-\sum_{i=1}^{n} \frac{|D_{i}|}{|D|} \log _{2} \frac{|D_{i}|}{|D|}
+$$<p>
+$n$是特征$A$取值的个数。</p>
+<h4 id="基尼指数">基尼指数</h4>
+$$
+Gini(p)=\sum_{k=1}^{K}p_k(1-p_k)=1-\sum_{k=1}^{K}p_k^2
+$$$$
+Gini(D)=1-\sum_{k=1}^{K}\left(\frac{|C_k|}{|D|}\right)^2
+$$$$
+Gini(D,A)=\frac{|D_1|}{|D|}Gini(D_1)+\frac{|D_2|}{|D|}Gini(D_2)
+$$<p>
+基尼指数$Gini(D)$表示集合$D$的不确定性，基尼指数$Gini(D,A)$表示经$A=a$分割后集合$D$的不确定性。基尼指数值越大，样本集合的不确定性也就越大，这一点与熵相似。</p>
+<h3 id="决策树的生成">决策树的生成</h3>
+<h4 id="id3算法">ID3算法</h4>
+<p>输入：训练数据集$D$，特征集$A$，阈值$\varepsilon$。</p>
+<p>输出：决策树$T$。</p>
+<p>(1) 若$D$中<strong>所有实例属于同一类</strong>$C_k$，则$T$为单结点树，并将类$C_k$作为该结点的类标记，返回$T$；</p>
+<p>(2) 若$A=\varnothing$，则$T$为<strong>单节点树</strong>，并将$D$中实例数最大的类$C_k$作为该结点的类标记，返回$T$；</p>
+<p>(3) 否则，计算$A$中各特征对$D$的信息增益，选择<strong>信息增益最大的特征</strong>$A_g$。</p>
+<p>(4) 如果$A_g$的信息增益小于<strong>阈值</strong>$\varepsilon$，则置$T$为单结点树，并将$D$中实例数最大的类$C_k$作为该结点的标记，返回$T$；</p>
+<p>(5) 否则，对$A_g$的每一可能值$a_i$，依$A_g=a_i$将$D$分割为若干个非空子集$D_i$，将$D_i$中实例数最大的类作为标记，构造子结点，并由结点及其子结点构成树$T$，返回$T$；</p>
+<p>(6) 对第$i$个子结点，以$D_i$为训练集，以$A-{A_g}$为特征集，<strong>递归地调用(1)~(5)</strong>，得到子树$T_i$，返回$T_i$。</p>
+<h4 id="c45算法">C4.5算法</h4>
+<p>C4.5算法与ID3算法相似，改进的地方是C4.5采用信息增益比作为特征选择的标准，而ID3算法是使用信息增益作为特征选择标准。</p>
+<p>输入：训练数据集$D$，特征集$A$，阈值$\varepsilon$。</p>
+<p>输出：决策树$T$。</p>
+<p>(1) 若$D$中<strong>所有实例属于同一类</strong>$C_k$，则$T$为单结点树，并将类$C_k$作为该结点的类标记，返回$T$；</p>
+<p>(2) 若$A=\varnothing$，则$T$为<strong>单节点树</strong>，并将$D$中实例数最大的类$C_k$作为该结点的类标记，返回$T$；</p>
+<p>(3) 否则，计算$A$中各特征对$D$的信息增益比，选择<strong>信息增益比最大的特征</strong>$A_g$。</p>
+<p>(4) 如果$A_g$的信息增益小于<strong>阈值</strong>$\varepsilon$，则置$T$为单结点树，并将$D$中实例数最大的类$C_k$作为该结点的标记，返回$T$；</p>
+<p>(5) 否则，对$A_g$的每一可能值$a_i$，依$A_g=a_i$将$D$分割为若干个非空子集$D_i$，将$D_i$中实例数最大的类作为标记，构造子结点，并由结点及其子结点构成树$T$，返回$T$；</p>
+<p>(6) 对第$i$个子结点，以$D_i$为训练集，以$A-{A_g}$为特征集，<strong>递归地调用(1)~(5)</strong>，得到子树$T_i$，返回$T_i$。</p>
+<h3 id="决策树的剪枝">决策树的剪枝</h3>
+<p><strong>剪枝(pruning)</strong> 是决策树学习算法对付过拟合的主要手段。在决策树学习中，为了尽可能正确分类训练样本，结点划分过程将不断重读，有时会造成决策树分支过多，这时就可能因训练样本学得“太好”了，以致于把训练集自身的一些特点当做所有数据都具有的一般性质而导致过拟合。</p>
+<p>决策树剪枝的基本策略有预剪枝和后剪枝两种。**预剪枝(pre-pruning)<strong>是指在决策树生成过程中，对每个结点在划分前进行估计，若当前结点的划分不能带来决策树泛化性能提升，则停止划分并将当前结点标记为叶结点；后剪枝</strong>(post-pruning)**则是先从训练集生成一棵完整的决策树，然后自底向上地对非叶结点进行考察，若将该结点对应的子树替换为叶结点能带来决策树泛化性能提升(在验证集上准确率性能提高)，则将该子树替换为叶结点。</p>
+<p>预剪枝通常在生成决策树的过程中<strong>使用一个验证集来决定每次划分</strong>，因此可以使得很多分支没有“展开”，这不仅降低了过拟合的风险，还显著减少了决策树的训练时间开销和测试时间开销。但另一方面，有些分支的当前划分虽不能提升泛化性能，甚至可能导致泛化性能暂时下降，但在其基础上进行的后续划分却有可能导致性能显著提高。预剪枝基于“贪心”本质禁止一些分支的展开，带来了欠拟合的风险。</p>
+<p>后剪枝先从训练集生成一棵完整的决策树，再自底向上遍历每个内部结点，若合并某个内部结点后能够带来在验证集上的精度提升，则合并该结点。以此类推，直至无法再合并为止。</p>
+<p>一般来说，后剪枝决策树通常比预剪枝决策树保留了更多的分支，欠拟合风险更小，<strong>泛化性能往往优于预剪枝决策树</strong>。但后剪枝过程是在完全生成决策树之后进行的，并且要<strong>自底向上地对树中的所有非叶结点进行逐一考察</strong>，因此其<strong>训练时间开销</strong>比未剪枝决策树和预剪枝决策树都要大得多。</p>
+<h3 id="连续与缺失值">连续与缺失值</h3>
+<h4 id="连续值处理">连续值处理</h4>
+$$
+T_a=\left\{\frac{a^i+a^{i+1}}{2}|1 \leqslant i \leqslant n-1 \right\}
+$$<p>
+把区间$[a^i,a^{i+1})$的中位点$\frac{a^i+a^{i+1}}{2}$作为候选划分点，然后就可以像离散属性一样来考察这些划分点。</p>
+<h4 id="缺失值处理">缺失值处理</h4>
+<p>现实任务中常会遇到不完整样本，即样本的某些属性值缺失。如果简单地放弃不完整样本，仅使用无缺失值的样本来进行学习，显然是对数据信息极大的浪费。</p>
+<p>考虑利用有缺失属性值的训练样例进行学习，需要解决两个问题：(1) 如何在属性值缺失的情况下进行<strong>划分属性选择</strong>？(2) 给定划分属性，若样本在该属性上的值缺失，如何<strong>对样本进行划分</strong>？</p>
+<p>给定训练集$D$和属性$a$，令$\tilde D$表示$D$中在属性$a$上<strong>没有缺失值的样本子集</strong>，并假定我们为每一个样本$x$赋予一个权重$w_x$。对问题(1)，显然我们仅可根据$\tilde D$来判断$a$的优劣。对问题(2)，若样本$x$在划分属性$a$上取值已知，则将$x$划入与其取值对应的子结点，且样本权在子结点中保持为$w_x$。若样本$x$在划分属性$a$上取值未知，则将$x$同时划入所有子结点，且对样本在属性$a$不同取值上的权值进行一定调整。</p>
+<h3 id="多变量决策树">多变量决策树</h3>
+<p>若把每个属性视为坐标空间中的一个坐标轴，则d个属性描述的样本就对应了d维空间中的一个数据点，对样本分类意味着在这个做表空间中寻找不同样本之间的分类边界。决策树形成的分类边界有一个明显的特点：<strong>轴平行(axis-parallel)，即它的分类边界由若干个与坐标轴平行的分段组成</strong>。</p>
+<p>这样的分类边界使得学习结果有较好的可解释性，因为每一段划分都直接对应了某个属性取值。但在学习任务的真实分类边界比较复杂时，必须使用很多段划分才能获得较好的近似，此时决策树会相当复杂，由于要进行大量的属性测试，预测时间开销会很大。</p>
+<p><strong>多变量决策树(multivariate decision tree)</strong> 能够实现特征空间的“斜划分”甚至更复杂划分的决策树。以斜划分为例，在此类决策树中，非叶结点不再是针对某个属性，而是对属性的线性组合进行测试。</p>
+<h3 id="使用scikit-learn中的决策树算法对鸢尾花数据进行分类">使用scikit-learn中的决策树算法对鸢尾花数据进行分类</h3>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">numpy</span> <span style="color:#204a87;font-weight:bold">as</span> <span style="color:#000">np</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">matplotlib.pyplot</span> <span style="color:#204a87;font-weight:bold">as</span> <span style="color:#000">plt</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">sklearn.tree</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">DecisionTreeClassifier</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">sklearn.datasets</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">load_iris</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">sklearn.model_selection</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">train_test_split</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">sklearn.metrics</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">classification_report</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">def</span> <span style="color:#000">plot_decision_boundary</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">model</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">axis</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#4e9a06">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#4e9a06">    在axis范围内绘制模型model的决策边界
+</span></span></span><span style="display:flex;"><span><span style="color:#4e9a06">    :param model: classification model which must have &#39;predict&#39; function
+</span></span></span><span style="display:flex;"><span><span style="color:#4e9a06">    :param axis: [left, right, down, up]
+</span></span></span><span style="display:flex;"><span><span style="color:#4e9a06">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">x0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">x1</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">np</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">meshgrid</span><span style="color:#000;font-weight:bold">(</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">np</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">linspace</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">axis</span><span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">axis</span><span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#204a87">int</span><span style="color:#000;font-weight:bold">((</span><span style="color:#000">axis</span><span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">-</span> <span style="color:#000">axis</span><span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">])</span> <span style="color:#ce5c00;font-weight:bold">*</span> <span style="color:#0000cf;font-weight:bold">100</span><span style="color:#000;font-weight:bold">))</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">reshape</span><span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">-</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">),</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">np</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">linspace</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">axis</span><span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">axis</span><span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">3</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#204a87">int</span><span style="color:#000;font-weight:bold">((</span><span style="color:#000">axis</span><span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">3</span><span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">-</span> <span style="color:#000">axis</span><span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">])</span> <span style="color:#ce5c00;font-weight:bold">*</span> <span style="color:#0000cf;font-weight:bold">100</span><span style="color:#000;font-weight:bold">))</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">reshape</span><span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">-</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">),</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">X_new</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">np</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">c_</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">x0</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">ravel</span><span style="color:#000;font-weight:bold">(),</span> <span style="color:#000">x1</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">ravel</span><span style="color:#000;font-weight:bold">()]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">y_predict</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">model</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">predict</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_new</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">zz</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">y_predict</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">reshape</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">x0</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">matplotlib.colors</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">ListedColormap</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">custom_cmap</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">ListedColormap</span><span style="color:#000;font-weight:bold">([</span><span style="color:#4e9a06">&#39;#EF9A9A&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#4e9a06">&#39;#FFF59D&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#4e9a06">&#39;#90CAF9&#39;</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">contourf</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">x0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">x1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">zz</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">linewidth</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">5</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">cmap</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">custom_cmap</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">X</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">load_iris</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">return_X_y</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#204a87;font-weight:bold">True</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">X</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">X</span><span style="color:#000;font-weight:bold">[:,</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">]</span>  <span style="color:#8f5902;font-style:italic"># 仅选择前两个特征，便于绘制决策边界</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">X_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_test</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">train_test_split</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_train</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">X_test</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_train</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_test</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">)</span>  <span style="color:#8f5902;font-style:italic"># (112, 2) (38, 2) (112,) (38,)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 尝试不同限定深度的决策树，并绘制其决策边界</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">dec_tree</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">DecisionTreeClassifier</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">dec_tree</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">fit</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_train</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">dec_tree_10</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">DecisionTreeClassifier</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">max_depth</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">10</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">dec_tree_10</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">fit</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_train</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">dec_tree_6</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">DecisionTreeClassifier</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">max_depth</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">6</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">dec_tree_6</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">fit</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_train</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">dec_tree_4</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">DecisionTreeClassifier</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">max_depth</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">4</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">dec_tree_4</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">fit</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_train</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">subplot</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">title</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;No max depth&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plot_decision_boundary</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">dec_tree</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">axis</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">3</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">8</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">5</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">scatter</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">y_test</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">y_test</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">scatter</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">y_test</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">y_test</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">scatter</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">y_test</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">y_test</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">subplot</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">title</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;Max depth = 10&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plot_decision_boundary</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">dec_tree_10</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">axis</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">3</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">8</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">5</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">scatter</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">y_test</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">y_test</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">scatter</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">y_test</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">y_test</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">scatter</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">y_test</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">y_test</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">subplot</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">3</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">title</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;Max depth = 6&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plot_decision_boundary</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">dec_tree_6</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">axis</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">3</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">8</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">5</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">scatter</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">y_test</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">y_test</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">scatter</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">y_test</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">y_test</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">scatter</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">y_test</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">y_test</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">subplot</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">4</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">title</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;Max depth = 4&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plot_decision_boundary</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">dec_tree_4</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">axis</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">3</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">8</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">5</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">scatter</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">y_test</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">y_test</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">scatter</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">y_test</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">y_test</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">scatter</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">y_test</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">y_test</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;classification accuracy when max depth is with no limitation: &#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">dec_tree</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">score</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_test</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;classification accuracy when max depth is 10: &#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">dec_tree_10</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">score</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_test</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;classification accuracy when max depth is 6: &#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">dec_tree_6</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">score</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_test</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;classification accuracy when max depth is 4: &#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">dec_tree_4</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">score</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_test</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">show</span><span style="color:#000;font-weight:bold">()</span>
+</span></span></code></pre></div><h3 id="参考资料">参考资料</h3>
+<ul>
+<li>
+<p>周志华. 机器学习. 北京: 清华大学出版社, 2016.</p>
+</li>
+<li>
+<p>李航. 统计学习方法. 北京: 清华大学出版社, 2019.</p>
+</li>
+<li>
+<p>决策树维基百科：https://en.wikipedia.org/wiki/Decision_tree_learning</p>
+</li>
+</ul>
+
+	
+</div>
+
+
+            </div>
+
+          </main>
+        </div>
+      </div>
+      <footer class="td-footer row d-print-none">
+  <div class="container-fluid">
+    <div class="row mx-md-2">
+      <div class="td-footer__left col-6 col-sm-4 order-sm-1">
+        
+      </div><div class="td-footer__right col-6 col-sm-4 order-sm-3">
+        
+      </div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2">
+        
+      </div>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css"
+      integrity="sha512-r2+FkHzf1u0+SQbZOoIz2RxWOIWfdEzRuYybGjzKq18jG9zaSfEy9s3+jMqG/zPtRor/q4qaUCYQpmSjTw8M+g==" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"
+        integrity="sha512-INps9zQ2GUEMCQD7xiZQbGUVnqnzEvlynVy6eqcTcHN4+aQiLo9/uaQqckDpdJ8Zm3M0QBs+Pktg4pz0kEklUg=="
+        crossorigin="anonymous">
+</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"
+       integrity="sha512-YJVxTjqttjsU3cSvaTRqsSl0wbRgZUNF+NGGCgto/MUbIvaLdXQzGTCQu4CvyJZbZctgflVB0PXw9LLmTWm5/w==" crossorigin="anonymous"
+       onload='renderMathInElement(document.body, {"delimiters":[{"display":true,"left":"$$","right":"$$"},{"display":false,"left":"$","right":"$"},{"display":false,"left":"\\(","right":"\\)"},{"display":true,"left":"\\[","right":"\\]"}],"errorcolor":"#CD5C5C","throwonerror":false});'>
+</script>
+<script src="/js/main.min.613b131e2c315a570f2f0f22f51f752a53e30fc078f674f7ab0885a6ce15ad68.js" integrity="sha256-YTsTHiwxWlcPLw8i9R91KlPjD8B49nT3qwiFps4VrWg=" crossorigin="anonymous"></script>
+<script defer src="/js/click-to-copy.min.73478a7d4807698aed7e355eb23f9890ca18fea3158604c8471746d046702bad.js" integrity="sha256-c0eKfUgHaYrtfjVesj&#43;YkMoY/qMVhgTIRxdG0EZwK60=" crossorigin="anonymous"></script>
+<script src='/js/tabpane-persist.js'></script>
+
+  </body>
+</html>

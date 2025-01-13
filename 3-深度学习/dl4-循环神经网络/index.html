@@ -1,0 +1,819 @@
+<!doctype html>
+<html itemscope itemtype="http://schema.org/WebPage" lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+
+
+<link rel="shortcut icon" href="/favicons/favicon.ico" >
+<link rel="apple-touch-icon" href="/favicons/apple-touch-icon-180x180.png" sizes="180x180">
+<link rel="icon" type="image/png" href="/favicons/favicon-16x16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="/favicons/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/favicons/android-36x36.png" sizes="36x36">
+<link rel="icon" type="image/png" href="/favicons/android-48x48.png" sizes="48x48">
+<link rel="icon" type="image/png" href="/favicons/android-72x72.png" sizes="72x72">
+<link rel="icon" type="image/png" href="/favicons/android-96x96.png" sizes="96x96">
+<link rel="icon" type="image/png" href="/favicons/android-144x144.png" sizes="144x144">
+<link rel="icon" type="image/png" href="/favicons/android-192x192.png" sizes="192x192">
+
+<title>循环神经网络 | 知予AI</title>
+<meta name="description" content="序列数据和语言模型 全连接神经网络和卷积神经网络只能单独处理一个个的输入，前一个输入和后一个输入是完全没有关系的。但是，某些任务需要能够更好的处理序列的信息，即前面的输入和后面的输入是有关系的。比如，当我们在理解一句话意思时，孤立的理解这句话的每个词是不够的，我们需要处理这些词连接起来的整个序列；当我们处理视频的时候，我们也不能只单独的去分析每一帧，而要分析这些帧连接起来的整个序列。这时，就需要用到深度学习领域中另一类非常重要神经网络：循环神经网络(recurrent neural network)。
+RNN是在自然语言处理领域中最先被用起来的，比如，RNN可以为语言模型来建模。例如我们可以和电脑玩一个游戏，我们写出一个句子前面的一些词，然后，让电脑帮我们写下接下来的一个词。比如下面这句：我昨天上学迟到了，老师批评了__。
+语言模型是对一种语言的特征进行建模，它有很多很多用处。比如在语音转文本(STT)的应用中，声学模型输出的结果，往往是若干个可能的候选词，这时候就需要语言模型来从这些候选词中选择一个最可能的。当然，它同样也可以用在图像到文本的识别中(OCR)。
+使用RNN之前，语言模型主要是采用N-gram语言模型。N可以是一个自然数，它的含义是，假设一个词出现的概率只与前面N个词相关。N-gram模型的缺陷是，当处理任意长度的句子，N设为多少都不合适；另外，模型的大小和N的关系是指数级的，4-gram模型会占用海量的存储空间。
+与传统语言模型不同的是，循环神经网络理论上可以往前看(往后看)任意多个词。
+网络结构 $$\boldsymbol x_{1:T}=(\boldsymbol{x}_{1}, \boldsymbol{x}_{2}, \ldots, \boldsymbol{x}_{t}, \cdots, \boldsymbol{x}_{T})$$$$\boldsymbol{h}_{t}=f(\boldsymbol{h}_{t-1}, \boldsymbol{x}_{t})$$ 其中$\boldsymbol h_0=0$(即RNN隐藏层的初始值为0)，$f(·)$为一个非线性函数，也可以是一个前馈网络。
+循环层的基础结构如上图所示。循环神经网络可以看成一个动力系统(dynamic system)，指系统状态按照一定的规律随时间变化的系统。具体地讲，动力系统是使用一个函数来描述一个给定空间中所有点随时间的变化情况。因此，隐藏层的活性值$\boldsymbol h_t$在很多文献上也称为状态(state)或隐状态(hidden state)。理论上，循环神经网络可以近似任意的非线性动力系统。
+$$\begin{aligned}\boldsymbol{z}_{t}&amp;=U \boldsymbol{h}_{t-1}&#43;W \boldsymbol{x}_{t}&#43;\boldsymbol{b} \\\boldsymbol{h}_{t}&amp;=f\left(\boldsymbol{z}_{t}\right)\end{aligned}$$$$\boldsymbol{h}_{t}=f(U \boldsymbol{h}_{t-1}&#43;W \boldsymbol{x}_{t}&#43;\boldsymbol{b})$$$$\boldsymbol{y}_{t}=V \boldsymbol{h}_{t}$$ 其中$V$是隐含层与输出层之间的连接权重。如果我们把每个时刻的状态都看作是前馈神经网络的一层，循环神经网络可以看作是在时间维度上权值共享的神经网络。
+循环神经网络的通用近似定理：一个有足够数量的sigmoid型隐藏神经元的循环神经网络，可以以任意的准确率去近似任何一个非线性动力系统。
+循环神经网络的图灵完备性：所有的图灵机都可以被一个由使用sigmoid型激活函数的神经元构成的全连接循环网络来进行模拟。因此，一个完全连接的循环神经网络可以近似解决所有的可计算问题。
+循环神经网络的应用 根据不同的任务特点，循环神经网络的应用可以分为如下几种模式：
+(1) 序列到类别模式(文本分类、情感分析等)：
+(2) 同步的序列到序列模式(序列标注等)：
+(3) 异步的序列到序列模式(机器翻译、对话系统等)：
+循环神经网络的训练 循环神经网络的参数可以通过梯度下降方法来进行学习。
+$$\mathcal{L}_{t}=\mathcal{L}(y_{t}, g(\boldsymbol{h}_{t}))$$$$\mathcal{L}=\sum_{t=1}^{T} \mathcal{L}_{t}$$$$\frac{\partial \mathcal{L}}{\partial U}=\sum_{t=1}^{T} \frac{\partial \mathcal{L}_{t}}{\partial U}$$ 即每个时刻损失$\mathcal L_t$对参数$U$的偏导数之和。">
+<meta property="og:url" content="https://knove-ai.github.io/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl4-%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/">
+  <meta property="og:site_name" content="知予AI">
+  <meta property="og:title" content="循环神经网络">
+  <meta property="og:description" content="序列数据和语言模型 全连接神经网络和卷积神经网络只能单独处理一个个的输入，前一个输入和后一个输入是完全没有关系的。但是，某些任务需要能够更好的处理序列的信息，即前面的输入和后面的输入是有关系的。比如，当我们在理解一句话意思时，孤立的理解这句话的每个词是不够的，我们需要处理这些词连接起来的整个序列；当我们处理视频的时候，我们也不能只单独的去分析每一帧，而要分析这些帧连接起来的整个序列。这时，就需要用到深度学习领域中另一类非常重要神经网络：循环神经网络(recurrent neural network)。
+RNN是在自然语言处理领域中最先被用起来的，比如，RNN可以为语言模型来建模。例如我们可以和电脑玩一个游戏，我们写出一个句子前面的一些词，然后，让电脑帮我们写下接下来的一个词。比如下面这句：我昨天上学迟到了，老师批评了__。
+语言模型是对一种语言的特征进行建模，它有很多很多用处。比如在语音转文本(STT)的应用中，声学模型输出的结果，往往是若干个可能的候选词，这时候就需要语言模型来从这些候选词中选择一个最可能的。当然，它同样也可以用在图像到文本的识别中(OCR)。
+使用RNN之前，语言模型主要是采用N-gram语言模型。N可以是一个自然数，它的含义是，假设一个词出现的概率只与前面N个词相关。N-gram模型的缺陷是，当处理任意长度的句子，N设为多少都不合适；另外，模型的大小和N的关系是指数级的，4-gram模型会占用海量的存储空间。
+与传统语言模型不同的是，循环神经网络理论上可以往前看(往后看)任意多个词。
+网络结构 $$\boldsymbol x_{1:T}=(\boldsymbol{x}_{1}, \boldsymbol{x}_{2}, \ldots, \boldsymbol{x}_{t}, \cdots, \boldsymbol{x}_{T})$$$$\boldsymbol{h}_{t}=f(\boldsymbol{h}_{t-1}, \boldsymbol{x}_{t})$$ 其中$\boldsymbol h_0=0$(即RNN隐藏层的初始值为0)，$f(·)$为一个非线性函数，也可以是一个前馈网络。
+循环层的基础结构如上图所示。循环神经网络可以看成一个动力系统(dynamic system)，指系统状态按照一定的规律随时间变化的系统。具体地讲，动力系统是使用一个函数来描述一个给定空间中所有点随时间的变化情况。因此，隐藏层的活性值$\boldsymbol h_t$在很多文献上也称为状态(state)或隐状态(hidden state)。理论上，循环神经网络可以近似任意的非线性动力系统。
+$$\begin{aligned}\boldsymbol{z}_{t}&amp;=U \boldsymbol{h}_{t-1}&#43;W \boldsymbol{x}_{t}&#43;\boldsymbol{b} \\\boldsymbol{h}_{t}&amp;=f\left(\boldsymbol{z}_{t}\right)\end{aligned}$$$$\boldsymbol{h}_{t}=f(U \boldsymbol{h}_{t-1}&#43;W \boldsymbol{x}_{t}&#43;\boldsymbol{b})$$$$\boldsymbol{y}_{t}=V \boldsymbol{h}_{t}$$ 其中$V$是隐含层与输出层之间的连接权重。如果我们把每个时刻的状态都看作是前馈神经网络的一层，循环神经网络可以看作是在时间维度上权值共享的神经网络。
+循环神经网络的通用近似定理：一个有足够数量的sigmoid型隐藏神经元的循环神经网络，可以以任意的准确率去近似任何一个非线性动力系统。
+循环神经网络的图灵完备性：所有的图灵机都可以被一个由使用sigmoid型激活函数的神经元构成的全连接循环网络来进行模拟。因此，一个完全连接的循环神经网络可以近似解决所有的可计算问题。
+循环神经网络的应用 根据不同的任务特点，循环神经网络的应用可以分为如下几种模式：
+(1) 序列到类别模式(文本分类、情感分析等)：
+(2) 同步的序列到序列模式(序列标注等)：
+(3) 异步的序列到序列模式(机器翻译、对话系统等)：
+循环神经网络的训练 循环神经网络的参数可以通过梯度下降方法来进行学习。
+$$\mathcal{L}_{t}=\mathcal{L}(y_{t}, g(\boldsymbol{h}_{t}))$$$$\mathcal{L}=\sum_{t=1}^{T} \mathcal{L}_{t}$$$$\frac{\partial \mathcal{L}}{\partial U}=\sum_{t=1}^{T} \frac{\partial \mathcal{L}_{t}}{\partial U}$$ 即每个时刻损失$\mathcal L_t$对参数$U$的偏导数之和。">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="3-深度学习">
+    <meta property="article:published_time" content="2017-01-01T00:00:00+00:00">
+    <meta property="article:modified_time" content="2017-01-01T00:00:00+00:00">
+
+  <meta itemprop="name" content="循环神经网络">
+  <meta itemprop="description" content="序列数据和语言模型 全连接神经网络和卷积神经网络只能单独处理一个个的输入，前一个输入和后一个输入是完全没有关系的。但是，某些任务需要能够更好的处理序列的信息，即前面的输入和后面的输入是有关系的。比如，当我们在理解一句话意思时，孤立的理解这句话的每个词是不够的，我们需要处理这些词连接起来的整个序列；当我们处理视频的时候，我们也不能只单独的去分析每一帧，而要分析这些帧连接起来的整个序列。这时，就需要用到深度学习领域中另一类非常重要神经网络：循环神经网络(recurrent neural network)。
+RNN是在自然语言处理领域中最先被用起来的，比如，RNN可以为语言模型来建模。例如我们可以和电脑玩一个游戏，我们写出一个句子前面的一些词，然后，让电脑帮我们写下接下来的一个词。比如下面这句：我昨天上学迟到了，老师批评了__。
+语言模型是对一种语言的特征进行建模，它有很多很多用处。比如在语音转文本(STT)的应用中，声学模型输出的结果，往往是若干个可能的候选词，这时候就需要语言模型来从这些候选词中选择一个最可能的。当然，它同样也可以用在图像到文本的识别中(OCR)。
+使用RNN之前，语言模型主要是采用N-gram语言模型。N可以是一个自然数，它的含义是，假设一个词出现的概率只与前面N个词相关。N-gram模型的缺陷是，当处理任意长度的句子，N设为多少都不合适；另外，模型的大小和N的关系是指数级的，4-gram模型会占用海量的存储空间。
+与传统语言模型不同的是，循环神经网络理论上可以往前看(往后看)任意多个词。
+网络结构 $$\boldsymbol x_{1:T}=(\boldsymbol{x}_{1}, \boldsymbol{x}_{2}, \ldots, \boldsymbol{x}_{t}, \cdots, \boldsymbol{x}_{T})$$$$\boldsymbol{h}_{t}=f(\boldsymbol{h}_{t-1}, \boldsymbol{x}_{t})$$ 其中$\boldsymbol h_0=0$(即RNN隐藏层的初始值为0)，$f(·)$为一个非线性函数，也可以是一个前馈网络。
+循环层的基础结构如上图所示。循环神经网络可以看成一个动力系统(dynamic system)，指系统状态按照一定的规律随时间变化的系统。具体地讲，动力系统是使用一个函数来描述一个给定空间中所有点随时间的变化情况。因此，隐藏层的活性值$\boldsymbol h_t$在很多文献上也称为状态(state)或隐状态(hidden state)。理论上，循环神经网络可以近似任意的非线性动力系统。
+$$\begin{aligned}\boldsymbol{z}_{t}&amp;=U \boldsymbol{h}_{t-1}&#43;W \boldsymbol{x}_{t}&#43;\boldsymbol{b} \\\boldsymbol{h}_{t}&amp;=f\left(\boldsymbol{z}_{t}\right)\end{aligned}$$$$\boldsymbol{h}_{t}=f(U \boldsymbol{h}_{t-1}&#43;W \boldsymbol{x}_{t}&#43;\boldsymbol{b})$$$$\boldsymbol{y}_{t}=V \boldsymbol{h}_{t}$$ 其中$V$是隐含层与输出层之间的连接权重。如果我们把每个时刻的状态都看作是前馈神经网络的一层，循环神经网络可以看作是在时间维度上权值共享的神经网络。
+循环神经网络的通用近似定理：一个有足够数量的sigmoid型隐藏神经元的循环神经网络，可以以任意的准确率去近似任何一个非线性动力系统。
+循环神经网络的图灵完备性：所有的图灵机都可以被一个由使用sigmoid型激活函数的神经元构成的全连接循环网络来进行模拟。因此，一个完全连接的循环神经网络可以近似解决所有的可计算问题。
+循环神经网络的应用 根据不同的任务特点，循环神经网络的应用可以分为如下几种模式：
+(1) 序列到类别模式(文本分类、情感分析等)：
+(2) 同步的序列到序列模式(序列标注等)：
+(3) 异步的序列到序列模式(机器翻译、对话系统等)：
+循环神经网络的训练 循环神经网络的参数可以通过梯度下降方法来进行学习。
+$$\mathcal{L}_{t}=\mathcal{L}(y_{t}, g(\boldsymbol{h}_{t}))$$$$\mathcal{L}=\sum_{t=1}^{T} \mathcal{L}_{t}$$$$\frac{\partial \mathcal{L}}{\partial U}=\sum_{t=1}^{T} \frac{\partial \mathcal{L}_{t}}{\partial U}$$ 即每个时刻损失$\mathcal L_t$对参数$U$的偏导数之和。">
+  <meta itemprop="datePublished" content="2017-01-01T00:00:00+00:00">
+  <meta itemprop="dateModified" content="2017-01-01T00:00:00+00:00">
+  <meta itemprop="wordCount" content="1285">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="循环神经网络">
+  <meta name="twitter:description" content="序列数据和语言模型 全连接神经网络和卷积神经网络只能单独处理一个个的输入，前一个输入和后一个输入是完全没有关系的。但是，某些任务需要能够更好的处理序列的信息，即前面的输入和后面的输入是有关系的。比如，当我们在理解一句话意思时，孤立的理解这句话的每个词是不够的，我们需要处理这些词连接起来的整个序列；当我们处理视频的时候，我们也不能只单独的去分析每一帧，而要分析这些帧连接起来的整个序列。这时，就需要用到深度学习领域中另一类非常重要神经网络：循环神经网络(recurrent neural network)。
+RNN是在自然语言处理领域中最先被用起来的，比如，RNN可以为语言模型来建模。例如我们可以和电脑玩一个游戏，我们写出一个句子前面的一些词，然后，让电脑帮我们写下接下来的一个词。比如下面这句：我昨天上学迟到了，老师批评了__。
+语言模型是对一种语言的特征进行建模，它有很多很多用处。比如在语音转文本(STT)的应用中，声学模型输出的结果，往往是若干个可能的候选词，这时候就需要语言模型来从这些候选词中选择一个最可能的。当然，它同样也可以用在图像到文本的识别中(OCR)。
+使用RNN之前，语言模型主要是采用N-gram语言模型。N可以是一个自然数，它的含义是，假设一个词出现的概率只与前面N个词相关。N-gram模型的缺陷是，当处理任意长度的句子，N设为多少都不合适；另外，模型的大小和N的关系是指数级的，4-gram模型会占用海量的存储空间。
+与传统语言模型不同的是，循环神经网络理论上可以往前看(往后看)任意多个词。
+网络结构 $$\boldsymbol x_{1:T}=(\boldsymbol{x}_{1}, \boldsymbol{x}_{2}, \ldots, \boldsymbol{x}_{t}, \cdots, \boldsymbol{x}_{T})$$$$\boldsymbol{h}_{t}=f(\boldsymbol{h}_{t-1}, \boldsymbol{x}_{t})$$ 其中$\boldsymbol h_0=0$(即RNN隐藏层的初始值为0)，$f(·)$为一个非线性函数，也可以是一个前馈网络。
+循环层的基础结构如上图所示。循环神经网络可以看成一个动力系统(dynamic system)，指系统状态按照一定的规律随时间变化的系统。具体地讲，动力系统是使用一个函数来描述一个给定空间中所有点随时间的变化情况。因此，隐藏层的活性值$\boldsymbol h_t$在很多文献上也称为状态(state)或隐状态(hidden state)。理论上，循环神经网络可以近似任意的非线性动力系统。
+$$\begin{aligned}\boldsymbol{z}_{t}&amp;=U \boldsymbol{h}_{t-1}&#43;W \boldsymbol{x}_{t}&#43;\boldsymbol{b} \\\boldsymbol{h}_{t}&amp;=f\left(\boldsymbol{z}_{t}\right)\end{aligned}$$$$\boldsymbol{h}_{t}=f(U \boldsymbol{h}_{t-1}&#43;W \boldsymbol{x}_{t}&#43;\boldsymbol{b})$$$$\boldsymbol{y}_{t}=V \boldsymbol{h}_{t}$$ 其中$V$是隐含层与输出层之间的连接权重。如果我们把每个时刻的状态都看作是前馈神经网络的一层，循环神经网络可以看作是在时间维度上权值共享的神经网络。
+循环神经网络的通用近似定理：一个有足够数量的sigmoid型隐藏神经元的循环神经网络，可以以任意的准确率去近似任何一个非线性动力系统。
+循环神经网络的图灵完备性：所有的图灵机都可以被一个由使用sigmoid型激活函数的神经元构成的全连接循环网络来进行模拟。因此，一个完全连接的循环神经网络可以近似解决所有的可计算问题。
+循环神经网络的应用 根据不同的任务特点，循环神经网络的应用可以分为如下几种模式：
+(1) 序列到类别模式(文本分类、情感分析等)：
+(2) 同步的序列到序列模式(序列标注等)：
+(3) 异步的序列到序列模式(机器翻译、对话系统等)：
+循环神经网络的训练 循环神经网络的参数可以通过梯度下降方法来进行学习。
+$$\mathcal{L}_{t}=\mathcal{L}(y_{t}, g(\boldsymbol{h}_{t}))$$$$\mathcal{L}=\sum_{t=1}^{T} \mathcal{L}_{t}$$$$\frac{\partial \mathcal{L}}{\partial U}=\sum_{t=1}^{T} \frac{\partial \mathcal{L}_{t}}{\partial U}$$ 即每个时刻损失$\mathcal L_t$对参数$U$的偏导数之和。">
+<link rel="preload" href="/scss/main.min.a52b2e54f3e921e61502207760f8ecb468b09dc55f348cc42d9b9b9132637847.css" as="style" integrity="sha256-pSsuVPPpIeYVAiB3YPjstGiwncVfNIzELZubkTJjeEc=" crossorigin="anonymous">
+<link href="/scss/main.min.a52b2e54f3e921e61502207760f8ecb468b09dc55f348cc42d9b9b9132637847.css" rel="stylesheet" integrity="sha256-pSsuVPPpIeYVAiB3YPjstGiwncVfNIzELZubkTJjeEc=" crossorigin="anonymous">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda+SC:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Bodoni+Moda:ital,opsz,wght@1,6..96,800&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Sen:wght@400..800&display=swap" rel="stylesheet">
+<script
+  src="https://code.jquery.com/jquery-3.7.1.min.js"
+  integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+  crossorigin="anonymous"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: '\\[', right: '\\]', display: true},   
+        {left: '$$', right: '$$', display: true},     
+        {left: '\\(', right: '\\)', display: false},  
+      ],
+      throwOnError : false
+    });
+  });
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+  </head>
+  <body class="td-page">
+    <header>
+      
+    </header>
+    <div class="container-fluid td-outer">
+      <div class="td-main">
+        <div class="row flex-xl-nowrap">
+          <aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none">
+            <div id="td-sidebar-menu" class="td-sidebar__inner">
+  <image src="/logo.png" style="width: 100%;" />
+
+
+  <form class="td-sidebar__search d-flex align-items-center">
+    
+    <button class="btn btn-link td-sidebar__toggle d-md-none p-0 ms-3 fas fa-bars" type="button" data-bs-toggle="collapse" data-bs-target="#td-section-nav" aria-controls="td-section-nav" aria-expanded="false" aria-label="Toggle section navigation">
+    </button>
+  </form>
+  <nav class="td-sidebar-nav collapse" id="td-section-nav">
+    <ul class="td-sidebar-nav__section pe-md-3 ul-0">
+      <li> <a href="/">首页</a></li>
+      <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m--li">
+  <a href="/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id="m-"><span class=""></span></a>
+  <ul class="ul-1">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-1-e695b0e5ada6e59fbae7a180-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" title="数学基础" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-1-e695b0e5ada6e59fbae7a180"><span class="">1-数学基础</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math1-e7babfe680a7e4bba3e695b0-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math1-%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math1-e7babfe680a7e4bba3e695b0"><span class="">线性代数</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math2-e5beaee7a7afe58886-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math2-%E5%BE%AE%E7%A7%AF%E5%88%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math2-e5beaee7a7afe58886"><span class="">微积分</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math3-e695b0e5ada6e4bc98e58c96-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math3-%E6%95%B0%E5%AD%A6%E4%BC%98%E5%8C%96/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math3-e695b0e5ada6e4bc98e58c96"><span class="">数学优化</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math4-e6a682e78e87e7bb9fe8aea1-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math4-%E6%A6%82%E7%8E%87%E7%BB%9F%E8%AE%A1/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math4-e6a682e78e87e7bb9fe8aea1"><span class="">概率统计</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math5-e4bfa1e681afe8aeba-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math5-%E4%BF%A1%E6%81%AF%E8%AE%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math5-e4bfa1e681afe8aeba"><span class="">信息论</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-2-e69cbae599a8e5ada6e4b9a0-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-2-e69cbae599a8e5ada6e4b9a0"><span class="">2-机器学习</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml1-e69cbae599a8e5ada6e4b9a0e59fbae7a180-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml1-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%9F%BA%E7%A1%80/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml1-e69cbae599a8e5ada6e4b9a0e59fbae7a180"><span class="">机器学习基础</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml2-e7babfe680a7e59b9ee5bd92-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml2-%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml2-e7babfe680a7e59b9ee5bd92"><span class="">线性回归</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml3-ke8bf91e982bbe7ae97e6b395-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml3-k%E8%BF%91%E9%82%BB%E7%AE%97%E6%B3%95/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml3-ke8bf91e982bbe7ae97e6b395"><span class="">近邻算法</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml4-e6849fe79fa5e69cba-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml4-%E6%84%9F%E7%9F%A5%E6%9C%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml4-e6849fe79fa5e69cba"><span class="">感知机</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml5-e8b49de58fb6e696afe58886e7b1bbe599a8-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml5-%E8%B4%9D%E5%8F%B6%E6%96%AF%E5%88%86%E7%B1%BB%E5%99%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml5-e8b49de58fb6e696afe58886e7b1bbe599a8"><span class="">贝叶斯分类器</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml6-e980bbe8be91e59b9ee5bd92e4b88ee69c80e5a4a7e786b5e6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml6-%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92%E4%B8%8E%E6%9C%80%E5%A4%A7%E7%86%B5%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml6-e980bbe8be91e59b9ee5bd92e4b88ee69c80e5a4a7e786b5e6a8a1e59e8b"><span class="">逻辑回归与最大熵模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml7-e694afe68c81e59091e9878fe69cba-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml7-%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml7-e694afe68c81e59091e9878fe69cba"><span class="">支持向量机</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml8-e586b3e7ad96e6a091-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml8-%E5%86%B3%E7%AD%96%E6%A0%91/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml8-e586b3e7ad96e6a091"><span class="">决策树</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml9-e99b86e68890e5ada6e4b9a0-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml9-%E9%9B%86%E6%88%90%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml9-e99b86e68890e5ada6e4b9a0"><span class="">集成学习</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml10-eme7ae97e6b395-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml10-em%E7%AE%97%E6%B3%95/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml10-eme7ae97e6b395"><span class="">EM算法</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml11-e8819ae7b1bb-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml11-%E8%81%9A%E7%B1%BB/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml11-e8819ae7b1bb"><span class="">聚类</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml12-e9998de7bbb4-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml12-%E9%99%8D%E7%BB%B4/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml12-e9998de7bbb4"><span class="">降维</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml13-e789b9e5be81e98089e68ba9-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml13-%E7%89%B9%E5%BE%81%E9%80%89%E6%8B%A9/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml13-e789b9e5be81e98089e68ba9"><span class="">特征选择</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml14-e8af9de9a298e6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml14-%E8%AF%9D%E9%A2%98%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml14-e8af9de9a298e6a8a1e59e8b"><span class="">话题模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml15-e6a682e78e87e59bbee6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml15-%E6%A6%82%E7%8E%87%E5%9B%BE%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml15-e6a682e78e87e59bbee6a8a1e59e8b"><span class="">概率图模型</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m-3-e6b7b1e5baa6e5ada6e4b9a0-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-3-e6b7b1e5baa6e5ada6e4b9a0"><span class="">3-深度学习</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl1-e6b7b1e5baa6e5ada6e4b9a0e6a682e8bfb0-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl1-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E6%A6%82%E8%BF%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl1-e6b7b1e5baa6e5ada6e4b9a0e6a682e8bfb0"><span class="">深度学习概述</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl2-e7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl2-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl2-e7a59ee7bb8fe7bd91e7bb9c"><span class="">神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl3-e58db7e7a7afe7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl3-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl3-e58db7e7a7afe7a59ee7bb8fe7bd91e7bb9c"><span class="">卷积神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl4-e5beaae78eafe7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl4-%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 active td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl4-e5beaae78eafe7a59ee7bb8fe7bd91e7bb9c"><span class="td-sidebar-nav-active-item">循环神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl5-e7a59ee7bb8fe7bd91e7bb9ce79a84e4bc98e58c96-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl5-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E7%9A%84%E4%BC%98%E5%8C%96/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl5-e7a59ee7bb8fe7bd91e7bb9ce79a84e4bc98e58c96"><span class="">神经网络的优化</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl6-e887aae7bc96e7a081e599a8-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl6-%E8%87%AA%E7%BC%96%E7%A0%81%E5%99%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl6-e887aae7bc96e7a081e599a8"><span class="">自编码器</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl7-e6b7b1e5baa6e7949fe68890e6a8a1e59e8b-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl7-%E6%B7%B1%E5%BA%A6%E7%94%9F%E6%88%90%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl7-e6b7b1e5baa6e7949fe68890e6a8a1e59e8b"><span class="">深度生成模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl8-e6b3a8e6848fe58a9be69cbae588b6e4b88ee5a496e983a8e8aeb0e5bf86-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl8-%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%E4%B8%8E%E5%A4%96%E9%83%A8%E8%AE%B0%E5%BF%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl8-e6b3a8e6848fe58a9be69cbae588b6e4b88ee5a496e983a8e8aeb0e5bf86"><span class="">注意力机制与外部记忆</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl9-e59bbee7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl9-%E5%9B%BE%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl9-e59bbee7a59ee7bb8fe7bd91e7bb9c"><span class="">图神经网络</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-4-e887aae784b6e8afade8a880e5a484e79086-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-4-e887aae784b6e8afade8a880e5a484e79086"><span class="">4-自然语言处理</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp1-e887aae784b6e8afade8a880e5a484e79086e6a682e8bfb0-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp1-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E6%A6%82%E8%BF%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp1-e887aae784b6e8afade8a880e5a484e79086e6a682e8bfb0"><span class="">自然语言处理概述</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp2-e8af8de59091e9878f-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp2-%E8%AF%8D%E5%90%91%E9%87%8F/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp2-e8af8de59091e9878f"><span class="">词向量</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp3-e8afade8a880e6a8a1e59e8b-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp3-%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp3-e8afade8a880e6a8a1e59e8b"><span class="">语言模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp4-seq2seqe4b88eattention-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp4-seq2seq%E4%B8%8Eattention/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp4-seq2seqe4b88eattention"><span class="">seq2seq与attention</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp5-e9a284e8aeade7bb83e6a8a1e59e8b-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp5-%E9%A2%84%E8%AE%AD%E7%BB%83%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp5-e9a284e8aeade7bb83e6a8a1e59e8b"><span class="">预训练模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp6-e887aae784b6e8afade8a880e5a484e79086e5ba94e794a8-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp6-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E5%BA%94%E7%94%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp6-e887aae784b6e8afade8a880e5a484e79086e5ba94e794a8"><span class="">自然语言处理应用</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-5-aie7a094e7a9b6e6898be5868c-li">
+  <a href="/5-ai%E7%A0%94%E7%A9%B6%E6%89%8B%E5%86%8C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-5-aie7a094e7a9b6e6898be5868c"><span class="">5-AI研究手册</span></a>
+</li>
+  </ul>
+</li>
+    </ul>
+  </nav>
+</div>
+
+
+          </aside>
+          <aside class="d-none d-xl-block col-xl-2 td-sidebar-toc d-print-none">
+            <div class="td-page-meta ms-2 pb-1 pt-2 mb-0">
+
+</div>
+
+            <div class="td-toc">
+        <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#序列数据和语言模型">序列数据和语言模型</a></li>
+        <li><a href="#网络结构">网络结构</a></li>
+        <li><a href="#循环神经网络的应用">循环神经网络的应用</a></li>
+        <li><a href="#循环神经网络的训练">循环神经网络的训练</a></li>
+        <li><a href="#长程依赖问题">长程依赖问题</a></li>
+        <li><a href="#lstm">LSTM</a></li>
+        <li><a href="#gru">GRU</a></li>
+        <li><a href="#深层循环神经网络">深层循环神经网络</a></li>
+        <li><a href="#扩展到图结构">扩展到图结构</a></li>
+        <li><a href="#tensorflow实现循环神经网络进行情感分析">Tensorflow实现循环神经网络进行情感分析</a></li>
+        <li><a href="#tensorflow实现循环神经网络进行文本生成">Tensorflow实现循环神经网络进行文本生成</a></li>
+        <li><a href="#参考资料">参考资料</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+      </div>
+    
+            
+
+          </aside>
+          <main class="col-12 col-md-9 col-xl-8 " role="main">
+            <nav class="td-navbar js-navbar-scroll" data-bs-theme="dark">
+<div class="container-fluid flex-column flex-md-row">
+  <a class="navbar-brand" href="/"><span class="navbar-brand__logo navbar-logo"><svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" style="enable-background:new 0 0 500 500"><g><path style="fill:#fff" d="M116.8525 421.9722c-5.7041.0-10.3442-4.3127-10.3442-9.6129V88.183c0-5.3002 4.6401-9.6117 10.3442-9.6117H320.858c3.0347.0 9.3959.5498 11.7506 2.6302l.3545.3442 58.905 63.2912c2.3101 2.491 2.9202 8.4928 2.9202 11.3184v256.2039c0 5.3002-4.6407 9.6129-10.3436 9.6129H116.8525z"/><g><g><g><path style="fill:#767676" d="M384.4445 423.2066H116.852c-6.3839.0-11.5786-4.8658-11.5786-10.8474V88.1831c0-5.9804 5.1947-10.8461 11.5786-10.8461h204.0062c.377.0 9.2786.0329 12.568 2.9389l.3947.3833 58.9508 63.337c3.2135 3.4652 3.2514 11.7924 3.2514 12.1593v256.2036C396.0231 418.3408 390.8284 423.2066 384.4445 423.2066zM116.5079 411.9189c.0848.0278.1999.0531.3441.0531h267.5925c.1442.0.2581-.0253.3441-.0531V156.1556c-.0076-.9033-.3593-3.7347-.7034-5.0037l-57.6527-61.9416c-1.4651-.3176-4.4533-.6389-5.5742-.6389H116.852c-.143.0-.2594.024-.3441.0531V411.9189zm267.4533-261.149zM327.0321 89.371v.0013V89.371z"/></g></g></g><g><g><path style="fill:#5b7fc0" d="M189.0874 210.1754l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4473C177.5953 212.627 183.0601 210.1742 189.0874 210.1754zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 234.1722 197.0804 232.033z"/><path style="opacity:.3;fill:#fff" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/><g><defs><path id="SVGID_1_" d="M194.7376 237.6875c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 234.2399 196.1861 236.239 194.7376 237.6875z"/></defs><clipPath id="SVGID_2_"><use xlink:href="#SVGID_1_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_2_);fill:#fff" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/><path style="opacity:.13;clip-path:url(#SVGID_2_);fill:#020202" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/></g><g><defs><path id="SVGID_3_" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/></defs><clipPath id="SVGID_4_"><use xlink:href="#SVGID_3_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_4_);fill:#5b7fc0" d="M172.6595 215.6045c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8475-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 209.1953 176.6171 211.647 172.6595 215.6045z"/></g></g><rect x="198.8952" y="225.1043" style="fill:#5b7fc0" width="122.6266" height="13.8671"/></g><g><path style="fill:#d95140" d="M189.0874 155.7611l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.0249 2.454-11.4897 6.4116-15.4473C177.5953 158.2128 183.0601 155.7599 189.0874 155.7611zm7.993 21.8577c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.2508 181.7667 197.0816 179.758 197.0804 177.6188z"/><path style="opacity:.3;fill:#fff" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/><g><defs><path id="SVGID_5_" d="M194.7376 183.2733c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 179.8256 196.1861 181.8248 194.7376 183.2733z"/></defs><clipPath id="SVGID_6_"><use xlink:href="#SVGID_5_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_6_);fill:#fff" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/><path style="opacity:.13;clip-path:url(#SVGID_6_);fill:#020202" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/></g><g><defs><path id="SVGID_7_" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/></defs><clipPath id="SVGID_8_"><use xlink:href="#SVGID_7_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_8_);fill:#d95140" d="M172.6595 161.1903c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 154.7811 176.6171 157.2327 172.6595 161.1903z"/></g><rect x="198.8952" y="170.69" style="fill:#d95140" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#56a55c" d="M189.5379 264.6147l.0012-.0012c7.7751.0012 15.0294 4.1862 18.932 10.9235 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032-5.8394.0-11.3281-2.2733-15.458-6.4032-4.13-4.13-6.4032-9.6186-6.4056-15.4628.0012-6.0249 2.454-11.4897 6.4116-15.4472C178.0458 267.0663 183.5105 264.6135 189.5379 264.6147zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6538 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.7013 290.6202 197.5321 288.6115 197.5309 286.4723z"/><path style="opacity:.3;fill:#fff" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/><g><defs><path id="SVGID_9_" d="M195.1881 292.1268c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9941 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.5344 288.6792 196.6366 290.6783 195.1881 292.1268z"/></defs><clipPath id="SVGID_10_"><use xlink:href="#SVGID_9_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_10_);fill:#fff" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/><path style="opacity:.13;clip-path:url(#SVGID_10_);fill:#020202" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/></g><g><defs><path id="SVGID_11_" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/></defs><clipPath id="SVGID_12_"><use xlink:href="#SVGID_11_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_12_);fill:#56a55c" d="M173.11 270.0439c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7325-11.1497-10.9151-18.926-10.9151C182.5311 263.6346 177.0676 266.0863 173.11 270.0439z"/></g></g><rect x="199.3456" y="279.5436" style="fill:#56a55c" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#f1bc42" d="M189.0874 318.7208l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3305-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4472C177.5953 321.1724 183.0601 318.7196 189.0874 318.7208zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 342.7176 197.0804 340.5784z"/><path style="opacity:.3;fill:#fff" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/><g><defs><path id="SVGID_13_" d="M194.7376 346.2329c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 342.7853 196.1861 344.7844 194.7376 346.2329z"/></defs><clipPath id="SVGID_14_"><use xlink:href="#SVGID_13_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_14_);fill:#fff" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/><path style="opacity:.13;clip-path:url(#SVGID_14_);fill:#020202" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/></g><g><defs><path id="SVGID_15_" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/></defs><clipPath id="SVGID_16_"><use xlink:href="#SVGID_15_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_16_);fill:#f1bc42" d="M172.6595 324.15c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8474-1.0151-7.6327-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 317.7407 176.6171 320.1924 172.6595 324.15z"/></g></g><rect x="198.8952" y="333.6497" style="fill:#f1bc42" width="122.6266" height="13.8671"/></g></g></svg></span><span class="navbar-brand__name">知予AI</span></a>
+  <div class="td-navbar-nav-scroll ms-md-auto" id="main_navbar">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="https://github.com/knove-ai" target="_blank" rel="noopener"><i class="fa fa-github"></i><span>Github</span></a>
+      </li>
+      </ul>
+  </div>
+  <div class="d-none d-lg-block">
+    
+  </div>
+</div>
+</nav>
+
+            <div class="ps-md-5">
+              
+  
+
+              <nav aria-label="breadcrumb" class="td-breadcrumbs">
+  <ol class="breadcrumb">
+  <li class="breadcrumb-item">
+    <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">3-深度学习</a></li>
+  <li class="breadcrumb-item active" aria-current="page">
+    循环神经网络</li>
+  </ol>
+</nav>
+              
+<div class="td-content">
+	<h1>循环神经网络</h1>
+	
+	<header class="article-meta">
+		
+</header>
+	<h3 id="序列数据和语言模型">序列数据和语言模型</h3>
+<p>全连接神经网络和卷积神经网络只能单独处理一个个的输入，<strong>前一个输入和后一个输入是完全没有关系的</strong>。但是，某些任务需要能够更好的处理序列的信息，即前面的输入和后面的输入是有关系的。比如，当我们在理解一句话意思时，孤立的理解这句话的每个词是不够的，我们需要处理这些词连接起来的整个序列；当我们处理视频的时候，我们也不能只单独的去分析每一帧，而要<strong>分析这些帧连接起来的整个序列</strong>。这时，就需要用到深度学习领域中另一类非常重要神经网络：<strong>循环神经网络(recurrent neural network)</strong>。</p>
+<p>RNN是在自然语言处理领域中最先被用起来的，比如，RNN可以为语言模型来建模。例如我们可以和电脑玩一个游戏，我们写出一个句子前面的一些词，然后，让电脑帮我们写下接下来的一个词。比如下面这句：<strong>我昨天上学迟到了，老师批评了__</strong>。</p>
+<p>语言模型是对一种语言的特征进行建模，它有很多很多用处。比如在<strong>语音转文本(STT)<strong>的应用中，<strong>声学模型输出</strong>的结果，往往是若干个可能的候选词，这时候就需要语言模型来从这些候选词中选择一个最可能的。当然，它同样也可以用在</strong>图像到文本的识别中(OCR)</strong>。</p>
+<p>使用RNN之前，语言模型主要是采用<strong>N-gram语言模型</strong>。N可以是一个自然数，它的含义是，假设一个词出现的概率只与前面N个词相关。N-gram模型的缺陷是，<strong>当处理任意长度的句子，N设为多少都不合适</strong>；另外，<strong>模型的大小和N的关系是指数级的</strong>，4-gram模型会占用海量的存储空间。</p>
+<p>与传统语言模型不同的是，循环神经网络理论上可以往前看(往后看)任意多个词。</p>
+<h3 id="网络结构">网络结构</h3>
+$$\boldsymbol x_{1:T}=(\boldsymbol{x}_{1}, \boldsymbol{x}_{2}, \ldots, \boldsymbol{x}_{t}, \cdots, \boldsymbol{x}_{T})$$$$
+\boldsymbol{h}_{t}=f(\boldsymbol{h}_{t-1}, \boldsymbol{x}_{t})
+$$<p>
+其中$\boldsymbol h_0=0$(<strong>即RNN隐藏层的初始值为0</strong>)，$f(·)$为一个<strong>非线性函数</strong>，也可以是一个<strong>前馈网络</strong>。</p>
+<div align="center">
+<img src="/images/3/image-20200715160758686.png" style="zoom:25%;" />
+</div>
+<p>循环层的基础结构如上图所示。循环神经网络可以看成一个<strong>动力系统(dynamic system)</strong>，指<strong>系统状态</strong>按照一定的规律<strong>随时间变化</strong>的系统。具体地讲，动力系统是使用一个函数来描述一个给定空间中所有点随时间的变化情况。因此，隐藏层的活性值$\boldsymbol h_t$在很多文献上也称为<strong>状态(state)<strong>或</strong>隐状态(hidden state)</strong>。<strong>理论上，循环神经网络可以近似任意的非线性动力系统</strong>。</p>
+$$
+\begin{aligned}
+\boldsymbol{z}_{t}&=U \boldsymbol{h}_{t-1}+W \boldsymbol{x}_{t}+\boldsymbol{b} \\
+\boldsymbol{h}_{t}&=f\left(\boldsymbol{z}_{t}\right)
+\end{aligned}
+$$$$
+\boldsymbol{h}_{t}=f(U \boldsymbol{h}_{t-1}+W \boldsymbol{x}_{t}+\boldsymbol{b})
+$$$$
+\boldsymbol{y}_{t}=V \boldsymbol{h}_{t}
+$$<p>
+其中$V$是隐含层与输出层之间的连接权重。如果我们把每个时刻的状态都看作是前馈神经网络的一层，循环神经网络可以看作是<strong>在时间维度上权值共享的神经网络</strong>。</p>
+<div align="center">
+<img src="/images/3/image-20200715161457977.png" style="zoom:25%;" />
+</div>
+<p><strong>循环神经网络的通用近似定理</strong>：一个有<strong>足够数量的sigmoid型隐藏神经元</strong>的循环神经网络，可以以任意的准确率去近似任何一个非线性动力系统。</p>
+<p><strong>循环神经网络的图灵完备性</strong>：所有的<strong>图灵机</strong>都可以被一个由使用sigmoid型激活函数的神经元构成的全连接循环网络来进行模拟。因此，一个完全连接的循环神经网络可以近似解决所有的可计算问题。</p>
+<h3 id="循环神经网络的应用">循环神经网络的应用</h3>
+<p>根据不同的任务特点，循环神经网络的应用可以分为如下几种模式：</p>
+<p>(1) <strong>序列到类别模式(文本分类、情感分析等)</strong>：</p>
+<div align="center">
+<img src="/images/3/image-20200715161712903.png" style="zoom:25%;" />
+</div>
+<p>(2) <strong>同步的序列到序列模式(序列标注等)</strong>：</p>
+<div align="center">
+<img src="/images/3/image-20200715161731143.png" style="zoom:25%;" />
+</div>
+<p>(3) <strong>异步的序列到序列模式(机器翻译、对话系统等)</strong>：</p>
+<div align="center">
+<img src="/images/3/image-20200715161812090.png" style="zoom:25%;" />
+</div>
+<h3 id="循环神经网络的训练">循环神经网络的训练</h3>
+<p>循环神经网络的参数可以通过梯度下降方法来进行学习。</p>
+$$
+\mathcal{L}_{t}=\mathcal{L}(y_{t}, g(\boldsymbol{h}_{t}))
+$$$$
+\mathcal{L}=\sum_{t=1}^{T} \mathcal{L}_{t}
+$$$$
+\frac{\partial \mathcal{L}}{\partial U}=\sum_{t=1}^{T} \frac{\partial \mathcal{L}_{t}}{\partial U}
+$$<p>
+即每个时刻损失$\mathcal L_t$对参数$U$的偏导数之和。</p>
+<p>循环神经网络中存在一个递归调用的函数$f(\cdot)$，因此其计算参数梯度的方式和前馈神经网络不太相同。在循环神经网络中主要有两种计算梯度的方式：<strong>随时间反向传播(BPTT)算法</strong>和<strong>实时循环学习(RTRL)算法</strong>。</p>
+<h4 id="随时间反向传播算法">随时间反向传播算法</h4>
+<p><strong>随时间反向传播(back-propagation through time, BPTT)算法</strong>的主要思想是通过<strong>类似前馈神经网络的错误反向传播算法</strong>来计算梯度。BPTT算法将循环神经网络看作是一个<strong>展开的多层前馈网络</strong>，其中**“每一层”对应循环网络中的“每个时刻”**。这样，循环神经网络就可以按照前馈网络中的反向传播算法计算参数梯度。在“展开”的前馈网络中，所有层的参数是共享的，因此参数的真实梯度是所有“展开层”的参数梯度之和。</p>
+<p>(1) 计算偏导数$\frac{\partial \mathcal{L}_{t}}{\partial U}$</p>
+$$
+\frac{\partial \mathcal{L}_{t}}{\partial u_{i j}}=\sum_{k=1}^{t} \frac{\partial^{+} \boldsymbol{z}_{k}}{\partial u_{i j}} \frac{\partial \mathcal{L}_{t}}{\partial \boldsymbol{z}_{k}}
+$$$$\frac{\partial^{+} \boldsymbol{z}_{k}}{\partial u_{i j}} $$$$\boldsymbol {z}_{k}=U \boldsymbol{h}_{k-1}+W \boldsymbol{x}_{k}+\boldsymbol{b}$$$$
+\begin{aligned}
+\frac{\partial^{+} \boldsymbol{z}_{k}}{\partial u_{i j}} &=[0, \cdots,[\boldsymbol{h}_{k-1}]_{j}, \cdots, 0] \\
+& \triangleq \mathbb{I}_{i}([\boldsymbol{h}_{k-1}]_{j})
+\end{aligned}
+$$$$[\boldsymbol h_{k-1}]_j$$<p>为第$k-1$时刻隐状态的第$j$维，$\mathbb{I}_{i}(x)$是除了第$i$列值为$x$外，其余都为0的行向量。</p>
+$$
+\begin{aligned}
+\delta_{t, k} &=\frac{\partial \mathcal{L}_{t}}{\partial z_{k}} \\
+&=\frac{\partial \boldsymbol{h}_{k}}{\partial \boldsymbol{z}_{k}} \frac{\partial \boldsymbol{z}_{k+1}}{\partial \boldsymbol{h}_{k}} \frac{\partial \mathcal{L}_{t}}{\partial \boldsymbol{z}_{k+1}} \\
+&=\operatorname{diag}\left(f^{\prime}\left(\boldsymbol{z}_{k}\right)\right) U^{\text{T}} \delta_{t, k+1}
+\end{aligned}
+$$$$
+\frac{\partial \mathcal{L}_{t}}{\partial u_{i j}}=\sum_{k=1}^{t}[\delta_{t, k}]_{i}[\boldsymbol{h}_{k-1}]_{j}
+$$$$
+\frac{\partial \mathcal{L}_{t}}{\partial U}=\sum_{k=1}^{t} \delta_{t, k} \boldsymbol{h}_{k-1}^{\mathrm{T}}
+$$<p>
+下图给出了误差项随时间进行反向传播算法的示例：</p>
+<div align="center">
+<img src="/images/3/image-20200716112346913.png" style="zoom:25%;" />
+</div>
+<p>(2) 参数梯度</p>
+$$
+\frac{\partial \mathcal{L}}{\partial U}=\sum_{t=1}^{T} \sum_{k=1}^{t} \delta_{t, k} \boldsymbol{h}_{k-1}^{\text{T}}
+$$$$
+\begin{aligned}
+\frac{\partial \mathcal{L}}{\partial W}&=\sum_{t=1}^{T} \sum_{k=1}^{t} \delta_{t, k} \boldsymbol{x}_{k}^{\mathrm{T}} \\
+\frac{\partial \mathcal{L}}{\partial \boldsymbol{b}}&=\sum_{t=1}^{T} \sum_{k=1}^{t} \delta_{t, k}
+\end{aligned}
+$$<p>
+(3) 计算复杂度</p>
+<p>在BPTT算法中，参数的梯度需要在一个<strong>完整的“前向”计算和“反向”计算</strong>后才能得到并进行参数更新。</p>
+<h4 id="实时循环学习算法">实时循环学习算法</h4>
+$$
+\boldsymbol{h}_{t+1}=f\left(\boldsymbol{z}_{t+1}\right)=f\left(U \boldsymbol{h}_{t}+W \boldsymbol{x}_{t+1}+\boldsymbol{b}\right)
+$$$$
+\begin{aligned}
+\frac{\partial \boldsymbol{h}_{t+1}}{\partial u_{i j}} &=\left(\frac{\partial^{+} \boldsymbol{z}_{t+1}}{\partial u_{i j}}+\frac{\partial \boldsymbol{h}_{t}}{\partial u_{i j}} U^{\mathrm{T}}\right) \frac{\partial \boldsymbol{h}_{t+1}}{\partial \boldsymbol{z}_{t+1}} \\
+&=\left(\mathbb{I}_{i}\left(\left[\boldsymbol{h}_{t}\right]_{j}\right)+\frac{\partial \boldsymbol{h}_{t}}{\partial u_{i j}} U^{\mathrm{T}}\right) \operatorname{diag}(f^{\prime}(\boldsymbol{z}_{t+1})) \\
+&=\left(\mathbb{I}_{i}\left(\left[\boldsymbol{h}_{t}\right]_{j}\right)+\frac{\partial \boldsymbol{h}_{t}}{\partial u_{i j}} U^{\mathrm{T}}\right) \odot(f^{\prime}(\boldsymbol{z}_{t+1}))^{\mathrm{T}}
+\end{aligned}
+$$<p>
+其中$\mathbb{I}_{i}(x)$是除了第$i$列值为$x$外，其余都为0的行向量。</p>
+$$\frac{\partial \boldsymbol{h}_{1}}{\partial u_{i j}}, \frac{\partial \boldsymbol{h}_{2}}{\partial u_{i j}}, \frac{\partial \boldsymbol{h}_{3}}{\partial u_{i j}}, \cdots $$<p>。</p>
+$$
+\frac{\partial \mathcal{L}_{t}}{\partial u_{i j}}=\frac{\partial \boldsymbol{h}_{t}}{\partial u_{i j}} \frac{\partial \mathcal{L}_{t}}{\partial \boldsymbol{h}_{t}}
+$$<p>
+这样在第$t$时刻，可以实时地计算损失$\mathcal L_t$关于参数$U$的梯度，并更新参数。参数$W$和$\boldsymbol b$的梯度也可以同样按上述方法实时计算。</p>
+<p>RTRL算法和BPTT算法都是基于梯度下降的算法，分别通过前向模式和反向模式应用链式法则来计算梯度。在循环神经网络中，一般网络输出维度远低于输入维度，因此<strong>BPTT算法的计算量会更小</strong>，但是BPTT算法需要保存所有时刻的中间梯度，<strong>空间复杂度较高</strong>。RTRL算法不需要梯度回传，因此非常适合用于需要<strong>在线学习</strong>或<strong>无限序列</strong>的任务中。</p>
+<h3 id="长程依赖问题">长程依赖问题</h3>
+<p>循环神经网络在学习过程中的主要问题是由于梯度消失或爆炸问题，很难建模<strong>长时间间隔(long range)的状态之间的依赖关系</strong>。</p>
+$$
+\delta_{t, k}=\prod_{\tau=k}^{t-1}(\operatorname{diag}(f^{\prime}(\boldsymbol{z}_{\tau})) U^{\mathrm{T}}) \delta_{t, t}
+$$$$
+\delta_{t, k} \cong \gamma^{t-k} \delta_{t, t}
+$$<p>
+若$\gamma &gt; 1$，当$t-k \rightarrow \infty$时，$\gamma^{t-k} \rightarrow \infty$。当间隔$t-k$比较大时，梯度也变得很大，会造成系统不稳定，称为<strong>梯度爆炸问题(gradient exploding problem)</strong>。</p>
+<p>相反，若$\gamma &lt; 1$，当$t-k \rightarrow \infty$时，$\gamma^{t-k} \rightarrow 0$。当间隔$t-k$比较大时，梯度也变得非常小，会出现和深层前馈神经网络类似的<strong>梯度消失问题(gradient vanishing problem)</strong>。</p>
+<p>由于循环神经网络经常使用非线性激活函数为<strong>logistic函数或tanh函数</strong>作为非线性激活函数，其导数值都小于1，并且权重矩阵$|U|$也不会太大，因此如果时间间隔$t-k$ 过大，$\delta_{t,k}$会趋向于0，因而经常会出现梯度消失问题。</p>
+<p>虽然简单循环网络<strong>理论上</strong>可以建立<strong>长时间间隔的状态之间的依赖关系</strong>，但是由于<strong>梯度爆炸或消失问题</strong>，实际上只能学习到短期的依赖关系。这样，如果时刻$t$的输出$y_t$依赖于时刻$k$的输入$\boldsymbol x_k$，当间隔$t-k$比较大时，简单神经网络很难建模这种长距离的依赖关系，称为<strong>长程依赖问题(long-term dependencies problem)</strong>。</p>
+<p>为了避免梯度爆炸或消失问题，一种最直接的方式就是选取合适的参数，同时使用非饱和的激活函数，尽量使得$\operatorname{diag}(f^{\prime}(\boldsymbol{z})) U^{\mathrm{T}} \approx 1$，这种方式需要足够的人工调参经验，限制了模型的广泛应用。比较有效的方式是通过<strong>改进模型</strong>或<strong>优化方法</strong>来缓解循环网络的梯度爆炸和梯度消失问题。</p>
+<p>(1) <strong>梯度爆炸</strong>：一般而言，循环网络的梯度爆炸问题比较容易解决，一般通过权重衰减或梯度截断来避免。<strong>权重衰减</strong>是通过给参数增加$l_1$或$l_2$范数的正则化项来限制参数的取值范围，从而使得$\gamma &lt; 1$。<strong>梯度截断</strong>是另一种有效的启发式方法，当梯度的模大于一定阈值时，就将它截断成为一个较小的数。</p>
+$$
+\boldsymbol{h}_{t}=\boldsymbol{h}_{t-1}+g(\boldsymbol{x}_{t} ; \theta)
+$$$$
+\boldsymbol{h}_{t}=\boldsymbol{h}_{t-1}+g(\boldsymbol{x}_{t}, \boldsymbol{h}_{t-1} ; \theta)
+$$<p>
+这样$\boldsymbol h_t$和$\boldsymbol h_{t-1}$之间既有线性关系，也有非线性关系，并且可以缓解梯度消失问题。以上改进仍然存在两个问题：一是<strong>仍可能计算梯度时梯度过大</strong>，从而产生梯度爆炸问题；二是记忆容量问题，随着$\boldsymbol h_t$不断累积存储新的输入信息，会发生饱和现象。假设$g(\cdot)$为logistic函数，则随着时间$t$的增长，$\boldsymbol h_t$会变得越来越大，从而导致h变得饱和。也就是说，隐状态$\boldsymbol h_t$可以存储的信息是有限的，随着记忆单元存储的内容越来越多，其丢失的信息也越来越多。</p>
+<p>为了解决这两个问题，可以通过引入<strong>门控机制</strong>来进一步改进模型。此外，还可以通过<strong>更换激活函数</strong>、<strong>批归一化</strong>、<strong>残差连接</strong>等方式缓解梯度消失问题。</p>
+<h3 id="lstm">LSTM</h3>
+<div align="center">
+<img src="/images/3/image-20200716112944445.png" style="zoom:35%;" />
+</div>
+$$
+\begin{aligned}
+\tilde{\boldsymbol{c}}_{t} &=\tanh (W_{c} \boldsymbol{x}_{t}+U_{c} \boldsymbol{h}_{t-1}+\boldsymbol{b}_{c})\\
+\boldsymbol{i}_{t} &=\sigma(W_{i} \boldsymbol{x}_{t}+U_{i} \boldsymbol{h}_{t-1}+\boldsymbol{b}_{i}) \\
+\boldsymbol{f}_{t} &=\sigma(W_{f} \boldsymbol{x}_{t}+U_{f} \boldsymbol{h}_{t-1}+\boldsymbol{b}_{f}) \\
+\boldsymbol{o}_{t} &=\sigma(W_{o} \boldsymbol{x}_{t}+U_{o} \boldsymbol{h}_{t-1}+\boldsymbol{b}_{o}) \\
+\boldsymbol{c}_{t} &=\boldsymbol{f}_{t} \odot \boldsymbol{c}_{t-1}+\boldsymbol{i}_{t} \odot \tilde{\boldsymbol{c}}_{t} \\
+\boldsymbol{h}_{t} &=\boldsymbol{o}_{t} \odot \tanh \left(\boldsymbol{c}_{t}\right)
+\end{aligned}
+$$<h3 id="gru">GRU</h3>
+<div align="center">
+<img src="/images/3/image-20200716113028211.png" style="zoom:35%;" />
+</div>
+$$
+\begin{aligned}
+\boldsymbol{h}_{t} &=\boldsymbol{z}_{t} \odot \boldsymbol{h}_{t-1}+\left(1-\boldsymbol{z}_{t}\right) \odot g\left(\boldsymbol{x}_{t}, \boldsymbol{h}_{t-1} ; \theta\right) \\
+\boldsymbol{z}_{t} &=\sigma(\boldsymbol{W}_{z} \boldsymbol{x}_{t}+\boldsymbol{U}_{z} \boldsymbol{h}_{t-1}+\boldsymbol{b}_{z}) \\
+\tilde{\boldsymbol{h}}_{t} &=\tanh (W_{h} \boldsymbol{x}_{t}+U_{h}(\boldsymbol{r}_{t} \odot \boldsymbol{h}_{t-1})+\boldsymbol{b}_{h}) \\
+\boldsymbol{r}_{t} &=\sigma(W_{r} \boldsymbol{x}_{t}+U_{r} \boldsymbol{h}_{t-1}+\boldsymbol{b}_{r})
+\end{aligned}
+$$<h3 id="深层循环神经网络">深层循环神经网络</h3>
+<h4 id="堆叠循环神经网络">堆叠循环神经网络</h4>
+<p>为循环神经网络添加从输入到输出的纵向深度：</p>
+<div align="center">
+<img src="/images/3/image-20200716150806191.png" style="zoom:25%;" />
+</div>
+$$
+\boldsymbol{h}_{t}^{(l)}=f(U^{(l)} \boldsymbol{h}_{t-1}^{(l)}+W^{(l)} \boldsymbol{h}_{t}^{(l-1)}+\boldsymbol{b}^{(l)})
+$$<h4 id="双向循环神经网络">双向循环神经网络</h4>
+<p>在有些任务中，一个时刻的输出不但和过去时刻的信息有关，也<strong>和后续时刻的信息有关</strong>。比如给定一个句子，其中一个词的词性由它的上下文决定，即包含左右两边的信息。因此，在这些任务中，我们可以增加一个按照时间的逆序来传递信息的网络层，来增强网络的能力。</p>
+<div align="center">
+<img src="/images/3/image-20200716150946254.png" style="zoom:30%;" />
+</div>
+$$
+\begin{aligned}
+\boldsymbol{h}_{t}^{(1)} &=f(U^{(1)} \boldsymbol{h}_{t-1}^{(1)}+W^{(1)} \boldsymbol{x}_{t}+\boldsymbol{b}^{(1)}) \\
+\boldsymbol{h}_{t}^{(2)} &=f(U^{(2)} \boldsymbol{h}_{t+1}^{(2)}+W^{(2)} \boldsymbol{x}_{t}+\boldsymbol{b}^{(2)}) \\
+\boldsymbol{h}_{t} &=\boldsymbol{h}_{t}^{(1)} \oplus \boldsymbol{h}_{t}^{(2)}
+\end{aligned}
+$$<p>
+其中$\oplus$为拼接操作。</p>
+<h3 id="扩展到图结构">扩展到图结构</h3>
+<p>如果将循环神经网络按时间展开，每个时刻的隐状态$\boldsymbol h_t$看做一个节点，那么这些节点构成一个链式结构，每个节点<em>t</em>都收到其<strong>父节点</strong>的<strong>消息(message)</strong>，更新自己的状态，并传递给其<strong>子节点</strong>。而链式结构是一种特殊的图结构，我们可以比较容易地将这种<strong>消息传递(message passing)</strong> 的思想扩展到<strong>任意的图结构</strong>上。</p>
+<h4 id="递归神经网络">递归神经网络</h4>
+<p><strong>递归神经网络(recursive neural network, RecNN)</strong> 是<strong>循环神经网络在有向无循环图上的扩展</strong>。其一般结构为<strong>树状</strong>的层次结构，如下图所示：</p>
+<div align="center">
+<img src="/images/3/image-20200716152620411.png" style="zoom:30%;" />
+</div>
+<p>当递归神经网络的结构退化为线性序列结构时，递归神经网络就等价于简单循环网络，如右图所示。</p>
+<p>递归神经网络主要用来建模自然语言句子的语义。给定一个句子的<strong>语法结构(一般为树状结构)</strong>，可以使用递归神经网络来按照句法的组合关系来合成一个句子的语义。句子中每个短语成分又可以分成一些子成分，即每个短语的语义都可以由它的子成分语义组合而来，并进而合成整句的语义。</p>
+<h4 id="图网络">图网络</h4>
+<p>在实际应用中，很多数据是图结构的，比如知识图谱、社交网络、分子网络等。而前馈网络和反馈网络很难处理图结构的数据。<strong>图网络(graph network, GN)</strong> 是将消息传递的思想扩展到图结构数据上的神经网络。</p>
+$$
+\begin{aligned}
+\boldsymbol{m}_{t}^{(v)}&=\sum_{u \in N(v)} f(\boldsymbol{h}_{t-1}^{(v)}, \boldsymbol{h}_{t-1}^{(u)}, \boldsymbol{e}^{(u, v)})\\
+\boldsymbol{h}_{t}^{(v)}&=g(\boldsymbol{h}_{t-1}^{(v)}, \boldsymbol{m}_{t}^{(v)})
+\end{aligned}
+$$<p>
+其中$N(v)$表示节点$v$的<strong>邻居</strong>，$\boldsymbol m_t^{(v)}$表示在第$t$时刻节点$v$收到的信息，$\boldsymbol e^{(u,v)}$为 边$e(u,v)$上的特征。</p>
+<h3 id="tensorflow实现循环神经网络进行情感分析">Tensorflow实现循环神经网络进行情感分析</h3>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">numpy</span> <span style="color:#204a87;font-weight:bold">as</span> <span style="color:#000">np</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">csv</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">tensorflow</span> <span style="color:#204a87;font-weight:bold">as</span> <span style="color:#000">tf</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">tensorflow.keras.layers</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">SimpleRNN</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">GRU</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">LSTM</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">Dense</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">Embedding</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">tensorflow.keras.models</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">Sequential</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">tensorflow.keras.preprocessing.sequence</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">pad_sequences</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">tensorflow.keras.preprocessing.text</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">Tokenizer</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">sklearn.model_selection</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">train_test_split</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">tensorflow.keras.models</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">load_model</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">__version__</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">def</span> <span style="color:#000">read_data</span><span style="color:#000;font-weight:bold">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">FILE_NAME</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#4e9a06">&#39;sentiment_analysis.csv&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">sentence</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">[]</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">sentiment</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">[]</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">with</span> <span style="color:#204a87">open</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">FILE_NAME</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#4e9a06">&#39;r&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">encoding</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;UTF-8&#39;</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#204a87;font-weight:bold">as</span> <span style="color:#000">csvfile</span><span style="color:#000;font-weight:bold">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">csv_reader</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">csv</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">reader</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">csvfile</span><span style="color:#000;font-weight:bold">)</span>  <span style="color:#8f5902;font-style:italic"># 使用csv.reader来读取csv文件</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">row</span> <span style="color:#204a87;font-weight:bold">in</span> <span style="color:#000">csv_reader</span><span style="color:#000;font-weight:bold">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">sentence</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">append</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">row</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;the first sentence is : &#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">sentence</span><span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">i</span> <span style="color:#204a87;font-weight:bold">in</span> <span style="color:#204a87">range</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87">len</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">sentence</span><span style="color:#000;font-weight:bold">)):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">s</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#4e9a06">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">item</span> <span style="color:#204a87;font-weight:bold">in</span> <span style="color:#000">sentence</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">i</span><span style="color:#000;font-weight:bold">]:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">s</span> <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#000">item</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">sentence</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">i</span><span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">s</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">split</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;</span><span style="color:#4e9a06">\t</span><span style="color:#4e9a06">&#39;</span><span style="color:#000;font-weight:bold">)[</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">]</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">sentiment</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">append</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">s</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">split</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;</span><span style="color:#4e9a06">\t</span><span style="color:#4e9a06">&#39;</span><span style="color:#000;font-weight:bold">)[</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;there are &#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87">len</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">sentence</span><span style="color:#000;font-weight:bold">),</span> <span style="color:#4e9a06">&#39; sentences in total&#39;</span><span style="color:#000;font-weight:bold">)</span>  <span style="color:#8f5902;font-style:italic"># 字符串列表</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;there are &#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87">len</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">sentiment</span><span style="color:#000;font-weight:bold">),</span> <span style="color:#4e9a06">&#39;sentimental labels in total (0/1)&#39;</span><span style="color:#000;font-weight:bold">)</span>  <span style="color:#8f5902;font-style:italic"># 0/1的列表</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">return</span> <span style="color:#000">sentence</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">sentiment</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 模型配置</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">VOCAB_SIZE</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">5000</span>  <span style="color:#8f5902;font-style:italic"># 选取前5000个最频繁出现的单词</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">EMBED_SIZE</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">200</span>  <span style="color:#8f5902;font-style:italic"># 词嵌入大小</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">NUM_HIDDEN</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">128</span>  <span style="color:#8f5902;font-style:italic"># RNN中隐含层神经元个数</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">BATCH_SIZE</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">64</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">NUM_EPOCH</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">3</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 需要将数据导入当前目录</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">def</span> <span style="color:#000">process_data</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">sentence</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">sentiment</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># word segmentation, padding and obtaining vocabulary</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">tokenizer</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">Tokenizer</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">VOCAB_SIZE</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">oov_token</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;&lt;UNK&gt;&#39;</span><span style="color:#000;font-weight:bold">)</span>  <span style="color:#8f5902;font-style:italic"># 1. define tokenizer</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">tokenizer</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">fit_on_texts</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">sentence</span><span style="color:#000;font-weight:bold">)</span>  <span style="color:#8f5902;font-style:italic"># 2. fit on texts</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">sequence</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tokenizer</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">texts_to_sequences</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">sentence</span><span style="color:#000;font-weight:bold">)</span>  <span style="color:#8f5902;font-style:italic"># 3. texts to sequences</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">X</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">pad_sequences</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">sequence</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">padding</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;post&#39;</span><span style="color:#000;font-weight:bold">)</span>  <span style="color:#8f5902;font-style:italic"># 4. pad sequences</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">X</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">X</span><span style="color:#000;font-weight:bold">[:,</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#0000cf;font-weight:bold">120</span><span style="color:#000;font-weight:bold">]</span>  <span style="color:#8f5902;font-style:italic"># length cut</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">Y</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">np</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">array</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">sentiment</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># for Tokenizer, although when the vocabulary size has been set, for example, 5000, </span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># the vocabulary will contain all words in texts. However, when transfering texts to </span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># sequences, only words with top 5000 frequency will be converted to corresponding </span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># index, other words will be converted to &lt;UNK&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">vocab</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tokenizer</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">word_index</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">vocab</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87">len</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">vocab</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">vocab_size</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">VOCAB_SIZE</span> <span style="color:#ce5c00;font-weight:bold">+</span> <span style="color:#0000cf;font-weight:bold">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;X: &#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">X</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;Y: &#34;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">Y</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;X size: &#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">X</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;Y size: &#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">Y</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">Xtrain</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">Xtest</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">Ytrain</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">Ytest</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">train_test_split</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">Y</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;vocabulary size: &#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">vocab_size</span><span style="color:#000;font-weight:bold">)</span>  <span style="color:#8f5902;font-style:italic"># 5001，&#39;0&#39;用于填充</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">return</span> <span style="color:#000">Xtrain</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">Xtest</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">Ytrain</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">Ytest</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">vocab_size</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">def</span> <span style="color:#000">run</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">MODE</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;TRAIN&#39;</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">sentence</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">sentiment</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">read_data</span><span style="color:#000;font-weight:bold">()</span>  <span style="color:#8f5902;font-style:italic"># 加载数据</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">Xtrain</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">Xtest</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">Ytrain</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">Ytest</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">vocab_size</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">process_data</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">sentence</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">sentiment</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">if</span> <span style="color:#000">MODE</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#4e9a06">&#39;TRAIN&#39;</span><span style="color:#000;font-weight:bold">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">model_rnn</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">Sequential</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">model_rnn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">add</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">Embedding</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">input_dim</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">vocab_size</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">output_dim</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">EMBED_SIZE</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">input_length</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">120</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">mask_zero</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#204a87;font-weight:bold">True</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">model_rnn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">add</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">SimpleRNN</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">NUM_HIDDEN</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">activation</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;relu&#39;</span><span style="color:#000;font-weight:bold">))</span>  <span style="color:#8f5902;font-style:italic"># LSTM/GRU</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">model_rnn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">add</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">Dense</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">NUM_HIDDEN</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">activation</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;relu&#39;</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">model_rnn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">add</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">Dense</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">activation</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;softmax&#39;</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">model_rnn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">summary</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">model_rnn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">compile</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">optimizer</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;adam&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">loss</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;sparse_categorical_crossentropy&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">metrics</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000;font-weight:bold">[</span><span style="color:#4e9a06">&#39;accuracy&#39;</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">history</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">model_rnn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">fit</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">Xtrain</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">Ytrain</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">batch_size</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">BATCH_SIZE</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">epochs</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">NUM_EPOCH</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">validation_data</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">Xtest</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">Ytest</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">model_rnn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">save</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;rnn_classifier.h5&#39;</span><span style="color:#000;font-weight:bold">)</span>  <span style="color:#8f5902;font-style:italic"># 保存模型为h5格式</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">elif</span> <span style="color:#000">MODE</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#4e9a06">&#39;TEST&#39;</span><span style="color:#000;font-weight:bold">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">model_rnn</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">load_model</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;rnn_classifier.h5&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">result</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">model_rnn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">evaluate</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">Xtest</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">Ytest</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;RNN sentiment analysis accuracy: &#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">result</span><span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">run</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;TRAIN&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">run</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;TEST&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span></code></pre></div><h3 id="tensorflow实现循环神经网络进行文本生成">Tensorflow实现循环神经网络进行文本生成</h3>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">tensorflow</span> <span style="color:#204a87;font-weight:bold">as</span> <span style="color:#000">tf</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">numpy</span> <span style="color:#204a87;font-weight:bold">as</span> <span style="color:#000">np</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">os</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">time</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 读取数据，需要将数据导入当前目录</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">text</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#204a87">open</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;shakespeare.txt&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#4e9a06">&#39;rb&#39;</span><span style="color:#000;font-weight:bold">)</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">read</span><span style="color:#000;font-weight:bold">()</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">decode</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">encoding</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;utf-8&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;Length of text: </span><span style="color:#4e9a06">{}</span><span style="color:#4e9a06"> characters&#39;</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">format</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87">len</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">text</span><span style="color:#000;font-weight:bold">)))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 查看文章中的前250个字符</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">text</span><span style="color:#000;font-weight:bold">[:</span><span style="color:#0000cf;font-weight:bold">250</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 查看文件中不同字符的种类</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">vocab</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#204a87">sorted</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87">set</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">text</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;</span><span style="color:#4e9a06">{}</span><span style="color:#4e9a06"> unique characters&#39;</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">format</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87">len</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">vocab</span><span style="color:#000;font-weight:bold">)))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 将文本向量化</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">char2idx</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">{</span><span style="color:#000">u</span><span style="color:#000;font-weight:bold">:</span> <span style="color:#000">i</span> <span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">i</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">u</span> <span style="color:#204a87;font-weight:bold">in</span> <span style="color:#204a87">enumerate</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">vocab</span><span style="color:#000;font-weight:bold">)}</span>  <span style="color:#8f5902;font-style:italic"># 词典</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">idx2char</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">np</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">array</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">vocab</span><span style="color:#000;font-weight:bold">)</span>  <span style="color:#8f5902;font-style:italic"># 反向词典</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">text_as_int</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">np</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">array</span><span style="color:#000;font-weight:bold">([</span><span style="color:#000">char2idx</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">c</span><span style="color:#000;font-weight:bold">]</span> <span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">c</span> <span style="color:#204a87;font-weight:bold">in</span> <span style="color:#000">text</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">text_as_int</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">)</span>  <span style="color:#8f5902;font-style:italic"># (1115394,)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 查看文章中前13个字符是如何被映射到13个整数的</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;</span><span style="color:#4e9a06">{}</span><span style="color:#4e9a06"> ---- characters mapped to int ---- &gt; </span><span style="color:#4e9a06">{}</span><span style="color:#4e9a06">&#39;</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">format</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87">repr</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">text</span><span style="color:#000;font-weight:bold">[:</span><span style="color:#0000cf;font-weight:bold">13</span><span style="color:#000;font-weight:bold">]),</span> <span style="color:#000">text_as_int</span><span style="color:#000;font-weight:bold">[:</span><span style="color:#0000cf;font-weight:bold">13</span><span style="color:#000;font-weight:bold">]))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 一条字符序列的最大长度</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">seq_length</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">100</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">examples_per_epoch</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#204a87">len</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">text</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">//</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#000">seq_length</span> <span style="color:#ce5c00;font-weight:bold">+</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 将数据转为tf.data.Dataset格式</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">char_dataset</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">data</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Dataset</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">from_tensor_slices</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">text_as_int</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">sequences</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">char_dataset</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">batch</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">seq_length</span> <span style="color:#ce5c00;font-weight:bold">+</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">drop_remainder</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#204a87;font-weight:bold">True</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">item</span> <span style="color:#204a87;font-weight:bold">in</span> <span style="color:#000">sequences</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">take</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">5</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87">repr</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;&#39;</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">join</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">idx2char</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">item</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">numpy</span><span style="color:#000;font-weight:bold">()])))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 利用右移的方式构造target</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">def</span> <span style="color:#000">split_input_target</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">chunk</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">input_text</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">chunk</span><span style="color:#000;font-weight:bold">[:</span><span style="color:#ce5c00;font-weight:bold">-</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">]</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">target_text</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">chunk</span><span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">:]</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">return</span> <span style="color:#000">input_text</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">target_text</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">dataset</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">sequences</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">map</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">split_input_target</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">dataset</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">input_example</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">target_example</span> <span style="color:#204a87;font-weight:bold">in</span> <span style="color:#000">dataset</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">take</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;Input data: &#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87">repr</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;&#39;</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">join</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">idx2char</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">input_example</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">numpy</span><span style="color:#000;font-weight:bold">()])))</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;Target data:&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87">repr</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;&#39;</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">join</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">idx2char</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">target_example</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">numpy</span><span style="color:#000;font-weight:bold">()])))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># Batch size</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">BATCH_SIZE</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">64</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># Buffer size to shuffle the dataset</span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># (TF data is designed to work with possibly infinite sequences,</span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># so it doesn&#39;t attempt to shuffle the entire sequence in memory. Instead,</span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># it maintains a buffer in which it shuffles elements).</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">BUFFER_SIZE</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">10000</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">dataset</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">dataset</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shuffle</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">BUFFER_SIZE</span><span style="color:#000;font-weight:bold">)</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">batch</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">BATCH_SIZE</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">drop_remainder</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#204a87;font-weight:bold">True</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">dataset</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 词典大小</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">vocab_size</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#204a87">len</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">vocab</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 词嵌入大小</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">embedding_dim</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">300</span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># RNN隐含层单元数</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">rnn_units</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">512</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 构造模型</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">def</span> <span style="color:#000">build_model</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">vocab_size</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">embedding_dim</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">rnn_units</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">batch_size</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">model</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Sequential</span><span style="color:#000;font-weight:bold">([</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Embedding</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">vocab_size</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">embedding_dim</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">batch_input_shape</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">batch_size</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87;font-weight:bold">None</span><span style="color:#000;font-weight:bold">]),</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">GRU</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">rnn_units</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">return_sequences</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#204a87;font-weight:bold">True</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">stateful</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#204a87;font-weight:bold">True</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">recurrent_initializer</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;glorot_uniform&#39;</span><span style="color:#000;font-weight:bold">),</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Dense</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">vocab_size</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">return</span> <span style="color:#000">model</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">model</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">build_model</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">vocab_size</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#204a87">len</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">vocab</span><span style="color:#000;font-weight:bold">),</span> <span style="color:#000">embedding_dim</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">embedding_dim</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">rnn_units</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">rnn_units</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">batch_size</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">BATCH_SIZE</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 尝试模型的输出</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">input_example_batch</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">target_example_batch</span> <span style="color:#204a87;font-weight:bold">in</span> <span style="color:#000">dataset</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">take</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">example_batch_predictions</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">model</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">input_example_batch</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">example_batch_predictions</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#4e9a06">&#34;# (batch_size, sequence_length, vocab_size)&#34;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">model</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">summary</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">def</span> <span style="color:#000">loss</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">labels</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">logits</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">return</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">losses</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">sparse_categorical_crossentropy</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">labels</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">logits</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">from_logits</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#204a87;font-weight:bold">True</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">example_batch_loss</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">loss</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">target_example_batch</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">example_batch_predictions</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;Prediction shape: &#34;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">example_batch_predictions</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#4e9a06">&#34; # (batch_size, sequence_length, vocab_size)&#34;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;scalar_loss:      &#34;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">example_batch_loss</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">numpy</span><span style="color:#000;font-weight:bold">()</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">mean</span><span style="color:#000;font-weight:bold">())</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 配置检查点</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">checkpoint_dir</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#4e9a06">&#39;./training_checkpoints&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">checkpoint_prefix</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">os</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">path</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">join</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">checkpoint_dir</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#4e9a06">&#34;ckpt_</span><span style="color:#4e9a06">{epoch}</span><span style="color:#4e9a06">&#34;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">checkpoint_callback</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">callbacks</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">ModelCheckpoint</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">filepath</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">checkpoint_prefix</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">save_weights_only</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#204a87;font-weight:bold">True</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">model</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">compile</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">optimizer</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;adam&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">loss</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">loss</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">EPOCHS</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">10</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">model</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">fit</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">dataset</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">epochs</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">EPOCHS</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">callbacks</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">checkpoint_callback</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 从检查点中恢复模型，并设置batch_size为1</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">model</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">build_model</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">vocab_size</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">embedding_dim</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">rnn_units</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">batch_size</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">model</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">load_weights</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">train</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">latest_checkpoint</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">checkpoint_dir</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">model</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">build</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">TensorShape</span><span style="color:#000;font-weight:bold">([</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87;font-weight:bold">None</span><span style="color:#000;font-weight:bold">]))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">def</span> <span style="color:#000">generate_text</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">model</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">start_string</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Evaluation step (generating text using the learned model)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Number of characters to generate</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">num_generate</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">1000</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Converting our start string to numbers (vectorizing)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">input_eval</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">[</span><span style="color:#000">char2idx</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">s</span><span style="color:#000;font-weight:bold">]</span> <span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">s</span> <span style="color:#204a87;font-weight:bold">in</span> <span style="color:#000">start_string</span><span style="color:#000;font-weight:bold">]</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">input_eval</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">expand_dims</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">input_eval</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Empty string to store our results</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">text_generated</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">[]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Low temperatures results in more predictable text.</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Higher temperatures results in more surprising text.</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Experiment to find the best setting.</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">temperature</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">1.0</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Here batch size == 1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">model</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">reset_states</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">i</span> <span style="color:#204a87;font-weight:bold">in</span> <span style="color:#204a87">range</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">num_generate</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">predictions</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">model</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">input_eval</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># remove the batch dimension</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">predictions</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">squeeze</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">predictions</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># using a categorical distribution to predict the character returned by the model</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">predictions</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">predictions</span> <span style="color:#ce5c00;font-weight:bold">/</span> <span style="color:#000">temperature</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">predicted_id</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">random</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">categorical</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">predictions</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">num_samples</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">)[</span><span style="color:#ce5c00;font-weight:bold">-</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">]</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">numpy</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># We pass the predicted character as the next input to the model</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># along with the previous hidden state</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">input_eval</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">expand_dims</span><span style="color:#000;font-weight:bold">([</span><span style="color:#000">predicted_id</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">text_generated</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">append</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">idx2char</span><span style="color:#000;font-weight:bold">[</span><span style="color:#000">predicted_id</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">return</span> <span style="color:#000">start_string</span> <span style="color:#ce5c00;font-weight:bold">+</span> <span style="color:#4e9a06">&#39;&#39;</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">join</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">text_generated</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">generate_text</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">model</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">start_string</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">u</span><span style="color:#4e9a06">&#34;ROMEO: &#34;</span><span style="color:#000;font-weight:bold">))</span>
+</span></span></code></pre></div><h3 id="参考资料">参考资料</h3>
+<ul>
+<li>邱锡鹏. 神经网络与深度学习. 北京: 机械工业出版社, 2020.</li>
+<li>Lipton Z C, Berkowitz J, Elkan C. A critical review of recurrent neural networks for sequence learning[J]. arXiv preprint arXiv:1506.00019, 2015.</li>
+<li>循环神经网络维基百科：https://en.wikipedia.org/wiki/Recurrent_neural_network</li>
+</ul>
+
+	
+</div>
+
+
+            </div>
+
+          </main>
+        </div>
+      </div>
+      <footer class="td-footer row d-print-none">
+  <div class="container-fluid">
+    <div class="row mx-md-2">
+      <div class="td-footer__left col-6 col-sm-4 order-sm-1">
+        
+      </div><div class="td-footer__right col-6 col-sm-4 order-sm-3">
+        
+      </div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2">
+        
+      </div>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css"
+      integrity="sha512-r2+FkHzf1u0+SQbZOoIz2RxWOIWfdEzRuYybGjzKq18jG9zaSfEy9s3+jMqG/zPtRor/q4qaUCYQpmSjTw8M+g==" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"
+        integrity="sha512-INps9zQ2GUEMCQD7xiZQbGUVnqnzEvlynVy6eqcTcHN4+aQiLo9/uaQqckDpdJ8Zm3M0QBs+Pktg4pz0kEklUg=="
+        crossorigin="anonymous">
+</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"
+       integrity="sha512-YJVxTjqttjsU3cSvaTRqsSl0wbRgZUNF+NGGCgto/MUbIvaLdXQzGTCQu4CvyJZbZctgflVB0PXw9LLmTWm5/w==" crossorigin="anonymous"
+       onload='renderMathInElement(document.body, {"delimiters":[{"display":true,"left":"$$","right":"$$"},{"display":false,"left":"$","right":"$"},{"display":false,"left":"\\(","right":"\\)"},{"display":true,"left":"\\[","right":"\\]"}],"errorcolor":"#CD5C5C","throwonerror":false});'>
+</script>
+<script src="/js/main.min.613b131e2c315a570f2f0f22f51f752a53e30fc078f674f7ab0885a6ce15ad68.js" integrity="sha256-YTsTHiwxWlcPLw8i9R91KlPjD8B49nT3qwiFps4VrWg=" crossorigin="anonymous"></script>
+<script defer src="/js/click-to-copy.min.73478a7d4807698aed7e355eb23f9890ca18fea3158604c8471746d046702bad.js" integrity="sha256-c0eKfUgHaYrtfjVesj&#43;YkMoY/qMVhgTIRxdG0EZwK60=" crossorigin="anonymous"></script>
+<script src='/js/tabpane-persist.js'></script>
+
+  </body>
+</html>

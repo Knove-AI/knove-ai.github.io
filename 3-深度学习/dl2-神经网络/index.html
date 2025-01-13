@@ -1,0 +1,819 @@
+<!doctype html>
+<html itemscope itemtype="http://schema.org/WebPage" lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+
+
+<link rel="shortcut icon" href="/favicons/favicon.ico" >
+<link rel="apple-touch-icon" href="/favicons/apple-touch-icon-180x180.png" sizes="180x180">
+<link rel="icon" type="image/png" href="/favicons/favicon-16x16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="/favicons/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/favicons/android-36x36.png" sizes="36x36">
+<link rel="icon" type="image/png" href="/favicons/android-48x48.png" sizes="48x48">
+<link rel="icon" type="image/png" href="/favicons/android-72x72.png" sizes="72x72">
+<link rel="icon" type="image/png" href="/favicons/android-96x96.png" sizes="96x96">
+<link rel="icon" type="image/png" href="/favicons/android-144x144.png" sizes="144x144">
+<link rel="icon" type="image/png" href="/favicons/android-192x192.png" sizes="192x192">
+
+<title>神经网络 | 知予AI</title>
+<meta name="description" content="人工神经网络(artificial neural network, ANN) 是指一系列受生物学和神经科学启发的数学模型. 这些模型主要是通过对人脑的神经元网络进行抽象，构建人工神经元，并按照一定拓扑结构来建立人工神经元之间的连接，来模拟生物神经网络。在人工智能领域，人工神经网络也常常简称为神经网络(neural network, NN)。
+神经网络最早是作为一种主要的连接主义模型。20世纪80年代中后期，最流行的一种连接主义模型是分布式并行处理(parallel distributed processing, PDP)模型，其有3个主要特性：(1) 信息表示是分布式的(非局部的)；(2) 记忆和知识是存储在单元之间的连接上；(3)通过逐渐改变单元之间的连接强度来学习新的知识。
+连接主义的神经网络有着多种多样的网络结构以及学习方法，虽然早期模型强调模型的生物可解释性(biological plausibility)，但后期更关注于对某种特定认知能力的模拟，比如物体识别、语言理解等. 尤其在引入误差反向传播来改进其学习能力之后，神经网络也越来越多地应用在各种机器学习任务上。随着训练数据的增多以及(并行)计算能力的增强，神经网络在很多机器学习任务上已经取得了很大的突破，特别是在语音、图像等感知信号的处理任务上，神经网络表现出了卓越的学习能力。
+目前受到关注的是采用误差反向传播来进行学习的神经网络，即作为一种机器学习模型的神经网络。从机器学习的角度来看，神经网络一般可以看作是一个非线性模型，其基本组成单元为具有非线性激活函数的神经元，通过大量神经元之间的连接，使得神经网络成为一种高度非线性的模型。神经元之间的连接权重就是需要学习的参数，可以在机器学习的框架下通过梯度下降方法来进行学习。
+神经网络的基本结构 神经网络的基本组成单位是神经元(neuron)，如下所示：
+$$\begin{aligned}z &amp;=\sum_{d=1}^{D} w_{d} x_{d}&#43;b \\&amp;=\boldsymbol{w}^{\text T} \boldsymbol{x}&#43;b\end{aligned}$$ 其中$\boldsymbol{w}=[w_{1} ; w_{2} ; \cdots ; w_{D}] \in \mathbb{R}^{D}$是$D$维的权重(weight)向量，$b\in \mathbb R$是偏置(bias)。净输入$z$在经过一个非线性函数$f$后，得到神经元的激活值(activation)$a=f(z)$，其中非线性函数$f$称为激活函数。
+与感知机(perceptron)相比，神经元的激活函数通常是连续可导的函数，而感知机的激活函数仅仅是在$x=0$处不可导的阶跃函数，用于将输出值进行二分，不需要进行反向梯度计算。
+到目前为止，研究者已经发明了各种各样的神经网络结构。目前常用的神经网络结构有以下三种：
+(1) 前馈网络：前馈网络中各个神经元按接收信息的先后分为不同的组。每一组可以看作一个神经层。每一层中的神经元接收前一层神经元的输出，并输出到下一层神经元。整个网络中的信息是朝一个方向传播，没有反向的信息传播，可以用一个有向无环路图表示。前馈网络包括全连接前馈网络和卷积神经网络等。前馈网络可以看作一个函数，通过简单非线性函数的多次复合，实现输入空间到输出空间的复杂映射。这种网络结构简单，易于实现。
+(2) 记忆网络：也称反馈网络，网络中的神经元不但可以接收其他神经元的信息，也可以接收自己的历史信息。和前馈网络相比，记忆网络中的神经元具有记忆功能，在不同的时刻具有不同的状态。记忆神经网络中的信息传播可以是单向或双向传递，因此可用一个有向循环图或无向图来表示。记忆网络包括循环神经网络、Hopfield网络、玻尔兹曼机、受限玻尔兹曼机等。记忆网络可以看作一个程序，具有更强的计算和记忆能力。为了增强记忆网络的记忆容量，可以引入外部记忆单元和读写机制，用来保存一些网络的中间状态，称为记忆增强神经网络(memory augmented neural network, MANN)，比如神经图灵机和记忆网络等。
+(3) 图网络：前馈网络和记忆网络的输入都可以表示为向量或向量序列。但实际应用中很多数据是图结构的数据，比如知识图谱、社交网络、分子网络等。前馈网络和记忆网络很难处理图结构的数据。图网络是定义在图结构数据上的神经网络。图中每个节点都由一个或一组神经元构成。节点之间的连接可以是有向的，也可以是无向的。每个节点可以收到来自相邻节点或自身的信息.
+图网络是前馈网络和记忆网络的泛化，包含很多不同的实现方式，比如图卷积网络(graph convolutional network, GCN)、图注意力网络(graph attention network, GAT)、消息传递神经网络(message passing neural network, MPNN) 等。
+三种网络结构示意图如下所示：
+激活函数 激活函数(activation function) 的作用是为神经网络的传播过程增添非线性因素。为了增强网络的表示能力，激活函数需要具备以下几点性质：">
+<meta property="og:url" content="https://knove-ai.github.io/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl2-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/">
+  <meta property="og:site_name" content="知予AI">
+  <meta property="og:title" content="神经网络">
+  <meta property="og:description" content="人工神经网络(artificial neural network, ANN) 是指一系列受生物学和神经科学启发的数学模型. 这些模型主要是通过对人脑的神经元网络进行抽象，构建人工神经元，并按照一定拓扑结构来建立人工神经元之间的连接，来模拟生物神经网络。在人工智能领域，人工神经网络也常常简称为神经网络(neural network, NN)。
+神经网络最早是作为一种主要的连接主义模型。20世纪80年代中后期，最流行的一种连接主义模型是分布式并行处理(parallel distributed processing, PDP)模型，其有3个主要特性：(1) 信息表示是分布式的(非局部的)；(2) 记忆和知识是存储在单元之间的连接上；(3)通过逐渐改变单元之间的连接强度来学习新的知识。
+连接主义的神经网络有着多种多样的网络结构以及学习方法，虽然早期模型强调模型的生物可解释性(biological plausibility)，但后期更关注于对某种特定认知能力的模拟，比如物体识别、语言理解等. 尤其在引入误差反向传播来改进其学习能力之后，神经网络也越来越多地应用在各种机器学习任务上。随着训练数据的增多以及(并行)计算能力的增强，神经网络在很多机器学习任务上已经取得了很大的突破，特别是在语音、图像等感知信号的处理任务上，神经网络表现出了卓越的学习能力。
+目前受到关注的是采用误差反向传播来进行学习的神经网络，即作为一种机器学习模型的神经网络。从机器学习的角度来看，神经网络一般可以看作是一个非线性模型，其基本组成单元为具有非线性激活函数的神经元，通过大量神经元之间的连接，使得神经网络成为一种高度非线性的模型。神经元之间的连接权重就是需要学习的参数，可以在机器学习的框架下通过梯度下降方法来进行学习。
+神经网络的基本结构 神经网络的基本组成单位是神经元(neuron)，如下所示：
+$$\begin{aligned}z &amp;=\sum_{d=1}^{D} w_{d} x_{d}&#43;b \\&amp;=\boldsymbol{w}^{\text T} \boldsymbol{x}&#43;b\end{aligned}$$ 其中$\boldsymbol{w}=[w_{1} ; w_{2} ; \cdots ; w_{D}] \in \mathbb{R}^{D}$是$D$维的权重(weight)向量，$b\in \mathbb R$是偏置(bias)。净输入$z$在经过一个非线性函数$f$后，得到神经元的激活值(activation)$a=f(z)$，其中非线性函数$f$称为激活函数。
+与感知机(perceptron)相比，神经元的激活函数通常是连续可导的函数，而感知机的激活函数仅仅是在$x=0$处不可导的阶跃函数，用于将输出值进行二分，不需要进行反向梯度计算。
+到目前为止，研究者已经发明了各种各样的神经网络结构。目前常用的神经网络结构有以下三种：
+(1) 前馈网络：前馈网络中各个神经元按接收信息的先后分为不同的组。每一组可以看作一个神经层。每一层中的神经元接收前一层神经元的输出，并输出到下一层神经元。整个网络中的信息是朝一个方向传播，没有反向的信息传播，可以用一个有向无环路图表示。前馈网络包括全连接前馈网络和卷积神经网络等。前馈网络可以看作一个函数，通过简单非线性函数的多次复合，实现输入空间到输出空间的复杂映射。这种网络结构简单，易于实现。
+(2) 记忆网络：也称反馈网络，网络中的神经元不但可以接收其他神经元的信息，也可以接收自己的历史信息。和前馈网络相比，记忆网络中的神经元具有记忆功能，在不同的时刻具有不同的状态。记忆神经网络中的信息传播可以是单向或双向传递，因此可用一个有向循环图或无向图来表示。记忆网络包括循环神经网络、Hopfield网络、玻尔兹曼机、受限玻尔兹曼机等。记忆网络可以看作一个程序，具有更强的计算和记忆能力。为了增强记忆网络的记忆容量，可以引入外部记忆单元和读写机制，用来保存一些网络的中间状态，称为记忆增强神经网络(memory augmented neural network, MANN)，比如神经图灵机和记忆网络等。
+(3) 图网络：前馈网络和记忆网络的输入都可以表示为向量或向量序列。但实际应用中很多数据是图结构的数据，比如知识图谱、社交网络、分子网络等。前馈网络和记忆网络很难处理图结构的数据。图网络是定义在图结构数据上的神经网络。图中每个节点都由一个或一组神经元构成。节点之间的连接可以是有向的，也可以是无向的。每个节点可以收到来自相邻节点或自身的信息.
+图网络是前馈网络和记忆网络的泛化，包含很多不同的实现方式，比如图卷积网络(graph convolutional network, GCN)、图注意力网络(graph attention network, GAT)、消息传递神经网络(message passing neural network, MPNN) 等。
+三种网络结构示意图如下所示：
+激活函数 激活函数(activation function) 的作用是为神经网络的传播过程增添非线性因素。为了增强网络的表示能力，激活函数需要具备以下几点性质：">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="3-深度学习">
+    <meta property="article:published_time" content="2017-01-01T00:00:00+00:00">
+    <meta property="article:modified_time" content="2017-01-01T00:00:00+00:00">
+
+  <meta itemprop="name" content="神经网络">
+  <meta itemprop="description" content="人工神经网络(artificial neural network, ANN) 是指一系列受生物学和神经科学启发的数学模型. 这些模型主要是通过对人脑的神经元网络进行抽象，构建人工神经元，并按照一定拓扑结构来建立人工神经元之间的连接，来模拟生物神经网络。在人工智能领域，人工神经网络也常常简称为神经网络(neural network, NN)。
+神经网络最早是作为一种主要的连接主义模型。20世纪80年代中后期，最流行的一种连接主义模型是分布式并行处理(parallel distributed processing, PDP)模型，其有3个主要特性：(1) 信息表示是分布式的(非局部的)；(2) 记忆和知识是存储在单元之间的连接上；(3)通过逐渐改变单元之间的连接强度来学习新的知识。
+连接主义的神经网络有着多种多样的网络结构以及学习方法，虽然早期模型强调模型的生物可解释性(biological plausibility)，但后期更关注于对某种特定认知能力的模拟，比如物体识别、语言理解等. 尤其在引入误差反向传播来改进其学习能力之后，神经网络也越来越多地应用在各种机器学习任务上。随着训练数据的增多以及(并行)计算能力的增强，神经网络在很多机器学习任务上已经取得了很大的突破，特别是在语音、图像等感知信号的处理任务上，神经网络表现出了卓越的学习能力。
+目前受到关注的是采用误差反向传播来进行学习的神经网络，即作为一种机器学习模型的神经网络。从机器学习的角度来看，神经网络一般可以看作是一个非线性模型，其基本组成单元为具有非线性激活函数的神经元，通过大量神经元之间的连接，使得神经网络成为一种高度非线性的模型。神经元之间的连接权重就是需要学习的参数，可以在机器学习的框架下通过梯度下降方法来进行学习。
+神经网络的基本结构 神经网络的基本组成单位是神经元(neuron)，如下所示：
+$$\begin{aligned}z &amp;=\sum_{d=1}^{D} w_{d} x_{d}&#43;b \\&amp;=\boldsymbol{w}^{\text T} \boldsymbol{x}&#43;b\end{aligned}$$ 其中$\boldsymbol{w}=[w_{1} ; w_{2} ; \cdots ; w_{D}] \in \mathbb{R}^{D}$是$D$维的权重(weight)向量，$b\in \mathbb R$是偏置(bias)。净输入$z$在经过一个非线性函数$f$后，得到神经元的激活值(activation)$a=f(z)$，其中非线性函数$f$称为激活函数。
+与感知机(perceptron)相比，神经元的激活函数通常是连续可导的函数，而感知机的激活函数仅仅是在$x=0$处不可导的阶跃函数，用于将输出值进行二分，不需要进行反向梯度计算。
+到目前为止，研究者已经发明了各种各样的神经网络结构。目前常用的神经网络结构有以下三种：
+(1) 前馈网络：前馈网络中各个神经元按接收信息的先后分为不同的组。每一组可以看作一个神经层。每一层中的神经元接收前一层神经元的输出，并输出到下一层神经元。整个网络中的信息是朝一个方向传播，没有反向的信息传播，可以用一个有向无环路图表示。前馈网络包括全连接前馈网络和卷积神经网络等。前馈网络可以看作一个函数，通过简单非线性函数的多次复合，实现输入空间到输出空间的复杂映射。这种网络结构简单，易于实现。
+(2) 记忆网络：也称反馈网络，网络中的神经元不但可以接收其他神经元的信息，也可以接收自己的历史信息。和前馈网络相比，记忆网络中的神经元具有记忆功能，在不同的时刻具有不同的状态。记忆神经网络中的信息传播可以是单向或双向传递，因此可用一个有向循环图或无向图来表示。记忆网络包括循环神经网络、Hopfield网络、玻尔兹曼机、受限玻尔兹曼机等。记忆网络可以看作一个程序，具有更强的计算和记忆能力。为了增强记忆网络的记忆容量，可以引入外部记忆单元和读写机制，用来保存一些网络的中间状态，称为记忆增强神经网络(memory augmented neural network, MANN)，比如神经图灵机和记忆网络等。
+(3) 图网络：前馈网络和记忆网络的输入都可以表示为向量或向量序列。但实际应用中很多数据是图结构的数据，比如知识图谱、社交网络、分子网络等。前馈网络和记忆网络很难处理图结构的数据。图网络是定义在图结构数据上的神经网络。图中每个节点都由一个或一组神经元构成。节点之间的连接可以是有向的，也可以是无向的。每个节点可以收到来自相邻节点或自身的信息.
+图网络是前馈网络和记忆网络的泛化，包含很多不同的实现方式，比如图卷积网络(graph convolutional network, GCN)、图注意力网络(graph attention network, GAT)、消息传递神经网络(message passing neural network, MPNN) 等。
+三种网络结构示意图如下所示：
+激活函数 激活函数(activation function) 的作用是为神经网络的传播过程增添非线性因素。为了增强网络的表示能力，激活函数需要具备以下几点性质：">
+  <meta itemprop="datePublished" content="2017-01-01T00:00:00+00:00">
+  <meta itemprop="dateModified" content="2017-01-01T00:00:00+00:00">
+  <meta itemprop="wordCount" content="1307">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="神经网络">
+  <meta name="twitter:description" content="人工神经网络(artificial neural network, ANN) 是指一系列受生物学和神经科学启发的数学模型. 这些模型主要是通过对人脑的神经元网络进行抽象，构建人工神经元，并按照一定拓扑结构来建立人工神经元之间的连接，来模拟生物神经网络。在人工智能领域，人工神经网络也常常简称为神经网络(neural network, NN)。
+神经网络最早是作为一种主要的连接主义模型。20世纪80年代中后期，最流行的一种连接主义模型是分布式并行处理(parallel distributed processing, PDP)模型，其有3个主要特性：(1) 信息表示是分布式的(非局部的)；(2) 记忆和知识是存储在单元之间的连接上；(3)通过逐渐改变单元之间的连接强度来学习新的知识。
+连接主义的神经网络有着多种多样的网络结构以及学习方法，虽然早期模型强调模型的生物可解释性(biological plausibility)，但后期更关注于对某种特定认知能力的模拟，比如物体识别、语言理解等. 尤其在引入误差反向传播来改进其学习能力之后，神经网络也越来越多地应用在各种机器学习任务上。随着训练数据的增多以及(并行)计算能力的增强，神经网络在很多机器学习任务上已经取得了很大的突破，特别是在语音、图像等感知信号的处理任务上，神经网络表现出了卓越的学习能力。
+目前受到关注的是采用误差反向传播来进行学习的神经网络，即作为一种机器学习模型的神经网络。从机器学习的角度来看，神经网络一般可以看作是一个非线性模型，其基本组成单元为具有非线性激活函数的神经元，通过大量神经元之间的连接，使得神经网络成为一种高度非线性的模型。神经元之间的连接权重就是需要学习的参数，可以在机器学习的框架下通过梯度下降方法来进行学习。
+神经网络的基本结构 神经网络的基本组成单位是神经元(neuron)，如下所示：
+$$\begin{aligned}z &amp;=\sum_{d=1}^{D} w_{d} x_{d}&#43;b \\&amp;=\boldsymbol{w}^{\text T} \boldsymbol{x}&#43;b\end{aligned}$$ 其中$\boldsymbol{w}=[w_{1} ; w_{2} ; \cdots ; w_{D}] \in \mathbb{R}^{D}$是$D$维的权重(weight)向量，$b\in \mathbb R$是偏置(bias)。净输入$z$在经过一个非线性函数$f$后，得到神经元的激活值(activation)$a=f(z)$，其中非线性函数$f$称为激活函数。
+与感知机(perceptron)相比，神经元的激活函数通常是连续可导的函数，而感知机的激活函数仅仅是在$x=0$处不可导的阶跃函数，用于将输出值进行二分，不需要进行反向梯度计算。
+到目前为止，研究者已经发明了各种各样的神经网络结构。目前常用的神经网络结构有以下三种：
+(1) 前馈网络：前馈网络中各个神经元按接收信息的先后分为不同的组。每一组可以看作一个神经层。每一层中的神经元接收前一层神经元的输出，并输出到下一层神经元。整个网络中的信息是朝一个方向传播，没有反向的信息传播，可以用一个有向无环路图表示。前馈网络包括全连接前馈网络和卷积神经网络等。前馈网络可以看作一个函数，通过简单非线性函数的多次复合，实现输入空间到输出空间的复杂映射。这种网络结构简单，易于实现。
+(2) 记忆网络：也称反馈网络，网络中的神经元不但可以接收其他神经元的信息，也可以接收自己的历史信息。和前馈网络相比，记忆网络中的神经元具有记忆功能，在不同的时刻具有不同的状态。记忆神经网络中的信息传播可以是单向或双向传递，因此可用一个有向循环图或无向图来表示。记忆网络包括循环神经网络、Hopfield网络、玻尔兹曼机、受限玻尔兹曼机等。记忆网络可以看作一个程序，具有更强的计算和记忆能力。为了增强记忆网络的记忆容量，可以引入外部记忆单元和读写机制，用来保存一些网络的中间状态，称为记忆增强神经网络(memory augmented neural network, MANN)，比如神经图灵机和记忆网络等。
+(3) 图网络：前馈网络和记忆网络的输入都可以表示为向量或向量序列。但实际应用中很多数据是图结构的数据，比如知识图谱、社交网络、分子网络等。前馈网络和记忆网络很难处理图结构的数据。图网络是定义在图结构数据上的神经网络。图中每个节点都由一个或一组神经元构成。节点之间的连接可以是有向的，也可以是无向的。每个节点可以收到来自相邻节点或自身的信息.
+图网络是前馈网络和记忆网络的泛化，包含很多不同的实现方式，比如图卷积网络(graph convolutional network, GCN)、图注意力网络(graph attention network, GAT)、消息传递神经网络(message passing neural network, MPNN) 等。
+三种网络结构示意图如下所示：
+激活函数 激活函数(activation function) 的作用是为神经网络的传播过程增添非线性因素。为了增强网络的表示能力，激活函数需要具备以下几点性质：">
+<link rel="preload" href="/scss/main.min.a52b2e54f3e921e61502207760f8ecb468b09dc55f348cc42d9b9b9132637847.css" as="style" integrity="sha256-pSsuVPPpIeYVAiB3YPjstGiwncVfNIzELZubkTJjeEc=" crossorigin="anonymous">
+<link href="/scss/main.min.a52b2e54f3e921e61502207760f8ecb468b09dc55f348cc42d9b9b9132637847.css" rel="stylesheet" integrity="sha256-pSsuVPPpIeYVAiB3YPjstGiwncVfNIzELZubkTJjeEc=" crossorigin="anonymous">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda+SC:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Bodoni+Moda:ital,opsz,wght@1,6..96,800&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Sen:wght@400..800&display=swap" rel="stylesheet">
+<script
+  src="https://code.jquery.com/jquery-3.7.1.min.js"
+  integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+  crossorigin="anonymous"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: '\\[', right: '\\]', display: true},   
+        {left: '$$', right: '$$', display: true},     
+        {left: '\\(', right: '\\)', display: false},  
+      ],
+      throwOnError : false
+    });
+  });
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+  </head>
+  <body class="td-page">
+    <header>
+      
+    </header>
+    <div class="container-fluid td-outer">
+      <div class="td-main">
+        <div class="row flex-xl-nowrap">
+          <aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none">
+            <div id="td-sidebar-menu" class="td-sidebar__inner">
+  <image src="/logo.png" style="width: 100%;" />
+
+
+  <form class="td-sidebar__search d-flex align-items-center">
+    
+    <button class="btn btn-link td-sidebar__toggle d-md-none p-0 ms-3 fas fa-bars" type="button" data-bs-toggle="collapse" data-bs-target="#td-section-nav" aria-controls="td-section-nav" aria-expanded="false" aria-label="Toggle section navigation">
+    </button>
+  </form>
+  <nav class="td-sidebar-nav collapse" id="td-section-nav">
+    <ul class="td-sidebar-nav__section pe-md-3 ul-0">
+      <li> <a href="/">首页</a></li>
+      <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m--li">
+  <a href="/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id="m-"><span class=""></span></a>
+  <ul class="ul-1">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-1-e695b0e5ada6e59fbae7a180-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" title="数学基础" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-1-e695b0e5ada6e59fbae7a180"><span class="">1-数学基础</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math1-e7babfe680a7e4bba3e695b0-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math1-%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math1-e7babfe680a7e4bba3e695b0"><span class="">线性代数</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math2-e5beaee7a7afe58886-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math2-%E5%BE%AE%E7%A7%AF%E5%88%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math2-e5beaee7a7afe58886"><span class="">微积分</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math3-e695b0e5ada6e4bc98e58c96-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math3-%E6%95%B0%E5%AD%A6%E4%BC%98%E5%8C%96/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math3-e695b0e5ada6e4bc98e58c96"><span class="">数学优化</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math4-e6a682e78e87e7bb9fe8aea1-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math4-%E6%A6%82%E7%8E%87%E7%BB%9F%E8%AE%A1/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math4-e6a682e78e87e7bb9fe8aea1"><span class="">概率统计</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math5-e4bfa1e681afe8aeba-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math5-%E4%BF%A1%E6%81%AF%E8%AE%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math5-e4bfa1e681afe8aeba"><span class="">信息论</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-2-e69cbae599a8e5ada6e4b9a0-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-2-e69cbae599a8e5ada6e4b9a0"><span class="">2-机器学习</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml1-e69cbae599a8e5ada6e4b9a0e59fbae7a180-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml1-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%9F%BA%E7%A1%80/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml1-e69cbae599a8e5ada6e4b9a0e59fbae7a180"><span class="">机器学习基础</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml2-e7babfe680a7e59b9ee5bd92-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml2-%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml2-e7babfe680a7e59b9ee5bd92"><span class="">线性回归</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml3-ke8bf91e982bbe7ae97e6b395-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml3-k%E8%BF%91%E9%82%BB%E7%AE%97%E6%B3%95/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml3-ke8bf91e982bbe7ae97e6b395"><span class="">近邻算法</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml4-e6849fe79fa5e69cba-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml4-%E6%84%9F%E7%9F%A5%E6%9C%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml4-e6849fe79fa5e69cba"><span class="">感知机</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml5-e8b49de58fb6e696afe58886e7b1bbe599a8-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml5-%E8%B4%9D%E5%8F%B6%E6%96%AF%E5%88%86%E7%B1%BB%E5%99%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml5-e8b49de58fb6e696afe58886e7b1bbe599a8"><span class="">贝叶斯分类器</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml6-e980bbe8be91e59b9ee5bd92e4b88ee69c80e5a4a7e786b5e6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml6-%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92%E4%B8%8E%E6%9C%80%E5%A4%A7%E7%86%B5%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml6-e980bbe8be91e59b9ee5bd92e4b88ee69c80e5a4a7e786b5e6a8a1e59e8b"><span class="">逻辑回归与最大熵模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml7-e694afe68c81e59091e9878fe69cba-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml7-%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml7-e694afe68c81e59091e9878fe69cba"><span class="">支持向量机</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml8-e586b3e7ad96e6a091-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml8-%E5%86%B3%E7%AD%96%E6%A0%91/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml8-e586b3e7ad96e6a091"><span class="">决策树</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml9-e99b86e68890e5ada6e4b9a0-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml9-%E9%9B%86%E6%88%90%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml9-e99b86e68890e5ada6e4b9a0"><span class="">集成学习</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml10-eme7ae97e6b395-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml10-em%E7%AE%97%E6%B3%95/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml10-eme7ae97e6b395"><span class="">EM算法</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml11-e8819ae7b1bb-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml11-%E8%81%9A%E7%B1%BB/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml11-e8819ae7b1bb"><span class="">聚类</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml12-e9998de7bbb4-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml12-%E9%99%8D%E7%BB%B4/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml12-e9998de7bbb4"><span class="">降维</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml13-e789b9e5be81e98089e68ba9-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml13-%E7%89%B9%E5%BE%81%E9%80%89%E6%8B%A9/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml13-e789b9e5be81e98089e68ba9"><span class="">特征选择</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml14-e8af9de9a298e6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml14-%E8%AF%9D%E9%A2%98%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml14-e8af9de9a298e6a8a1e59e8b"><span class="">话题模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml15-e6a682e78e87e59bbee6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml15-%E6%A6%82%E7%8E%87%E5%9B%BE%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml15-e6a682e78e87e59bbee6a8a1e59e8b"><span class="">概率图模型</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m-3-e6b7b1e5baa6e5ada6e4b9a0-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-3-e6b7b1e5baa6e5ada6e4b9a0"><span class="">3-深度学习</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl1-e6b7b1e5baa6e5ada6e4b9a0e6a682e8bfb0-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl1-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E6%A6%82%E8%BF%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl1-e6b7b1e5baa6e5ada6e4b9a0e6a682e8bfb0"><span class="">深度学习概述</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl2-e7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl2-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 active td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl2-e7a59ee7bb8fe7bd91e7bb9c"><span class="td-sidebar-nav-active-item">神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl3-e58db7e7a7afe7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl3-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl3-e58db7e7a7afe7a59ee7bb8fe7bd91e7bb9c"><span class="">卷积神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl4-e5beaae78eafe7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl4-%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl4-e5beaae78eafe7a59ee7bb8fe7bd91e7bb9c"><span class="">循环神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl5-e7a59ee7bb8fe7bd91e7bb9ce79a84e4bc98e58c96-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl5-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E7%9A%84%E4%BC%98%E5%8C%96/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl5-e7a59ee7bb8fe7bd91e7bb9ce79a84e4bc98e58c96"><span class="">神经网络的优化</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl6-e887aae7bc96e7a081e599a8-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl6-%E8%87%AA%E7%BC%96%E7%A0%81%E5%99%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl6-e887aae7bc96e7a081e599a8"><span class="">自编码器</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl7-e6b7b1e5baa6e7949fe68890e6a8a1e59e8b-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl7-%E6%B7%B1%E5%BA%A6%E7%94%9F%E6%88%90%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl7-e6b7b1e5baa6e7949fe68890e6a8a1e59e8b"><span class="">深度生成模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl8-e6b3a8e6848fe58a9be69cbae588b6e4b88ee5a496e983a8e8aeb0e5bf86-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl8-%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%E4%B8%8E%E5%A4%96%E9%83%A8%E8%AE%B0%E5%BF%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl8-e6b3a8e6848fe58a9be69cbae588b6e4b88ee5a496e983a8e8aeb0e5bf86"><span class="">注意力机制与外部记忆</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl9-e59bbee7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl9-%E5%9B%BE%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl9-e59bbee7a59ee7bb8fe7bd91e7bb9c"><span class="">图神经网络</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-4-e887aae784b6e8afade8a880e5a484e79086-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-4-e887aae784b6e8afade8a880e5a484e79086"><span class="">4-自然语言处理</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp1-e887aae784b6e8afade8a880e5a484e79086e6a682e8bfb0-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp1-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E6%A6%82%E8%BF%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp1-e887aae784b6e8afade8a880e5a484e79086e6a682e8bfb0"><span class="">自然语言处理概述</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp2-e8af8de59091e9878f-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp2-%E8%AF%8D%E5%90%91%E9%87%8F/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp2-e8af8de59091e9878f"><span class="">词向量</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp3-e8afade8a880e6a8a1e59e8b-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp3-%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp3-e8afade8a880e6a8a1e59e8b"><span class="">语言模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp4-seq2seqe4b88eattention-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp4-seq2seq%E4%B8%8Eattention/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp4-seq2seqe4b88eattention"><span class="">seq2seq与attention</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp5-e9a284e8aeade7bb83e6a8a1e59e8b-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp5-%E9%A2%84%E8%AE%AD%E7%BB%83%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp5-e9a284e8aeade7bb83e6a8a1e59e8b"><span class="">预训练模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp6-e887aae784b6e8afade8a880e5a484e79086e5ba94e794a8-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp6-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E5%BA%94%E7%94%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp6-e887aae784b6e8afade8a880e5a484e79086e5ba94e794a8"><span class="">自然语言处理应用</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-5-aie7a094e7a9b6e6898be5868c-li">
+  <a href="/5-ai%E7%A0%94%E7%A9%B6%E6%89%8B%E5%86%8C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-5-aie7a094e7a9b6e6898be5868c"><span class="">5-AI研究手册</span></a>
+</li>
+  </ul>
+</li>
+    </ul>
+  </nav>
+</div>
+
+
+          </aside>
+          <aside class="d-none d-xl-block col-xl-2 td-sidebar-toc d-print-none">
+            <div class="td-page-meta ms-2 pb-1 pt-2 mb-0">
+
+</div>
+
+            <div class="td-toc">
+        <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#神经网络的基本结构">神经网络的基本结构</a></li>
+        <li><a href="#激活函数">激活函数</a></li>
+        <li><a href="#前馈神经网络">前馈神经网络</a></li>
+        <li><a href="#反向传播算法">反向传播算法</a></li>
+        <li><a href="#通用近似定理">通用近似定理</a></li>
+        <li><a href="#自动梯度计算">自动梯度计算</a></li>
+        <li><a href="#tensorflow实现全连接神经网络进行mnist手写数字识别">Tensorflow实现全连接神经网络进行MNIST手写数字识别</a></li>
+        <li><a href="#pytorch实现全连接神经网络进行mnist手写数字识别">Pytorch实现全连接神经网络进行MNIST手写数字识别</a></li>
+        <li><a href="#参考资料">参考资料</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+      </div>
+    
+            
+
+          </aside>
+          <main class="col-12 col-md-9 col-xl-8 " role="main">
+            <nav class="td-navbar js-navbar-scroll" data-bs-theme="dark">
+<div class="container-fluid flex-column flex-md-row">
+  <a class="navbar-brand" href="/"><span class="navbar-brand__logo navbar-logo"><svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" style="enable-background:new 0 0 500 500"><g><path style="fill:#fff" d="M116.8525 421.9722c-5.7041.0-10.3442-4.3127-10.3442-9.6129V88.183c0-5.3002 4.6401-9.6117 10.3442-9.6117H320.858c3.0347.0 9.3959.5498 11.7506 2.6302l.3545.3442 58.905 63.2912c2.3101 2.491 2.9202 8.4928 2.9202 11.3184v256.2039c0 5.3002-4.6407 9.6129-10.3436 9.6129H116.8525z"/><g><g><g><path style="fill:#767676" d="M384.4445 423.2066H116.852c-6.3839.0-11.5786-4.8658-11.5786-10.8474V88.1831c0-5.9804 5.1947-10.8461 11.5786-10.8461h204.0062c.377.0 9.2786.0329 12.568 2.9389l.3947.3833 58.9508 63.337c3.2135 3.4652 3.2514 11.7924 3.2514 12.1593v256.2036C396.0231 418.3408 390.8284 423.2066 384.4445 423.2066zM116.5079 411.9189c.0848.0278.1999.0531.3441.0531h267.5925c.1442.0.2581-.0253.3441-.0531V156.1556c-.0076-.9033-.3593-3.7347-.7034-5.0037l-57.6527-61.9416c-1.4651-.3176-4.4533-.6389-5.5742-.6389H116.852c-.143.0-.2594.024-.3441.0531V411.9189zm267.4533-261.149zM327.0321 89.371v.0013V89.371z"/></g></g></g><g><g><path style="fill:#5b7fc0" d="M189.0874 210.1754l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4473C177.5953 212.627 183.0601 210.1742 189.0874 210.1754zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 234.1722 197.0804 232.033z"/><path style="opacity:.3;fill:#fff" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/><g><defs><path id="SVGID_1_" d="M194.7376 237.6875c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 234.2399 196.1861 236.239 194.7376 237.6875z"/></defs><clipPath id="SVGID_2_"><use xlink:href="#SVGID_1_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_2_);fill:#fff" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/><path style="opacity:.13;clip-path:url(#SVGID_2_);fill:#020202" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/></g><g><defs><path id="SVGID_3_" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/></defs><clipPath id="SVGID_4_"><use xlink:href="#SVGID_3_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_4_);fill:#5b7fc0" d="M172.6595 215.6045c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8475-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 209.1953 176.6171 211.647 172.6595 215.6045z"/></g></g><rect x="198.8952" y="225.1043" style="fill:#5b7fc0" width="122.6266" height="13.8671"/></g><g><path style="fill:#d95140" d="M189.0874 155.7611l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.0249 2.454-11.4897 6.4116-15.4473C177.5953 158.2128 183.0601 155.7599 189.0874 155.7611zm7.993 21.8577c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.2508 181.7667 197.0816 179.758 197.0804 177.6188z"/><path style="opacity:.3;fill:#fff" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/><g><defs><path id="SVGID_5_" d="M194.7376 183.2733c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 179.8256 196.1861 181.8248 194.7376 183.2733z"/></defs><clipPath id="SVGID_6_"><use xlink:href="#SVGID_5_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_6_);fill:#fff" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/><path style="opacity:.13;clip-path:url(#SVGID_6_);fill:#020202" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/></g><g><defs><path id="SVGID_7_" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/></defs><clipPath id="SVGID_8_"><use xlink:href="#SVGID_7_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_8_);fill:#d95140" d="M172.6595 161.1903c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 154.7811 176.6171 157.2327 172.6595 161.1903z"/></g><rect x="198.8952" y="170.69" style="fill:#d95140" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#56a55c" d="M189.5379 264.6147l.0012-.0012c7.7751.0012 15.0294 4.1862 18.932 10.9235 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032-5.8394.0-11.3281-2.2733-15.458-6.4032-4.13-4.13-6.4032-9.6186-6.4056-15.4628.0012-6.0249 2.454-11.4897 6.4116-15.4472C178.0458 267.0663 183.5105 264.6135 189.5379 264.6147zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6538 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.7013 290.6202 197.5321 288.6115 197.5309 286.4723z"/><path style="opacity:.3;fill:#fff" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/><g><defs><path id="SVGID_9_" d="M195.1881 292.1268c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9941 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.5344 288.6792 196.6366 290.6783 195.1881 292.1268z"/></defs><clipPath id="SVGID_10_"><use xlink:href="#SVGID_9_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_10_);fill:#fff" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/><path style="opacity:.13;clip-path:url(#SVGID_10_);fill:#020202" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/></g><g><defs><path id="SVGID_11_" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/></defs><clipPath id="SVGID_12_"><use xlink:href="#SVGID_11_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_12_);fill:#56a55c" d="M173.11 270.0439c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7325-11.1497-10.9151-18.926-10.9151C182.5311 263.6346 177.0676 266.0863 173.11 270.0439z"/></g></g><rect x="199.3456" y="279.5436" style="fill:#56a55c" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#f1bc42" d="M189.0874 318.7208l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3305-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4472C177.5953 321.1724 183.0601 318.7196 189.0874 318.7208zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 342.7176 197.0804 340.5784z"/><path style="opacity:.3;fill:#fff" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/><g><defs><path id="SVGID_13_" d="M194.7376 346.2329c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 342.7853 196.1861 344.7844 194.7376 346.2329z"/></defs><clipPath id="SVGID_14_"><use xlink:href="#SVGID_13_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_14_);fill:#fff" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/><path style="opacity:.13;clip-path:url(#SVGID_14_);fill:#020202" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/></g><g><defs><path id="SVGID_15_" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/></defs><clipPath id="SVGID_16_"><use xlink:href="#SVGID_15_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_16_);fill:#f1bc42" d="M172.6595 324.15c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8474-1.0151-7.6327-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 317.7407 176.6171 320.1924 172.6595 324.15z"/></g></g><rect x="198.8952" y="333.6497" style="fill:#f1bc42" width="122.6266" height="13.8671"/></g></g></svg></span><span class="navbar-brand__name">知予AI</span></a>
+  <div class="td-navbar-nav-scroll ms-md-auto" id="main_navbar">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="https://github.com/knove-ai" target="_blank" rel="noopener"><i class="fa fa-github"></i><span>Github</span></a>
+      </li>
+      </ul>
+  </div>
+  <div class="d-none d-lg-block">
+    
+  </div>
+</div>
+</nav>
+
+            <div class="ps-md-5">
+              
+  
+
+              <nav aria-label="breadcrumb" class="td-breadcrumbs">
+  <ol class="breadcrumb">
+  <li class="breadcrumb-item">
+    <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">3-深度学习</a></li>
+  <li class="breadcrumb-item active" aria-current="page">
+    神经网络</li>
+  </ol>
+</nav>
+              
+<div class="td-content">
+	<h1>神经网络</h1>
+	
+	<header class="article-meta">
+		
+</header>
+	<p><strong>人工神经网络(artificial neural network, ANN)</strong> 是指一系列受生物学和神经科学启发的数学模型. 这些模型主要是通过对人脑的神经元网络进行抽象，构建<strong>人工神经元</strong>，并按照一定拓扑结构来建立人工神经元之间的连接，来模拟生物神经网络。在人工智能领域，人工神经网络也常常简称为<strong>神经网络(neural network, NN)</strong>。</p>
+<p>神经网络最早是作为一种主要的<strong>连接主义模型</strong>。20世纪80年代中后期，最流行的一种连接主义模型是<strong>分布式并行处理(parallel distributed processing, PDP)模型</strong>，其有3个主要特性：(1) 信息表示是分布式的(非局部的)；(2) 记忆和知识是存储在单元之间的连接上；(3)通过逐渐改变单元之间的连接强度来学习新的知识。</p>
+<p>连接主义的神经网络有着多种多样的网络结构以及学习方法，虽然早期模型强调模型的<strong>生物可解释性(biological plausibility)</strong>，但后期更关注于<strong>对某种特定认知能力的模拟</strong>，比如物体识别、语言理解等. 尤其在引入误差反向传播来改进其学习能力之后，神经网络也越来越多地应用在各种机器学习任务上。随着训练数据的增多以及(并行)计算能力的增强，神经网络在很多机器学习任务上已经取得了很大的突破，特别是在语音、图像等感知信号的处理任务上，神经网络表现出了卓越的学习能力。</p>
+<p>目前受到关注的是采用<strong>误差反向传播</strong>来进行学习的神经网络，即作为<strong>一种机器学习模型</strong>的神经网络。从机器学习的角度来看，神经网络一般可以看作是一个<strong>非线性模型</strong>，其基本组成单元为<strong>具有非线性激活函数的神经元</strong>，通过大量神经元之间的连接，使得神经网络成为一种<strong>高度非线性的模型</strong>。神经元之间的<strong>连接权重</strong>就是<strong>需要学习的参数</strong>，可以在机器学习的<strong>框架</strong>下通过<strong>梯度下降</strong>方法来进行学习。</p>
+<h3 id="神经网络的基本结构">神经网络的基本结构</h3>
+<p>神经网络的基本组成单位是<strong>神经元(neuron)</strong>，如下所示：</p>
+<div align="center">
+<img src="/images/3/image-20200428203202172.png" style="zoom:35%;" />
+</div>
+$$
+\begin{aligned}
+z &=\sum_{d=1}^{D} w_{d} x_{d}+b \\
+&=\boldsymbol{w}^{\text T} \boldsymbol{x}+b
+\end{aligned}
+$$<p>
+其中$\boldsymbol{w}=[w_{1} ; w_{2} ; \cdots ; w_{D}] \in \mathbb{R}^{D}$是$D$维的<strong>权重(weight)<strong>向量，$b\in \mathbb R$是</strong>偏置(bias)</strong>。净输入$z$在经过一个非线性函数$f$后，得到神经元的<strong>激活值(activation)</strong>$a=f(z)$，其中非线性函数$f$称为<strong>激活函数</strong>。</p>
+<p>与<strong>感知机(perceptron)<strong>相比，神经元的激活函数通常是</strong>连续可导的函数</strong>，而感知机的激活函数仅仅是在$x=0$处不可导的阶跃函数，用于将输出值进行二分，不需要进行反向梯度计算。</p>
+<p>到目前为止，研究者已经发明了各种各样的神经网络结构。目前常用的神经网络结构有以下三种：</p>
+<p>(1) <strong>前馈网络</strong>：前馈网络中各个神经元按接收信息的先后分为不同的组。每一组可以看作一个<strong>神经层</strong>。每一层中的神经元接收前一层神经元的输出，并输出到下一层神经元。整个网络中的信息是朝一个方向传播，没有反向的信息传播，可以用一个有向无环路图表示。前馈网络包括<strong>全连接前馈网络</strong>和<strong>卷积神经网络</strong>等。前馈网络可以看作一个函数，通过简单非线性函数的多次复合，实现输入空间到输出空间的复杂映射。这种网络结构简单，易于实现。</p>
+<p>(2) <strong>记忆网络</strong>：也称反馈网络，网络中的神经元不但可以接收其他神经元的信息，也可以接收自己的历史信息。和前馈网络相比，记忆网络中的神经元具有记忆功能，在不同的时刻具有不同的状态。记忆神经网络中的信息传播可以是单向或双向传递，因此可用一个<strong>有向循环图或无向图</strong>来表示。记忆网络包括<strong>循环神经网络</strong>、<strong>Hopfield网络</strong>、<strong>玻尔兹曼机</strong>、<strong>受限玻尔兹曼机</strong>等。记忆网络可以看作一个程序，具有更强的计算和记忆能力。为了增强记忆网络的记忆容量，可以引入外部记忆单元和读写机制，用来保存一些网络的中间状态，称为<strong>记忆增强神经网络(memory augmented neural network, MANN)</strong>，比如<strong>神经图灵机</strong>和<strong>记忆网络</strong>等。</p>
+<p>(3) <strong>图网络</strong>：前馈网络和记忆网络的输入都可以表示为向量或向量序列。但实际应用中很多数据是图结构的数据，比如知识图谱、社交网络、分子网络等。前馈网络和记忆网络很难处理图结构的数据。图网络是定义在图结构数据上的神经网络。图中每个节点都由一个或一组神经元构成。节点之间的连接可以是有向的，也可以是无向的。每个节点可以收到来自相邻节点或自身的信息.</p>
+<p><strong>图网络是前馈网络和记忆网络的泛化</strong>，包含很多不同的实现方式，比如<strong>图卷积网络(graph convolutional network, GCN)</strong>、<strong>图注意力网络(graph attention network, GAT)</strong>、<strong>消息传递神经网络(message passing neural network, MPNN)</strong> 等。</p>
+<p>三种网络结构示意图如下所示：</p>
+<div align="center">
+<img src="/images/3/image-20200428224849253.png" style="zoom:30%;" />
+</div>
+<h3 id="激活函数">激活函数</h3>
+<p><strong>激活函数(activation function)</strong> 的作用是为神经网络的传播过程增添非线性因素。为了增强网络的表示能力，激活函数需要具备以下几点性质：</p>
+<p>(1) <strong>连续并可导(允许少数点不可导)的非线性函数</strong>，可以直接利用数值优化的方法优化参数。</p>
+<p>(2) 激活函数及其导函数要<strong>尽可能的简单</strong>，有利于提高网络计算效率。</p>
+<p>(3) 导函数的值域要在一个<strong>合适的区间</strong>内，不能太大(影响稳定性)或太小(影响效率)。</p>
+<p>神经网络中每个神经元常用的激活函数如下：</p>
+<p>(1) <strong>sigmoid函数</strong>：可以看成是一个映射函数，把一个实数域的输入映射到$(0,1)$这一实数域中。当输入值在0附近时，sigmoid函数近似为线性函数；当输入值靠近两端时，对输入进行抑制。输入越小，函数值越接近于0；输入越大，函数值越接近于1。这样的特点也<strong>和生物神经元类似</strong>，对一些输入会产生兴奋(输出为1)，对另一些输入产生抑制(输出为0)。和感知器使用的阶跃激活函数相比，sigmoid函数是连续可导的，其数学性质更好。</p>
+$$
+\sigma(x)=\frac{1}{1+\exp (-x)}
+$$$$
+\tanh (x)=\frac{\exp (x)-\exp (-x)}{\exp (x)+\exp (-x)}
+$$<p>
+下图给出了sigmoid函数和tanh函数的图像。tanh函数的输出是零中心化的(zero-centered)，而sigmoid函数的输出恒大于0。非零中心化的输出会使 得其后一层的神经元的输入发生<strong>偏置偏移(bias shift)</strong>，并<strong>进一步使得梯度下降的收敛速度变慢</strong>。</p>
+<div align="center">
+<img src="/images/3/image-20200428214520104.png" style="zoom:30%;" />
+</div>
+$$
+\begin{aligned}
+\operatorname{ReLU}(x) &=\left\{\begin{array}{ll}
+x, & x \geqslant 0 \\
+0, & x<0
+\end{array}\right.\\
+&=\max (0, x)
+\end{aligned}
+$$<p>
+ReLU函数的<strong>优</strong>是：采用ReLU的神经元只需要进行加、乘和比较的操作，计算上更加高效。ReLU函数被认为有生物上的解释性，比如<strong>单侧抑制</strong>、<strong>宽兴奋边界</strong>(即兴奋程度也可以非常高)。在生物神经网络中，同时处于兴奋状态的神经元非常稀疏，人脑中在同一时刻大概只有1%至4%的神经元处于活跃状态。sigmoid激活函数会导致一个<strong>非稀疏的神经网络</strong>，而ReLU却具有很好的<strong>稀疏性</strong>，大约50%的神经元会处于激活状态。</p>
+<p>在优化方面，相比于sigmoid函数的两端饱和，ReLU函数为<strong>左饱和函数</strong>，且在$x&gt;0$时导数为1，在一定程度上缓解了神经网络的<strong>梯度消失</strong>问题，加速梯度下降的收敛速度。</p>
+<p>ReLU函数的<strong>缺点</strong>：ReLU函数的输出是<strong>非零中心化的</strong>，会给后一层的神经网络引入偏置偏移，会影响梯度下降的效率。此外，ReLU神经元在训练时比较容易“死亡”。在训练时，如果参数在一次不恰当的更新后，隐藏层中的某个ReLU神经元在所有的训练数据上都不能被激活，那么这个神经元自身参数的梯度永远都会是0，在以后的训练过程中<strong>永远不能被激活</strong>。这种现象称为<strong>死亡ReLU问题(dying ReLU problem)</strong>。</p>
+$$
+\begin{aligned}
+\text {LeakyReLU}(x) &=\left\{\begin{array}{ll}
+x, & \text { if } x>0 \\
+\gamma x, & \text { if } x \leqslant 0
+\end{array}\right.\\
+&=\max (0, x)+\gamma \min (0, x)
+\end{aligned}
+$$$$
+\begin{aligned}
+\operatorname{ELU}(x) &=\left\{\begin{array}{ll}
+x & \text { if } x>0 \\
+\gamma(\exp (x)-1) & \text { if } x \leqslant 0
+\end{array}\right.\\
+&=\max (0, x)+\min (0, \gamma(\exp (x)-1))
+\end{aligned}
+$$<p>
+其中$\gamma \geqslant 0$是一个<strong>超参数</strong>，决定$x \leqslant 0$时的饱和曲线，并调整输出均值在0附近。</p>
+$$
+\text {Softplus}(x)=\log (1+\exp (x))
+$$<p>
+下图给出了ReLU、Leaky ReLU、ELU以及Softplus函数的示例。</p>
+<div align="center">
+<img src="/images/3/image-20200428215823434.png" style="zoom:30%;" />
+</div>
+$$
+\operatorname{swish}(x)=x \sigma(\beta x)
+$$<p>
+其中$\sigma(\cdot)$为sigmoid函数，$\beta$为可学习的参数或一个固定超参数，$\sigma(\cdot) \in (0,1)$可以看作是一种软性的门控机制。当$\sigma(\beta x)$接近于1时，门处于“开”状态，激活函数的输出近似于$x$本身；当$\sigma(\beta x)$接近于0时，门的状态为“关”，激活函数的输出近似于0。下图给出了Swish函数的实例。</p>
+<div align="center">
+<img src="/images/3/image-20200428223811432.png" style="zoom:30%;" />
+</div>
+<p>除了以上这些激活函数外，还有各式各样其他激活函数，如<strong>Maxout单元</strong>、<strong>高斯误差线性单元(GELU)</strong> 等。</p>
+<h3 id="前馈神经网络">前馈神经网络</h3>
+<p><strong>前馈神经网络(feed-forward neural network)</strong> 是结构最简单的神经网络，其信息从输入层通过多个隐含层传递到输出层，然后误差通过反向传播算法再从输出层逐层传播至输入层。其网络层次表示如下：</p>
+<div align="center">
+<img src="/images/3/image-20200428225023895.png" style="zoom:25%;" />
+</div>
+<p>前馈神经网络可用如下参数表示：</p>
+<div align="center">
+<img src="/images/3/image-20200428225743651.png" style="zoom:25%;" />
+</div>
+$$
+\begin{aligned}
+&\boldsymbol{z}^{(l)}=W^{(l)} \cdot \boldsymbol{a}^{(l-1)}+\boldsymbol{b}^{(l)}\\
+&\boldsymbol{a}^{(l)}=f_{l}(\boldsymbol{z}^{(l)})
+\end{aligned}
+$$<p>
+上式也可以合并写作$\boldsymbol{z}^{(l)}=W^{(l)} \cdot f_{l-1}(\boldsymbol{z}^{(l-1)})+\boldsymbol{b}^{(l)}$或者$\boldsymbol{a}^{(l)}=f_{l}(W^{(l)} \cdot \boldsymbol{a}^{(l-1)}+\boldsymbol{b}^{(l)})$。</p>
+$$
+\boldsymbol{x}=\boldsymbol{a}^{(0)} \rightarrow \boldsymbol{z}^{(1)} \rightarrow \boldsymbol{a}^{(1)} \rightarrow \boldsymbol{z}^{(2)} \rightarrow \cdots \rightarrow \boldsymbol{a}^{(L-1)} \rightarrow \boldsymbol{z}^{(L)} \rightarrow \boldsymbol{a}^{(L)}=\phi(\boldsymbol{x} ; W, \boldsymbol{b})
+$$$$
+\mathcal{R}(W, \boldsymbol{b})=\frac{1}{N} \sum_{n=1}^{N} \mathcal{L}({\boldsymbol y}^{(n)}, \hat{{\boldsymbol y}}^{(n)})+\frac{1}{2} \lambda\|W\|_{F}^{2}
+$$$$
+\begin{aligned}
+W^{(l)} & \leftarrow W^{(l)}-\alpha \frac{\partial \mathcal{R}(W, b)}{\partial W^{(l)}} \\
+&=W^{(l)}-\alpha\left(\frac{1}{N} \sum_{n=1}^{N}(\frac{\partial \mathcal{L}(\boldsymbol{y}^{(n)}, \hat{\boldsymbol{y}}^{(n)})}{\partial W^{(l)}})+\lambda W^{(l)}\right) \\
+\boldsymbol{b}^{(l)} & \leftarrow \boldsymbol{b}^{(l)}-\alpha \frac{\partial \mathcal{R}(W, \boldsymbol{b})}{\partial \boldsymbol{b}^{(l)}} \\
+&=\boldsymbol{b}^{(l)}-\alpha\left(\frac{1}{N} \sum_{n=1}^{N} \frac{\partial \mathcal{L}(\boldsymbol{y}^{(n)}, \hat{\boldsymbol{y}}^{(n)})}{\partial \boldsymbol{b}^{(l)}}\right)
+\end{aligned}
+$$<p>
+<strong>输出层(output layer)</strong> 的设计要与标签$y$相符合，因此，对于分类问题，网络输出层的激活函数通常采用<strong>softmax函数</strong>，其神经元的个数等于类别个数，而<strong>网络的输出相当于每个类的后验概率</strong>。对于回归问题，输出层的激活函数一般采用<strong>恒等函数</strong>。</p>
+<h3 id="反向传播算法">反向传播算法</h3>
+$$
+\frac{\partial \mathcal{L}(\boldsymbol{y}, \hat{\boldsymbol{y}})}{\partial w_{i j}^{(l)}}=\frac{\partial \boldsymbol{z}^{(l)}}{\partial w_{i j}^{(l)}} \frac{\partial \mathcal{L}(\boldsymbol{y}, \hat{\boldsymbol{y}})}{\partial \boldsymbol{z}^{(l)}}
+$$$$
+\frac{\partial \mathcal{L}(\boldsymbol{y}, \hat{\boldsymbol{y}})}{\partial \boldsymbol{b}^{(l)}}=\frac{\partial \boldsymbol{z}^{(l)}}{\partial \boldsymbol{b}^{(l)}} \frac{\partial \mathcal{L}(\boldsymbol{y}, \hat{\boldsymbol{y}})}{\partial \boldsymbol{z}^{(l)}}
+$$<p>上面两个公式中的第二项都是损失函数关于第$l$层神经元$\boldsymbol z^{(l)}$的偏导数，称为<strong>误差项</strong>，可以一次计算得到。</p>
+<p>这样，我们只需要计算三个偏导数，分别为$\frac{\partial \boldsymbol{z}^{(l)}}{\partial w_{i j}^{(l)}}$，$\frac{\partial \boldsymbol{z}^{(l)}}{\partial \boldsymbol{b}^{(l)}}$和$\frac{\partial \mathcal{L}(\boldsymbol{y}, \hat{\boldsymbol{y}})}{\partial \boldsymbol{z}^{(l)}}$。</p>
+$$
+\begin{aligned}
+\frac{\partial \boldsymbol{z}^{(l)}}{\partial w_{i j}^{(l)}} &=\left[\frac{\partial z_{1}^{(l)}}{\partial w_{i j}^{(l)}}, \cdots, \frac{\partial z_{i}^{(l)}}{\partial w_{i j}^{(l)}}, \cdots, \frac{\partial z_{m^{(l)}}^{(l)}}{\partial w_{i j}^{(l)}}\right] \\
+&=\left[0, \cdots, \frac{\partial\left(\boldsymbol{w}_{i:}^{(l)} \boldsymbol{a}^{(l-1)}+b_{i}^{(l)}\right)}{\partial w_{i j}^{(l)}}, \cdots, 0\right] \\
+&=\left[0, \cdots, a_{j}^{(l-1)}, \cdots, 0\right] \\
+& \triangleq \mathbb{I}_{i}\left(a_{j}^{(l-1)}\right) \in \mathbb{R}^{m^{(l)}}
+\end{aligned}
+$$<p>
+其中$\boldsymbol{w}<em>{i:}^{(l)}$为权重矩阵$W^{(l)}$的第$i$行，$\mathbb{I}</em>{i}(a_{j}^{(l-1)})$ 表示第$i$个元素为$a_{j}^{(l-1)}$，其余为0的行向量。</p>
+$$
+\frac{\partial \boldsymbol{z}^{(l)}}{\partial \boldsymbol{b}^{(l)}}=\boldsymbol{I}_{m^{(l)}} \in \mathbb{R}^{m^{(l)} \times m^{(l)}}
+$$<p>
+为$m^{(l)}\times m^{(l)}$大小的<strong>单位矩阵</strong>。</p>
+<p>(3) 计算偏导数$\frac{\partial \mathcal{L}(\boldsymbol{y}, \hat{\boldsymbol{y}})}{\partial \boldsymbol{z}^{(l)}}$(<strong>标量关于向量的偏导数</strong>)</p>
+$$
+\delta^{(l)} \triangleq \frac{\partial \mathcal{L}(\boldsymbol{y}, \hat{\boldsymbol{y}})}{\partial \boldsymbol{z}^{(l)}} \in \mathbb{R}^{m^{(l)}}
+$$<p>
+误差项$\delta^{(l)}$也间接反映了<strong>不同神经元对网络能力的贡献程度</strong>，从而比较好地解决了<strong>贡献度分配问题(credit assignment problem, CAP)</strong>。</p>
+$$
+\frac{\partial \boldsymbol{z}^{(l+1)}}{\partial \boldsymbol{a}^{(l)}}=(W^{(l+1)})^{\mathrm{T}}
+$$$$
+\begin{aligned}
+\frac{\partial \boldsymbol{a}^{(l)}}{\partial \boldsymbol{z}^{(l)}} &=\frac{\partial f_{l}(\boldsymbol{z}^{(l)})}{\partial \boldsymbol{z}^{(l)}} \\
+&=\operatorname{diag}(f_{l}^{\prime}(\boldsymbol{z}^{(l)}))
+\end{aligned}
+$$$$
+\begin{aligned}
+\delta^{(l)} & \triangleq \frac{\partial \mathcal{L}(\boldsymbol{y}, \hat{\boldsymbol{y}})}{\partial \boldsymbol{z}^{(l)}} \\
+&=\frac{\partial \boldsymbol{a}^{(l)}}{\partial \boldsymbol{z}^{(l)}} \cdot \frac{\partial \boldsymbol{z}^{(l+1)}}{\partial \boldsymbol{a}^{(l)}} \cdot \frac{\partial \mathcal{L}(\boldsymbol{y}, \hat{\boldsymbol{y}})}{\partial \boldsymbol{z}^{(l+1)}} \\
+&=\operatorname{diag}(f_{l}^{\prime}(\boldsymbol{z}^{(l)})) \cdot(W^{(l+1)})^{\mathrm{T}} \cdot \delta^{(l+1)} \\
+&=f_{l}^{\prime}(\boldsymbol{z}^{(l)}) \odot((W^{(l+1)})^{\mathrm{T}} \delta^{(l+1)})
+\end{aligned}
+$$$$
+\frac{\partial \mathcal{L}(\boldsymbol{y}, \hat{\boldsymbol{y}})}{\partial w_{i j}^{(l)}}=\mathbb{I}_{i}(a_{j}^{(l-1)}) \delta^{(l)}=\delta_{i}^{(l)} a_{j}^{(l-1)}
+$$$$
+\frac{\partial \mathcal{L}(\boldsymbol{y}, \hat{\boldsymbol{y}})}{\partial W^{(l)}}=\delta^{(l)}(\boldsymbol{a}^{(l-1)})^{\mathrm{T}}
+$$$$
+\frac{\partial \mathcal{L}(\boldsymbol{y}, \hat{\boldsymbol{y}})}{\partial \boldsymbol{b}^{(l)}}=\delta^{(l)}
+$$<p>
+将梯度写成如上这种统一的形式，便可以实现<strong>并行自动微分计算</strong>，大大节省计算时间。</p>
+<p>在计算出每一层的误差时候，我们就可以得到每一层参数的梯度。因此，使用反向传播算法的前馈神经网络的训练过程可以分为以下三步：(1) 前馈计算每一层的净输入$\boldsymbol z^{(l)}$和激活值$\boldsymbol a^{(l)}$直到最后一层；(2) 反向计算每一层的误差项$\delta^{(l)}$；(3) 计算每一层参数的偏导数，并更新参数。使用反向传播算法的随机梯度下降训练过程如下所示：</p>
+<div align="center">
+<img src="/images/3/image-20200429181346985.png" style="zoom:40%;" />
+</div>
+<h3 id="通用近似定理">通用近似定理</h3>
+<p>前馈神经网络具有很强的拟合能力，常见的连续非线性函数都可以用前馈神经网络来近似。</p>
+$$
+F(\boldsymbol{x})=\sum_{i=1}^{m} v_{i} \phi(\boldsymbol{w}_{i}^{\mathrm{T}} \boldsymbol{x}+b_{i})
+$$<p>
+作为函数$f$的近似实现，即$|F(\boldsymbol{x})-f(\boldsymbol{x})|&lt;\epsilon, \forall \boldsymbol{x} \in \mathcal{I}_{d}$，其中$epsilon&gt;0$是一个很小的正数。通用近似定理在实数空间$\mathbb R^d$中的有界闭集上依然成立。</p>
+<p>根据通用近似定理，对于具有<strong>线性输出层</strong>和<strong>至少一个使用“挤压”性质的激活函数的隐藏层</strong>组成的前馈神经网络，只要其隐藏层神经元的数量足够，它可以以任意的精度来近似任何一个定义在实数空间$\mathbb R^d$中的有界闭集函数 。所谓<strong>挤压性质的函数是指像sigmoid函数的有界函数</strong>，但神经网络的通用近似性质也被证明<strong>对于其它类型的激活函数，比如ReLU，也都是适用的</strong>。</p>
+<p>通用近似定理只是说明了神经网络的计算能力可以去近似一个给定的连续函数，但并没有给出如何找到这样一个网络，以及是否是最优的。此外，当应用到机器学习时，真实的映射函数并不知道，一般是通过经验风险最小化和正则化来进行参数学习。因为神经网络的强大能力，反而容易在训练集上<strong>过拟合</strong>。</p>
+<h3 id="自动梯度计算">自动梯度计算</h3>
+<p>神经网络的参数主要通过梯度下降来进行优化。当确定了风险函数以及网络结构后，我们就可以手动用链式法则来计算风险函数对每个参数的梯度，并用代码进行实现。但是<strong>手动求导并转换为计算机程序的过程非常琐碎并容易出错，导致实现神经网络变得十分低效</strong>。实际上，参数的梯度可以让计算机来自动计算。目前，主流的<strong>深度学习框架</strong>都包含了自动梯度计算的功能，即我们可以只考虑网络结构并用代码实现，其梯度可以自动进行计算，无需人工干预，这样可以大幅提高开发效率。自动计算梯度的方法可以分为以下三类：数值微分、符号微分和自动微分。</p>
+<h4 id="数值微分">数值微分</h4>
+$$
+f^{\prime}(x)=\lim _{\Delta x \rightarrow 0} \frac{f(x+\Delta x)-f(x)}{\Delta x}
+$$$$
+f^{\prime}(x)=\lim _{\Delta x \rightarrow 0} \frac{f(x+\Delta x)-f(x-\Delta x)}{2 \Delta x}
+$$<p>
+数值微分非常容易实现，但找到一个合适的扰动$\Delta x$十分困难。若$\Delta x$过小，会引起数值运算问题，比如<strong>舍入误差</strong>；若$\Delta x$过大，会增加<strong>截断误差</strong>，使得计算不准确。因此，数值微分的实用性较差。</p>
+<h4 id="符号微分">符号微分</h4>
+<p><strong>符号微分(symbolic differentiation)</strong> 是一种基于符号计算的自动求导方法。符号计算也叫代数计算，是指用计算机来处理带有变量的数学表达式。这里的变量看作是符号(symbols)，一般不需要代入具体的值。<strong>符号计算的输入和输出都是数学表达式</strong>，一般包括对数学表达式的化简、因式分解、微分、积分、解代数方程、求解常微分方程等运算。符号计算一般来讲是对输入的表达式，通过迭代或递归使用一些事先定义的规则进行转换。当转换结果不能再继续使用变换规则时，便停止计算。</p>
+<p>符号微分可以在编译时就计算梯度的数学表示，并进一步利用符号计算方法进行优化。此外，符号计算的一个优点是<strong>符号计算和平台无关，可以在CPU或GPU上运行</strong>。符号微分也有一些不足之处。一是<strong>编译时间较长</strong>，特别是对于循环，需要很长时间进行编译；二是为了进行符号微分，一般需要<strong>设计一种专门的语言来表示数学表达式</strong>，并且要对变量(符号)进行预先声明；三是<strong>很难对程序进行调试</strong>。</p>
+<h4 id="自动微分">自动微分</h4>
+<p><strong>自动微分(automatic differentiation, AD)</strong> 是一种可以对一个(程序)函数进行计算导数的方法。符号微分的处理对象是数学表达式，而自动微分的处理对象是一个函数或一段程序。自动微分可以直接在原始程序代码进行微分，因此自动微分成为目前大多数深度学习框架的首选。</p>
+<p>自动微分的基本原理是<strong>所有的数值计算可以分解为一些基本操作</strong>，包含四则运算和一些初等函数等，然后<strong>利用链式法则来自动计算一个复合函数的梯度</strong>。这里以一个神经网络中常见的复合函数的例子来说明自动微分的过程。令复合函数$f(x;w,b)$为：</p>
+$$
+f(x ; w, b)=\frac{1}{\exp (-(w x+b))+1}
+$$<p>
+该复合函数可以用如下<strong>计算图(computational graph)</strong> 进行表示：</p>
+<div align="center">
+<img src="/images/3/image-20200429195107920.png" style="zoom:35%;" />
+</div>
+<p>从计算图上可以看出，该复合函数由六个基本函数组成，每个基本函数的导数都很简单，可以通过规则实现：</p>
+<div align="center">
+<img src="/images/3/image-20200429195546467.png" style="zoom:30%;" />
+</div>
+$$
+\begin{aligned}
+\frac{\partial f(x ; w, b)}{\partial w}&=\frac{\partial f(x ; w, b)}{\partial h_{6}} \frac{\partial h_{6}}{\partial h_{5}} \frac{\partial h_{5}}{\partial h_{4}} \frac{\partial h_{4}}{\partial h_{3}} \frac{\partial h_{3}}{\partial h_{2}} \frac{\partial h_{2}}{\partial h_{1}} \frac{\partial h_{1}}{\partial w} \\
+\frac{\partial f(x ; w, b)}{\partial b}&=\frac{\partial f(x ; w, b)}{\partial h_{6}} \frac{\partial h_{6}}{\partial h_{5}} \frac{\partial h_{5}}{\partial h_{4}} \frac{\partial h_{4}}{\partial h_{3}} \frac{\partial h_{3}}{\partial h_{2}} \frac{\partial h_{2}}{\partial b}
+\end{aligned}
+$$<p>
+<strong>如果函数和参数之间有多条路径，可以将这多条路径上的导数再进行相加，得到最终的梯度</strong>。</p>
+<p>按照计算导数的顺序，自动微分可以分为两种模式：<strong>前向模式和反向模式</strong>。前向模式是按计算图中计算方向的相同方向来递归地计算梯度，反向模式是按计算图中计算方向的相反方向来递归地计算梯度。前向模式和反向模式可以看作是应用链式法则的两种梯度累积方式。可以看出，<strong>反向模式和反向传播的计算梯度的方式相同</strong>。</p>
+<p>对于一般的函数形式$f: \mathbb{R}^{n} \rightarrow \mathbb{R}^{m}$，前向模式需要对每一个输入变量都进行一遍遍历，共需要$n$遍。而反向模式需要对每一个输出都进行一个遍历，共需要$m$遍。当$n&gt;m$时，反向模式更高效。在前馈神经网络中，<strong>风险函数</strong>为$f: \mathbb{R}^{n} \rightarrow \mathbb{R}$，输出为标量，因此<strong>采用反向模式为最有效的计算方式，只需要一遍计算</strong>。</p>
+<p>计算图按构建方式可以分为<strong>静态计算图(static computational graph)<strong>和</strong>动态计算图(dynamic computational graph)</strong>。静态计算图是在编译时构建计算图，计算图构建好之后在程序运行时不能改变，而动态计算图是在程序运行时动态构建。两种构建方式各有优缺点。静态计算图在构建时可以进行优化，并行能力强，但灵活性比较差；动态计算图则不容易优化，当不同输入的网络结构不一致时，难以并行计算，但是灵活性比较高。</p>
+<p>在目前常用的深度学习框架里，<strong>Tensorflow</strong>采用的是静态计算图，而<strong>PyTorch</strong>采用的是动态计算图。</p>
+<h3 id="tensorflow实现全连接神经网络进行mnist手写数字识别">Tensorflow实现全连接神经网络进行MNIST手写数字识别</h3>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">tensorflow</span> <span style="color:#204a87;font-weight:bold">as</span> <span style="color:#000">tf</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">__version__</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 下载MNIST数据并进行归一化</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">mnist</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">datasets</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">mnist</span>
+</span></span><span style="display:flex;"><span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_train</span><span style="color:#000;font-weight:bold">),</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_test</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">mnist</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">load_data</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">X_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">X_test</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">X_train</span> <span style="color:#ce5c00;font-weight:bold">/</span> <span style="color:#0000cf;font-weight:bold">255.0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">X_test</span> <span style="color:#ce5c00;font-weight:bold">/</span> <span style="color:#0000cf;font-weight:bold">255.0</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_train</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">X_test</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_train</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_test</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 第一种构造模型的方式：使用keras序列化API，该方法仅能构造线性神经网络结构</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;1. use keras sequential API to build a neural network&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">neural_network_beginner</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">models</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Sequential</span><span style="color:#000;font-weight:bold">([</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Input</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">shape</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">28</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">28</span><span style="color:#000;font-weight:bold">)),</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Flatten</span><span style="color:#000;font-weight:bold">(),</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Dense</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">512</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">activation</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;relu&#39;</span><span style="color:#000;font-weight:bold">),</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Dense</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">128</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">activation</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;relu&#39;</span><span style="color:#000;font-weight:bold">),</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Dense</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">10</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">activation</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;softmax&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 打印模型信息</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">neural_network_beginner</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">summary</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># complie函数中的常用配置：优化器、损失函数和评价指标</span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># categorical_crossentropy和sparse_categorical_crossentropy都是计算多分类crossentropy的，只是对y的格式要求不同。</span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 如果是categorical_crossentropy，那y必须为one-hot形式</span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 如果是sparse_categorical_crossentropy，那y就是原始的整数形式，比如[1, 0, 2, 0, 2]</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">neural_network_beginner</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">compile</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">optimizer</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;adam&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">loss</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;sparse_categorical_crossentropy&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">metrics</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000;font-weight:bold">[</span><span style="color:#4e9a06">&#39;accuracy&#39;</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 训练模型</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">neural_network_beginner</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">fit</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">batch_size</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">64</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">epochs</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">5</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">validation_data</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_test</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 评估结果</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">neural_network_beginner</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">evaluate</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_test</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 第二种构造模型的方式：继承tf.keras.models.Model类，并重写__init__()和call()函数</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;2. use keras model subclassing API to build a neural network for classification&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 将数据转化为tf.data.Dataset格式</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">train_ds</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">data</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Dataset</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">from_tensor_slices</span><span style="color:#000;font-weight:bold">((</span><span style="color:#000">X_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_train</span><span style="color:#000;font-weight:bold">))</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shuffle</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">10000</span><span style="color:#000;font-weight:bold">)</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">batch</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">64</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">test_ds</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">data</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Dataset</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">from_tensor_slices</span><span style="color:#000;font-weight:bold">((</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_test</span><span style="color:#000;font-weight:bold">))</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">batch</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">64</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">class</span> <span style="color:#000">NeuralNetwork</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">models</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Model</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">def</span> <span style="color:#000">__init__</span><span style="color:#000;font-weight:bold">(</span><span style="color:#3465a4">self</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87">super</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">NeuralNetwork</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#3465a4">self</span><span style="color:#000;font-weight:bold">)</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">__init__</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">flatten</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Flatten</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">hidden_1</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Dense</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">512</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">activation</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;relu&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">hidden_2</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Dense</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">128</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">activation</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;relu&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">output_layer</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Dense</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">10</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">activation</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;softmax&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">def</span> <span style="color:#000">call</span><span style="color:#000;font-weight:bold">(</span><span style="color:#3465a4">self</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">x</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">flatten</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">x</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">hidden_1</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">x</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">hidden_2</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">x</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">out</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">output_layer</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">x</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87;font-weight:bold">return</span> <span style="color:#000">out</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">neural_network_advanced</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">NeuralNetwork</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 定义损失函数和优化器</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">loss_function</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">losses</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">SparseCategoricalCrossentropy</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">optimizer</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">optimizers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Adam</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 评价指标</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">train_loss</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">metrics</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Mean</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">name</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;train_loss&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">train_accuracy</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">metrics</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">SparseCategoricalAccuracy</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">name</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;train_accuracy&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">test_loss</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">metrics</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Mean</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">name</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;test_loss&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">test_accuracy</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">metrics</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">SparseCategoricalAccuracy</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">name</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;test_accuracy&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 定义训练步</span>
+</span></span><span style="display:flex;"><span><span style="color:#5c35cc;font-weight:bold">@tf.function</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">def</span> <span style="color:#000">train_step</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">images</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">labels</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">with</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">GradientTape</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#204a87;font-weight:bold">as</span> <span style="color:#000">tape</span><span style="color:#000;font-weight:bold">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">predictions</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">neural_network_advanced</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">images</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">loss</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">loss_function</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">labels</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">predictions</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">gradients</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tape</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">gradient</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">loss</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">neural_network_advanced</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">trainable_variables</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">optimizer</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">apply_gradients</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87">zip</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">gradients</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">neural_network_advanced</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">trainable_variables</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">train_loss</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">loss</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">train_accuracy</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">labels</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">predictions</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 定义测试步</span>
+</span></span><span style="display:flex;"><span><span style="color:#5c35cc;font-weight:bold">@tf.function</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">def</span> <span style="color:#000">test_step</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">images</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">labels</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">predictions</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">neural_network_advanced</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">images</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">loss</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">loss_function</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">labels</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">predictions</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">test_loss</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">loss</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">test_accuracy</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">labels</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">predictions</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">EPOCHS</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">5</span>  <span style="color:#8f5902;font-style:italic"># 训练轮次</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">epoch</span> <span style="color:#204a87;font-weight:bold">in</span> <span style="color:#204a87">range</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">EPOCHS</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># 每个epoch开始时将指标重置</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">train_loss</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">reset_states</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">train_accuracy</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">reset_states</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">test_loss</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">reset_states</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">test_accuracy</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">reset_states</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">images</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">labels</span> <span style="color:#204a87;font-weight:bold">in</span> <span style="color:#000">train_ds</span><span style="color:#000;font-weight:bold">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">train_step</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">images</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">labels</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">test_images</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">test_labels</span> <span style="color:#204a87;font-weight:bold">in</span> <span style="color:#000">test_ds</span><span style="color:#000;font-weight:bold">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">test_step</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">test_images</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">test_labels</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">template</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#4e9a06">&#39;Epoch </span><span style="color:#4e9a06">{}</span><span style="color:#4e9a06">, Loss: </span><span style="color:#4e9a06">{}</span><span style="color:#4e9a06">, Accuracy: </span><span style="color:#4e9a06">{}</span><span style="color:#4e9a06">, Test Loss: </span><span style="color:#4e9a06">{}</span><span style="color:#4e9a06">, Test Accuracy: </span><span style="color:#4e9a06">{}</span><span style="color:#4e9a06">&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">template</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">format</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">epoch</span> <span style="color:#ce5c00;font-weight:bold">+</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">train_loss</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">result</span><span style="color:#000;font-weight:bold">(),</span> <span style="color:#000">train_accuracy</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">result</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">*</span> <span style="color:#0000cf;font-weight:bold">100</span><span style="color:#000;font-weight:bold">,</span>
+</span></span><span style="display:flex;"><span>                          <span style="color:#000">test_loss</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">result</span><span style="color:#000;font-weight:bold">(),</span> <span style="color:#000">test_accuracy</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">result</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">*</span> <span style="color:#0000cf;font-weight:bold">100</span><span style="color:#000;font-weight:bold">))</span>
+</span></span></code></pre></div><h3 id="pytorch实现全连接神经网络进行mnist手写数字识别">Pytorch实现全连接神经网络进行MNIST手写数字识别</h3>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">torch</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">numpy</span> <span style="color:#204a87;font-weight:bold">as</span> <span style="color:#000">np</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">torchvision.datasets</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">mnist</span>  <span style="color:#8f5902;font-style:italic"># 导入pytorch内置的mnist数据集</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">torchvision.transforms</span> <span style="color:#204a87;font-weight:bold">as</span> <span style="color:#000">transforms</span>  <span style="color:#8f5902;font-style:italic"># 导入对图像的预处理模块</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">torch.utils.data</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">DataLoader</span>  <span style="color:#8f5902;font-style:italic"># 导入dataset的分批读取包</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">torch</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">nn</span>  <span style="color:#8f5902;font-style:italic"># 导入神经网络包nn（可用来定义和运行神经网络）</span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># functional中包含了神经网络中使用的一些常用函数，这些函数的特点是:不具有可学习的参数(如ReLU，pool，DropOut等)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">torch.nn.functional</span> <span style="color:#204a87;font-weight:bold">as</span> <span style="color:#000">F</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">torch.optim</span> <span style="color:#204a87;font-weight:bold">as</span> <span style="color:#000">optim</span>  <span style="color:#8f5902;font-style:italic"># optim中实现了大多数的优化方法来更新网络权重和参数，如SGD、Adam</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 定义代码中用到的各个超参数</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">train_batch_size</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">64</span>  <span style="color:#8f5902;font-style:italic"># 指定DataLoader在训练集中每批加载的样本数量</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">test_batch_size</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">128</span>  <span style="color:#8f5902;font-style:italic"># 指定DataLoader在测试集中每批加载的样本数量</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">num_epoches</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">20</span>  <span style="color:#8f5902;font-style:italic"># 模型训练轮数</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">lr</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">0.01</span>  <span style="color:#8f5902;font-style:italic"># 设置SGD中的初始学习率</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">momentum</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">0.5</span>  <span style="color:#8f5902;font-style:italic"># 设置SGD中的冲量</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 对数据进行预处理</span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># Compose方法即是将两个操作合并一起</span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 使用minst数据集的均值和标准差将数据标准化处理</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">transform</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">transforms</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Compose</span><span style="color:#000;font-weight:bold">([</span><span style="color:#000">transforms</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">ToTensor</span><span style="color:#000;font-weight:bold">(),</span> <span style="color:#000">transforms</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Normalize</span><span style="color:#000;font-weight:bold">([</span><span style="color:#0000cf;font-weight:bold">0.1307</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">0.3081</span><span style="color:#000;font-weight:bold">])])</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 下载和分批加载数据集</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 将训练和测试数据集下载到同目录下的mnist_data文件夹下</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">train_dataset</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">mnist</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">MNIST</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;.\mnist_data&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">train</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#204a87;font-weight:bold">True</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">transform</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">transform</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">download</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#204a87;font-weight:bold">True</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">test_dataset</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">mnist</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">MNIST</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;.\mnist_data&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">train</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#204a87;font-weight:bold">False</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">transform</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">transform</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">download</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#204a87;font-weight:bold">True</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># dataloader是一个可迭代对象，可以使用迭代器一样使用。其中shuffle参数为是否打乱原有数据顺序</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">train_loader</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">DataLoader</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">train_dataset</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">batch_size</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">train_batch_size</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">shuffle</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#204a87;font-weight:bold">True</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">test_loader</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">DataLoader</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">test_dataset</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">batch_size</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">test_batch_size</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">shuffle</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#204a87;font-weight:bold">False</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 定义一个神经网络模型</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">class</span> <span style="color:#000">Net</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">nn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Module</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">def</span> <span style="color:#000">__init__</span><span style="color:#000;font-weight:bold">(</span><span style="color:#3465a4">self</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">in_dim</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">n_hidden_1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">n_hidden_2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">out_dim</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87">super</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">Net</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#3465a4">self</span><span style="color:#000;font-weight:bold">)</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">__init__</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layer1</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">nn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Sequential</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">nn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Linear</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">in_dim</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">n_hidden_1</span><span style="color:#000;font-weight:bold">),</span> <span style="color:#000">nn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">ReLU</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87;font-weight:bold">True</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layer2</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">nn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Sequential</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">nn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Linear</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">n_hidden_1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">n_hidden_2</span><span style="color:#000;font-weight:bold">),</span> <span style="color:#000">nn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">ReLU</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87;font-weight:bold">True</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layer3</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">nn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Linear</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">n_hidden_2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">out_dim</span><span style="color:#000;font-weight:bold">)</span>  <span style="color:#8f5902;font-style:italic"># 最后一层接Softmax所以不需要ReLU激活</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layer1</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">x</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">def</span> <span style="color:#000">forward</span><span style="color:#000;font-weight:bold">(</span><span style="color:#3465a4">self</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">x</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layer2</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">x</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layer3</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">x</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87;font-weight:bold">return</span> <span style="color:#000">x</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># Sequential() 即相当于把多个模块按顺序封装成一个模块</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 实例化网络模型</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">device</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">torch</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">device</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;cuda:0&#39;</span> <span style="color:#204a87;font-weight:bold">if</span> <span style="color:#000">torch</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">cuda</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">is_available</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#204a87;font-weight:bold">else</span> <span style="color:#4e9a06">&#39;cpu&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 网络模型参数分别为：输入层大小、隐藏层1大小、隐藏层2大小、输出层大小（10分类）</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">model</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">Net</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">28</span> <span style="color:#ce5c00;font-weight:bold">*</span> <span style="color:#0000cf;font-weight:bold">28</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">300</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">100</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">10</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 将模型移动到GPU加速计算</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">model</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">to</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">device</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 定义模型训练中用到的损失函数和优化器</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">criterion</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">nn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">CrossEntropyLoss</span><span style="color:#000;font-weight:bold">()</span>  <span style="color:#8f5902;font-style:italic"># 交叉熵损失函数</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">optimizer</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">optim</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">SGD</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">model</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">parameters</span><span style="color:#000;font-weight:bold">(),</span> <span style="color:#000">lr</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">lr</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">momentum</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">momentum</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># parameters()将model中可优化的参数传入到SGD中</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 对模型进行训练</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">losses</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">[]</span>  <span style="color:#8f5902;font-style:italic"># 记录训练集损失</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">acces</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">[]</span>  <span style="color:#8f5902;font-style:italic"># 记录训练集准确率</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">eval_losses</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">[]</span>  <span style="color:#8f5902;font-style:italic"># 记录测试集损失</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">eval_acces</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">[]</span>  <span style="color:#8f5902;font-style:italic"># 记录测试集准确率</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">epoch</span> <span style="color:#204a87;font-weight:bold">in</span> <span style="color:#204a87">range</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">num_epoches</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">train_loss</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">train_acc</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">model</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">train</span><span style="color:#000;font-weight:bold">()</span>  <span style="color:#8f5902;font-style:italic"># 指明接下来model进行的是训练过程</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># 动态修改参数学习率</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">if</span> <span style="color:#000">epoch</span> <span style="color:#ce5c00;font-weight:bold">%</span> <span style="color:#0000cf;font-weight:bold">5</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">optimizer</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">param_groups</span><span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">][</span><span style="color:#4e9a06">&#39;lr&#39;</span><span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">*=</span> <span style="color:#0000cf;font-weight:bold">0.9</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">img</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">label</span> <span style="color:#204a87;font-weight:bold">in</span> <span style="color:#000">train_loader</span><span style="color:#000;font-weight:bold">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">img</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">img</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">to</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">device</span><span style="color:#000;font-weight:bold">)</span>  <span style="color:#8f5902;font-style:italic"># 将img移动到GPU计算</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">label</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">label</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">to</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">device</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">img</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">img</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">view</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">img</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">size</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">),</span> <span style="color:#ce5c00;font-weight:bold">-</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">)</span>  <span style="color:#8f5902;font-style:italic"># 把输入图像的维度由四维转化为2维，因为在torch中只能处理二维数据</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># img.size(0)为取size的第0个参数即此批样本的个数，-1为自适应参数</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># 前向传播</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">out</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">model</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">img</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">loss</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">criterion</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">out</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">label</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># 反向传播</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">optimizer</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">zero_grad</span><span style="color:#000;font-weight:bold">()</span>  <span style="color:#8f5902;font-style:italic"># 先清空上一轮的梯度</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">loss</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">backward</span><span style="color:#000;font-weight:bold">()</span>  <span style="color:#8f5902;font-style:italic"># 根据前向传播得到损失，再由损失反向传播求得各个梯度</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">optimizer</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">step</span><span style="color:#000;font-weight:bold">()</span>  <span style="color:#8f5902;font-style:italic"># 根据反向传播得到的梯度优化模型中的参数</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">train_loss</span> <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#000">loss</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">item</span><span style="color:#000;font-weight:bold">()</span>  <span style="color:#8f5902;font-style:italic"># 所有批次损失的和</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># 计算分类的准确率</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">_</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">pred</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">out</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">max</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">)</span>  <span style="color:#8f5902;font-style:italic"># 返回输出二维矩阵中每一行的最大值及其下标，1含义为以第1个维度（列）为参考</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">num_correct</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#000">pred</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#000">label</span><span style="color:#000;font-weight:bold">)</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">sum</span><span style="color:#000;font-weight:bold">()</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">item</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">acc</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">num_correct</span> <span style="color:#ce5c00;font-weight:bold">/</span> <span style="color:#000">img</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">]</span>  <span style="color:#8f5902;font-style:italic"># 每一批样本的准确率</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">train_acc</span> <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#000">acc</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">losses</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">append</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">train_loss</span> <span style="color:#ce5c00;font-weight:bold">/</span> <span style="color:#204a87">len</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">train_loader</span><span style="color:#000;font-weight:bold">))</span>  <span style="color:#8f5902;font-style:italic"># 所有样本平均损失</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">acces</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">append</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">train_acc</span> <span style="color:#ce5c00;font-weight:bold">/</span> <span style="color:#204a87">len</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">train_loader</span><span style="color:#000;font-weight:bold">))</span>  <span style="color:#8f5902;font-style:italic"># 所有样本的准确率</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># 运用训练好的模型在测试集上检验效果</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">eval_loss</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">eval_acc</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># 将模型改为预测模式</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">model</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">eval</span><span style="color:#000;font-weight:bold">()</span>  <span style="color:#8f5902;font-style:italic"># 指明接下来要进行模型测试（不需要反向传播）</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># with torch.no_grad():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">img</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">label</span> <span style="color:#204a87;font-weight:bold">in</span> <span style="color:#000">test_loader</span><span style="color:#000;font-weight:bold">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">img</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">img</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">to</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">device</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">label</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">label</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">to</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">device</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">img</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">img</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">view</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">img</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">size</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">),</span> <span style="color:#ce5c00;font-weight:bold">-</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">out</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">model</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">img</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">loss</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">criterion</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">out</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">label</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># 记录误差</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">eval_loss</span> <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#000">loss</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">item</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># 记录准确率</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">_</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">pred</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">out</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">max</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">num_correct</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#000">pred</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#000">label</span><span style="color:#000;font-weight:bold">)</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">sum</span><span style="color:#000;font-weight:bold">()</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">item</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">acc</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">num_correct</span> <span style="color:#ce5c00;font-weight:bold">/</span> <span style="color:#000">img</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">]</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">eval_acc</span> <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#000">acc</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">eval_losses</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">append</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">eval_loss</span> <span style="color:#ce5c00;font-weight:bold">/</span> <span style="color:#204a87">len</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">test_loader</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">eval_acces</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">append</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">eval_acc</span> <span style="color:#ce5c00;font-weight:bold">/</span> <span style="color:#204a87">len</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">test_loader</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;epoch: </span><span style="color:#4e9a06">{}</span><span style="color:#4e9a06">, Train Loss: </span><span style="color:#4e9a06">{:.4f}</span><span style="color:#4e9a06">, Train Acc: </span><span style="color:#4e9a06">{:.4f}</span><span style="color:#4e9a06">, Test Loss: </span><span style="color:#4e9a06">{:.4f}</span><span style="color:#4e9a06">, Test Acc: </span><span style="color:#4e9a06">{:.4f}</span><span style="color:#4e9a06">&#39;</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">format</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">epoch</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">train_loss</span> <span style="color:#ce5c00;font-weight:bold">/</span> <span style="color:#204a87">len</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">train_loader</span><span style="color:#000;font-weight:bold">),</span> <span style="color:#000">train_acc</span> <span style="color:#ce5c00;font-weight:bold">/</span> <span style="color:#204a87">len</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">train_loader</span><span style="color:#000;font-weight:bold">),</span>
+</span></span><span style="display:flex;"><span>                  <span style="color:#000">eval_loss</span> <span style="color:#ce5c00;font-weight:bold">/</span> <span style="color:#204a87">len</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">test_loader</span><span style="color:#000;font-weight:bold">),</span> <span style="color:#000">eval_acc</span> <span style="color:#ce5c00;font-weight:bold">/</span> <span style="color:#204a87">len</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">test_loader</span><span style="color:#000;font-weight:bold">)))</span>
+</span></span></code></pre></div><h3 id="参考资料">参考资料</h3>
+<ul>
+<li>
+<p>邱锡鹏. 神经网络与深度学习. 北京: 机械工业出版社, 2020.</p>
+</li>
+<li>
+<p>神经网络的可解释性综述：https://blog.csdn.net/datawhale/article/details/119066418</p>
+</li>
+<li>
+<p>神经网络维基百科：https://en.wikipedia.org/wiki/Neural_network</p>
+</li>
+<li>
+<p>Pytorch实现手写数字识别（基于全连接神经网络）：https://blog.csdn.net/weixin_44851176/article/details/125858319</p>
+</li>
+</ul>
+
+	
+</div>
+
+
+            </div>
+
+          </main>
+        </div>
+      </div>
+      <footer class="td-footer row d-print-none">
+  <div class="container-fluid">
+    <div class="row mx-md-2">
+      <div class="td-footer__left col-6 col-sm-4 order-sm-1">
+        
+      </div><div class="td-footer__right col-6 col-sm-4 order-sm-3">
+        
+      </div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2">
+        
+      </div>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css"
+      integrity="sha512-r2+FkHzf1u0+SQbZOoIz2RxWOIWfdEzRuYybGjzKq18jG9zaSfEy9s3+jMqG/zPtRor/q4qaUCYQpmSjTw8M+g==" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"
+        integrity="sha512-INps9zQ2GUEMCQD7xiZQbGUVnqnzEvlynVy6eqcTcHN4+aQiLo9/uaQqckDpdJ8Zm3M0QBs+Pktg4pz0kEklUg=="
+        crossorigin="anonymous">
+</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"
+       integrity="sha512-YJVxTjqttjsU3cSvaTRqsSl0wbRgZUNF+NGGCgto/MUbIvaLdXQzGTCQu4CvyJZbZctgflVB0PXw9LLmTWm5/w==" crossorigin="anonymous"
+       onload='renderMathInElement(document.body, {"delimiters":[{"display":true,"left":"$$","right":"$$"},{"display":false,"left":"$","right":"$"},{"display":false,"left":"\\(","right":"\\)"},{"display":true,"left":"\\[","right":"\\]"}],"errorcolor":"#CD5C5C","throwonerror":false});'>
+</script>
+<script src="/js/main.min.613b131e2c315a570f2f0f22f51f752a53e30fc078f674f7ab0885a6ce15ad68.js" integrity="sha256-YTsTHiwxWlcPLw8i9R91KlPjD8B49nT3qwiFps4VrWg=" crossorigin="anonymous"></script>
+<script defer src="/js/click-to-copy.min.73478a7d4807698aed7e355eb23f9890ca18fea3158604c8471746d046702bad.js" integrity="sha256-c0eKfUgHaYrtfjVesj&#43;YkMoY/qMVhgTIRxdG0EZwK60=" crossorigin="anonymous"></script>
+<script src='/js/tabpane-persist.js'></script>
+
+  </body>
+</html>

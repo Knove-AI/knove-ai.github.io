@@ -1,0 +1,554 @@
+<!doctype html>
+<html itemscope itemtype="http://schema.org/WebPage" lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+
+
+<link rel="shortcut icon" href="/favicons/favicon.ico" >
+<link rel="apple-touch-icon" href="/favicons/apple-touch-icon-180x180.png" sizes="180x180">
+<link rel="icon" type="image/png" href="/favicons/favicon-16x16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="/favicons/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/favicons/android-36x36.png" sizes="36x36">
+<link rel="icon" type="image/png" href="/favicons/android-48x48.png" sizes="48x48">
+<link rel="icon" type="image/png" href="/favicons/android-72x72.png" sizes="72x72">
+<link rel="icon" type="image/png" href="/favicons/android-96x96.png" sizes="96x96">
+<link rel="icon" type="image/png" href="/favicons/android-144x144.png" sizes="144x144">
+<link rel="icon" type="image/png" href="/favicons/android-192x192.png" sizes="192x192">
+
+<title>注意力机制与外部记忆 | 知予AI</title>
+<meta name="description" content="根据通用近似定理，前馈网络和循环网络都有很强的能力。但由于优化算法和计算能力的限制，在实践中很难达到通用近似的能力。特别是在处理复杂任务时，比如需要处理大量的输入信息或者复杂的计算流程时，目前计算机的计算能力依然是限制神经网络发展的瓶颈。
+为了减少计算复杂度，通过部分借鉴生物神经网络的一些机制，我们引入了局部连接、权重共享以及汇聚操作来简化神经网络结构。虽然这些机制可以有效缓解模型的复杂度和表达能力之间的矛盾，但是我们依然希望在不过度增加模型复杂度(主要是模型参数)的情况下来提高模型的表达能力。
+神经网络中可以存储的信息量称为网络容量(network capacity)。一般来讲，利用一组神经元来存储信息时，其存储容量和神经元的数量以及网络的复杂度成正比。如果要存储越多的信息，神经元数量就要越多或者网络要越复杂，进而导致神经网络的参数成倍地增加。
+人脑的生物神经网络同样存在网络容量问题，工作记忆大概只有几秒钟的时间，类似于循环神经网络中的隐状态。而人脑每个时刻接收的外界输入信息非常多，包括来自于视觉、听觉、触觉的各种各样的信息。单就视觉来说，眼睛每秒钟都会发送千万比特的信息给视觉神经系统。人脑在有限的资源下，并不能同时处理这些过载的输入信息。大脑神经系统有两个重要机制可以解决信息过载问题：注意力(attention) 和记忆(memory) 机制。注意力机制通过自上而下的信息选择机制来过滤掉大量的无关信息；记忆机制引入额外外部记忆，优化神经网络的记忆结构来提高神经网络存储信息的容量。
+注意力 认知神经学中的注意力 注意力是一种人类不可或缺的复杂认知功能，指人可以在关注一些信息的同时忽略另一些信息的选择能力。在日常生活中，我们通过视觉、听觉、触觉等方式接收大量的感觉输入。但是人脑还能在这些外界的信息轰炸中有条不紊地工作，是因为人脑可以有意或无意地从这些大量输入信息中选择小部分的有用信息来重点处理，并忽略其他信息。这种能力就叫做注意力。注意力可以作用在外部的刺激(听觉、视觉、味觉等)，也可以作用在内部的意识(思考、回忆等)。注意力一般分为两种：
+一种是自上而下的有意识的注意力，称为聚焦式注意力(focus attention)。聚焦式注意力是指有预定目的、依赖任务的，主动有意识地聚焦于某一对象的注意力。
+另一种是自下而上的无意识的注意力，称为基于显著性的注意力(saliency based attention)。基于显著性的注意力是由外界刺激驱动的注意，不需要主动干预，也和任务无关。如果一个对象的刺激信息不同于其周围信息，一种无意识的“赢者通吃”(winner-take-all)或者门控(gating)机制就可以把注意力转向这个对象。不管这些注意力是有意还是无意，大部分的人脑活动都需要依赖注意力，比如记忆信息、阅读或思考等。
+一个和注意力有关的例子是鸡尾酒会效应。当一个人在吵闹的鸡尾酒会上和朋友聊天时，尽管周围噪音干扰很多，他还是可以听到朋友的谈话内容，而忽略其他人的声音(聚焦式注意力)。同时，如果未注意到的背景声中有重要的词(比如他的名字)，他会马上注意到(显著性注意力)。
+聚焦式注意力一般会随着环境、情景或任务的不同而选择不同的信息。比如当要从人群中寻找某个人时，我们会专注于每个人的脸部；而当要统计人群的人数时，我们只需要专注于每个人的轮廓。
+人工神经网络中的注意力 用$X = [\boldsymbol x_1, \cdots, \boldsymbol x_N]$表示$N$组输入信息，其中每个向量$\boldsymbol x_i$都表示一组输入信息。为了节省计算资源，不需要将所有信息都输入到神经网络，只需要从$X$中选择一些和任务相关的信息。注意力机制的计算可以分为两步：一是在所有输入信息上计算注意力分布，二是根据注意力分布来计算输入信息的加权平均。
+(1) 注意力分布
+为了从$N$个输入向量$X = [\boldsymbol x_1, \cdots, \boldsymbol x_N]$中选择出和某个特定任务相关的信息，我们需要引入一个和任务相关的表示，称为查询向量(query vector)，并通过一个打分函数来计算每个输入向量和查询向量之间的相关性。
+$$\begin{aligned}\alpha_{i} &amp;=p(z=i | X, \boldsymbol{q}) \\&amp;=\operatorname{softmax}\left(s\left(\boldsymbol{x}_{i}, \boldsymbol{q}\right)\right) \\&amp;=\frac{\exp \left(s\left(\boldsymbol{x}_{i}, \boldsymbol{q}\right)\right)}{\sum_{j=1}^{N} \exp \left(s\left(\boldsymbol{x}_{j}, \boldsymbol{q}\right)\right)}\end{aligned}$$ 其中$\alpha_i$称为注意力分布(attention distribution)，$s(\boldsymbol x_i,\boldsymbol q)$为注意力打分函数，可以使用以下几种方式来计算：
+加性模型：$s(\boldsymbol{x}{i}, \boldsymbol{q})=\boldsymbol{v}^{\mathrm{T}} \tanh (W \boldsymbol{x}{i}&#43;U \boldsymbol{q})$；
+点积模型：$s\left(\boldsymbol{x}{i}, \boldsymbol{q}\right)=\boldsymbol{x}{i}^{\mathrm{T}} \boldsymbol{q}$；
+缩放点积模型：$s(\boldsymbol{x}{i}, \boldsymbol{q})=\frac{\boldsymbol{x}{i}^{\mathrm{T}} \boldsymbol{q}}{\sqrt{d}}$；">
+<meta property="og:url" content="https://knove-ai.github.io/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl8-%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%E4%B8%8E%E5%A4%96%E9%83%A8%E8%AE%B0%E5%BF%86/">
+  <meta property="og:site_name" content="知予AI">
+  <meta property="og:title" content="注意力机制与外部记忆">
+  <meta property="og:description" content="根据通用近似定理，前馈网络和循环网络都有很强的能力。但由于优化算法和计算能力的限制，在实践中很难达到通用近似的能力。特别是在处理复杂任务时，比如需要处理大量的输入信息或者复杂的计算流程时，目前计算机的计算能力依然是限制神经网络发展的瓶颈。
+为了减少计算复杂度，通过部分借鉴生物神经网络的一些机制，我们引入了局部连接、权重共享以及汇聚操作来简化神经网络结构。虽然这些机制可以有效缓解模型的复杂度和表达能力之间的矛盾，但是我们依然希望在不过度增加模型复杂度(主要是模型参数)的情况下来提高模型的表达能力。
+神经网络中可以存储的信息量称为网络容量(network capacity)。一般来讲，利用一组神经元来存储信息时，其存储容量和神经元的数量以及网络的复杂度成正比。如果要存储越多的信息，神经元数量就要越多或者网络要越复杂，进而导致神经网络的参数成倍地增加。
+人脑的生物神经网络同样存在网络容量问题，工作记忆大概只有几秒钟的时间，类似于循环神经网络中的隐状态。而人脑每个时刻接收的外界输入信息非常多，包括来自于视觉、听觉、触觉的各种各样的信息。单就视觉来说，眼睛每秒钟都会发送千万比特的信息给视觉神经系统。人脑在有限的资源下，并不能同时处理这些过载的输入信息。大脑神经系统有两个重要机制可以解决信息过载问题：注意力(attention) 和记忆(memory) 机制。注意力机制通过自上而下的信息选择机制来过滤掉大量的无关信息；记忆机制引入额外外部记忆，优化神经网络的记忆结构来提高神经网络存储信息的容量。
+注意力 认知神经学中的注意力 注意力是一种人类不可或缺的复杂认知功能，指人可以在关注一些信息的同时忽略另一些信息的选择能力。在日常生活中，我们通过视觉、听觉、触觉等方式接收大量的感觉输入。但是人脑还能在这些外界的信息轰炸中有条不紊地工作，是因为人脑可以有意或无意地从这些大量输入信息中选择小部分的有用信息来重点处理，并忽略其他信息。这种能力就叫做注意力。注意力可以作用在外部的刺激(听觉、视觉、味觉等)，也可以作用在内部的意识(思考、回忆等)。注意力一般分为两种：
+一种是自上而下的有意识的注意力，称为聚焦式注意力(focus attention)。聚焦式注意力是指有预定目的、依赖任务的，主动有意识地聚焦于某一对象的注意力。
+另一种是自下而上的无意识的注意力，称为基于显著性的注意力(saliency based attention)。基于显著性的注意力是由外界刺激驱动的注意，不需要主动干预，也和任务无关。如果一个对象的刺激信息不同于其周围信息，一种无意识的“赢者通吃”(winner-take-all)或者门控(gating)机制就可以把注意力转向这个对象。不管这些注意力是有意还是无意，大部分的人脑活动都需要依赖注意力，比如记忆信息、阅读或思考等。
+一个和注意力有关的例子是鸡尾酒会效应。当一个人在吵闹的鸡尾酒会上和朋友聊天时，尽管周围噪音干扰很多，他还是可以听到朋友的谈话内容，而忽略其他人的声音(聚焦式注意力)。同时，如果未注意到的背景声中有重要的词(比如他的名字)，他会马上注意到(显著性注意力)。
+聚焦式注意力一般会随着环境、情景或任务的不同而选择不同的信息。比如当要从人群中寻找某个人时，我们会专注于每个人的脸部；而当要统计人群的人数时，我们只需要专注于每个人的轮廓。
+人工神经网络中的注意力 用$X = [\boldsymbol x_1, \cdots, \boldsymbol x_N]$表示$N$组输入信息，其中每个向量$\boldsymbol x_i$都表示一组输入信息。为了节省计算资源，不需要将所有信息都输入到神经网络，只需要从$X$中选择一些和任务相关的信息。注意力机制的计算可以分为两步：一是在所有输入信息上计算注意力分布，二是根据注意力分布来计算输入信息的加权平均。
+(1) 注意力分布
+为了从$N$个输入向量$X = [\boldsymbol x_1, \cdots, \boldsymbol x_N]$中选择出和某个特定任务相关的信息，我们需要引入一个和任务相关的表示，称为查询向量(query vector)，并通过一个打分函数来计算每个输入向量和查询向量之间的相关性。
+$$\begin{aligned}\alpha_{i} &amp;=p(z=i | X, \boldsymbol{q}) \\&amp;=\operatorname{softmax}\left(s\left(\boldsymbol{x}_{i}, \boldsymbol{q}\right)\right) \\&amp;=\frac{\exp \left(s\left(\boldsymbol{x}_{i}, \boldsymbol{q}\right)\right)}{\sum_{j=1}^{N} \exp \left(s\left(\boldsymbol{x}_{j}, \boldsymbol{q}\right)\right)}\end{aligned}$$ 其中$\alpha_i$称为注意力分布(attention distribution)，$s(\boldsymbol x_i,\boldsymbol q)$为注意力打分函数，可以使用以下几种方式来计算：
+加性模型：$s(\boldsymbol{x}{i}, \boldsymbol{q})=\boldsymbol{v}^{\mathrm{T}} \tanh (W \boldsymbol{x}{i}&#43;U \boldsymbol{q})$；
+点积模型：$s\left(\boldsymbol{x}{i}, \boldsymbol{q}\right)=\boldsymbol{x}{i}^{\mathrm{T}} \boldsymbol{q}$；
+缩放点积模型：$s(\boldsymbol{x}{i}, \boldsymbol{q})=\frac{\boldsymbol{x}{i}^{\mathrm{T}} \boldsymbol{q}}{\sqrt{d}}$；">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="3-深度学习">
+    <meta property="article:published_time" content="2017-01-01T00:00:00+00:00">
+    <meta property="article:modified_time" content="2017-01-01T00:00:00+00:00">
+
+  <meta itemprop="name" content="注意力机制与外部记忆">
+  <meta itemprop="description" content="根据通用近似定理，前馈网络和循环网络都有很强的能力。但由于优化算法和计算能力的限制，在实践中很难达到通用近似的能力。特别是在处理复杂任务时，比如需要处理大量的输入信息或者复杂的计算流程时，目前计算机的计算能力依然是限制神经网络发展的瓶颈。
+为了减少计算复杂度，通过部分借鉴生物神经网络的一些机制，我们引入了局部连接、权重共享以及汇聚操作来简化神经网络结构。虽然这些机制可以有效缓解模型的复杂度和表达能力之间的矛盾，但是我们依然希望在不过度增加模型复杂度(主要是模型参数)的情况下来提高模型的表达能力。
+神经网络中可以存储的信息量称为网络容量(network capacity)。一般来讲，利用一组神经元来存储信息时，其存储容量和神经元的数量以及网络的复杂度成正比。如果要存储越多的信息，神经元数量就要越多或者网络要越复杂，进而导致神经网络的参数成倍地增加。
+人脑的生物神经网络同样存在网络容量问题，工作记忆大概只有几秒钟的时间，类似于循环神经网络中的隐状态。而人脑每个时刻接收的外界输入信息非常多，包括来自于视觉、听觉、触觉的各种各样的信息。单就视觉来说，眼睛每秒钟都会发送千万比特的信息给视觉神经系统。人脑在有限的资源下，并不能同时处理这些过载的输入信息。大脑神经系统有两个重要机制可以解决信息过载问题：注意力(attention) 和记忆(memory) 机制。注意力机制通过自上而下的信息选择机制来过滤掉大量的无关信息；记忆机制引入额外外部记忆，优化神经网络的记忆结构来提高神经网络存储信息的容量。
+注意力 认知神经学中的注意力 注意力是一种人类不可或缺的复杂认知功能，指人可以在关注一些信息的同时忽略另一些信息的选择能力。在日常生活中，我们通过视觉、听觉、触觉等方式接收大量的感觉输入。但是人脑还能在这些外界的信息轰炸中有条不紊地工作，是因为人脑可以有意或无意地从这些大量输入信息中选择小部分的有用信息来重点处理，并忽略其他信息。这种能力就叫做注意力。注意力可以作用在外部的刺激(听觉、视觉、味觉等)，也可以作用在内部的意识(思考、回忆等)。注意力一般分为两种：
+一种是自上而下的有意识的注意力，称为聚焦式注意力(focus attention)。聚焦式注意力是指有预定目的、依赖任务的，主动有意识地聚焦于某一对象的注意力。
+另一种是自下而上的无意识的注意力，称为基于显著性的注意力(saliency based attention)。基于显著性的注意力是由外界刺激驱动的注意，不需要主动干预，也和任务无关。如果一个对象的刺激信息不同于其周围信息，一种无意识的“赢者通吃”(winner-take-all)或者门控(gating)机制就可以把注意力转向这个对象。不管这些注意力是有意还是无意，大部分的人脑活动都需要依赖注意力，比如记忆信息、阅读或思考等。
+一个和注意力有关的例子是鸡尾酒会效应。当一个人在吵闹的鸡尾酒会上和朋友聊天时，尽管周围噪音干扰很多，他还是可以听到朋友的谈话内容，而忽略其他人的声音(聚焦式注意力)。同时，如果未注意到的背景声中有重要的词(比如他的名字)，他会马上注意到(显著性注意力)。
+聚焦式注意力一般会随着环境、情景或任务的不同而选择不同的信息。比如当要从人群中寻找某个人时，我们会专注于每个人的脸部；而当要统计人群的人数时，我们只需要专注于每个人的轮廓。
+人工神经网络中的注意力 用$X = [\boldsymbol x_1, \cdots, \boldsymbol x_N]$表示$N$组输入信息，其中每个向量$\boldsymbol x_i$都表示一组输入信息。为了节省计算资源，不需要将所有信息都输入到神经网络，只需要从$X$中选择一些和任务相关的信息。注意力机制的计算可以分为两步：一是在所有输入信息上计算注意力分布，二是根据注意力分布来计算输入信息的加权平均。
+(1) 注意力分布
+为了从$N$个输入向量$X = [\boldsymbol x_1, \cdots, \boldsymbol x_N]$中选择出和某个特定任务相关的信息，我们需要引入一个和任务相关的表示，称为查询向量(query vector)，并通过一个打分函数来计算每个输入向量和查询向量之间的相关性。
+$$\begin{aligned}\alpha_{i} &amp;=p(z=i | X, \boldsymbol{q}) \\&amp;=\operatorname{softmax}\left(s\left(\boldsymbol{x}_{i}, \boldsymbol{q}\right)\right) \\&amp;=\frac{\exp \left(s\left(\boldsymbol{x}_{i}, \boldsymbol{q}\right)\right)}{\sum_{j=1}^{N} \exp \left(s\left(\boldsymbol{x}_{j}, \boldsymbol{q}\right)\right)}\end{aligned}$$ 其中$\alpha_i$称为注意力分布(attention distribution)，$s(\boldsymbol x_i,\boldsymbol q)$为注意力打分函数，可以使用以下几种方式来计算：
+加性模型：$s(\boldsymbol{x}{i}, \boldsymbol{q})=\boldsymbol{v}^{\mathrm{T}} \tanh (W \boldsymbol{x}{i}&#43;U \boldsymbol{q})$；
+点积模型：$s\left(\boldsymbol{x}{i}, \boldsymbol{q}\right)=\boldsymbol{x}{i}^{\mathrm{T}} \boldsymbol{q}$；
+缩放点积模型：$s(\boldsymbol{x}{i}, \boldsymbol{q})=\frac{\boldsymbol{x}{i}^{\mathrm{T}} \boldsymbol{q}}{\sqrt{d}}$；">
+  <meta itemprop="datePublished" content="2017-01-01T00:00:00+00:00">
+  <meta itemprop="dateModified" content="2017-01-01T00:00:00+00:00">
+  <meta itemprop="wordCount" content="566">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="注意力机制与外部记忆">
+  <meta name="twitter:description" content="根据通用近似定理，前馈网络和循环网络都有很强的能力。但由于优化算法和计算能力的限制，在实践中很难达到通用近似的能力。特别是在处理复杂任务时，比如需要处理大量的输入信息或者复杂的计算流程时，目前计算机的计算能力依然是限制神经网络发展的瓶颈。
+为了减少计算复杂度，通过部分借鉴生物神经网络的一些机制，我们引入了局部连接、权重共享以及汇聚操作来简化神经网络结构。虽然这些机制可以有效缓解模型的复杂度和表达能力之间的矛盾，但是我们依然希望在不过度增加模型复杂度(主要是模型参数)的情况下来提高模型的表达能力。
+神经网络中可以存储的信息量称为网络容量(network capacity)。一般来讲，利用一组神经元来存储信息时，其存储容量和神经元的数量以及网络的复杂度成正比。如果要存储越多的信息，神经元数量就要越多或者网络要越复杂，进而导致神经网络的参数成倍地增加。
+人脑的生物神经网络同样存在网络容量问题，工作记忆大概只有几秒钟的时间，类似于循环神经网络中的隐状态。而人脑每个时刻接收的外界输入信息非常多，包括来自于视觉、听觉、触觉的各种各样的信息。单就视觉来说，眼睛每秒钟都会发送千万比特的信息给视觉神经系统。人脑在有限的资源下，并不能同时处理这些过载的输入信息。大脑神经系统有两个重要机制可以解决信息过载问题：注意力(attention) 和记忆(memory) 机制。注意力机制通过自上而下的信息选择机制来过滤掉大量的无关信息；记忆机制引入额外外部记忆，优化神经网络的记忆结构来提高神经网络存储信息的容量。
+注意力 认知神经学中的注意力 注意力是一种人类不可或缺的复杂认知功能，指人可以在关注一些信息的同时忽略另一些信息的选择能力。在日常生活中，我们通过视觉、听觉、触觉等方式接收大量的感觉输入。但是人脑还能在这些外界的信息轰炸中有条不紊地工作，是因为人脑可以有意或无意地从这些大量输入信息中选择小部分的有用信息来重点处理，并忽略其他信息。这种能力就叫做注意力。注意力可以作用在外部的刺激(听觉、视觉、味觉等)，也可以作用在内部的意识(思考、回忆等)。注意力一般分为两种：
+一种是自上而下的有意识的注意力，称为聚焦式注意力(focus attention)。聚焦式注意力是指有预定目的、依赖任务的，主动有意识地聚焦于某一对象的注意力。
+另一种是自下而上的无意识的注意力，称为基于显著性的注意力(saliency based attention)。基于显著性的注意力是由外界刺激驱动的注意，不需要主动干预，也和任务无关。如果一个对象的刺激信息不同于其周围信息，一种无意识的“赢者通吃”(winner-take-all)或者门控(gating)机制就可以把注意力转向这个对象。不管这些注意力是有意还是无意，大部分的人脑活动都需要依赖注意力，比如记忆信息、阅读或思考等。
+一个和注意力有关的例子是鸡尾酒会效应。当一个人在吵闹的鸡尾酒会上和朋友聊天时，尽管周围噪音干扰很多，他还是可以听到朋友的谈话内容，而忽略其他人的声音(聚焦式注意力)。同时，如果未注意到的背景声中有重要的词(比如他的名字)，他会马上注意到(显著性注意力)。
+聚焦式注意力一般会随着环境、情景或任务的不同而选择不同的信息。比如当要从人群中寻找某个人时，我们会专注于每个人的脸部；而当要统计人群的人数时，我们只需要专注于每个人的轮廓。
+人工神经网络中的注意力 用$X = [\boldsymbol x_1, \cdots, \boldsymbol x_N]$表示$N$组输入信息，其中每个向量$\boldsymbol x_i$都表示一组输入信息。为了节省计算资源，不需要将所有信息都输入到神经网络，只需要从$X$中选择一些和任务相关的信息。注意力机制的计算可以分为两步：一是在所有输入信息上计算注意力分布，二是根据注意力分布来计算输入信息的加权平均。
+(1) 注意力分布
+为了从$N$个输入向量$X = [\boldsymbol x_1, \cdots, \boldsymbol x_N]$中选择出和某个特定任务相关的信息，我们需要引入一个和任务相关的表示，称为查询向量(query vector)，并通过一个打分函数来计算每个输入向量和查询向量之间的相关性。
+$$\begin{aligned}\alpha_{i} &amp;=p(z=i | X, \boldsymbol{q}) \\&amp;=\operatorname{softmax}\left(s\left(\boldsymbol{x}_{i}, \boldsymbol{q}\right)\right) \\&amp;=\frac{\exp \left(s\left(\boldsymbol{x}_{i}, \boldsymbol{q}\right)\right)}{\sum_{j=1}^{N} \exp \left(s\left(\boldsymbol{x}_{j}, \boldsymbol{q}\right)\right)}\end{aligned}$$ 其中$\alpha_i$称为注意力分布(attention distribution)，$s(\boldsymbol x_i,\boldsymbol q)$为注意力打分函数，可以使用以下几种方式来计算：
+加性模型：$s(\boldsymbol{x}{i}, \boldsymbol{q})=\boldsymbol{v}^{\mathrm{T}} \tanh (W \boldsymbol{x}{i}&#43;U \boldsymbol{q})$；
+点积模型：$s\left(\boldsymbol{x}{i}, \boldsymbol{q}\right)=\boldsymbol{x}{i}^{\mathrm{T}} \boldsymbol{q}$；
+缩放点积模型：$s(\boldsymbol{x}{i}, \boldsymbol{q})=\frac{\boldsymbol{x}{i}^{\mathrm{T}} \boldsymbol{q}}{\sqrt{d}}$；">
+<link rel="preload" href="/scss/main.min.a52b2e54f3e921e61502207760f8ecb468b09dc55f348cc42d9b9b9132637847.css" as="style" integrity="sha256-pSsuVPPpIeYVAiB3YPjstGiwncVfNIzELZubkTJjeEc=" crossorigin="anonymous">
+<link href="/scss/main.min.a52b2e54f3e921e61502207760f8ecb468b09dc55f348cc42d9b9b9132637847.css" rel="stylesheet" integrity="sha256-pSsuVPPpIeYVAiB3YPjstGiwncVfNIzELZubkTJjeEc=" crossorigin="anonymous">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda+SC:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Bodoni+Moda:ital,opsz,wght@1,6..96,800&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Sen:wght@400..800&display=swap" rel="stylesheet">
+<script
+  src="https://code.jquery.com/jquery-3.7.1.min.js"
+  integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+  crossorigin="anonymous"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: '\\[', right: '\\]', display: true},   
+        {left: '$$', right: '$$', display: true},     
+        {left: '\\(', right: '\\)', display: false},  
+      ],
+      throwOnError : false
+    });
+  });
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+  </head>
+  <body class="td-page">
+    <header>
+      
+    </header>
+    <div class="container-fluid td-outer">
+      <div class="td-main">
+        <div class="row flex-xl-nowrap">
+          <aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none">
+            <div id="td-sidebar-menu" class="td-sidebar__inner">
+  <image src="/logo.png" style="width: 100%;" />
+
+
+  <form class="td-sidebar__search d-flex align-items-center">
+    
+    <button class="btn btn-link td-sidebar__toggle d-md-none p-0 ms-3 fas fa-bars" type="button" data-bs-toggle="collapse" data-bs-target="#td-section-nav" aria-controls="td-section-nav" aria-expanded="false" aria-label="Toggle section navigation">
+    </button>
+  </form>
+  <nav class="td-sidebar-nav collapse" id="td-section-nav">
+    <ul class="td-sidebar-nav__section pe-md-3 ul-0">
+      <li> <a href="/">首页</a></li>
+      <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m--li">
+  <a href="/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id="m-"><span class=""></span></a>
+  <ul class="ul-1">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-1-e695b0e5ada6e59fbae7a180-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" title="数学基础" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-1-e695b0e5ada6e59fbae7a180"><span class="">1-数学基础</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math1-e7babfe680a7e4bba3e695b0-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math1-%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math1-e7babfe680a7e4bba3e695b0"><span class="">线性代数</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math2-e5beaee7a7afe58886-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math2-%E5%BE%AE%E7%A7%AF%E5%88%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math2-e5beaee7a7afe58886"><span class="">微积分</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math3-e695b0e5ada6e4bc98e58c96-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math3-%E6%95%B0%E5%AD%A6%E4%BC%98%E5%8C%96/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math3-e695b0e5ada6e4bc98e58c96"><span class="">数学优化</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math4-e6a682e78e87e7bb9fe8aea1-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math4-%E6%A6%82%E7%8E%87%E7%BB%9F%E8%AE%A1/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math4-e6a682e78e87e7bb9fe8aea1"><span class="">概率统计</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math5-e4bfa1e681afe8aeba-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math5-%E4%BF%A1%E6%81%AF%E8%AE%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math5-e4bfa1e681afe8aeba"><span class="">信息论</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-2-e69cbae599a8e5ada6e4b9a0-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-2-e69cbae599a8e5ada6e4b9a0"><span class="">2-机器学习</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml1-e69cbae599a8e5ada6e4b9a0e59fbae7a180-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml1-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%9F%BA%E7%A1%80/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml1-e69cbae599a8e5ada6e4b9a0e59fbae7a180"><span class="">机器学习基础</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml2-e7babfe680a7e59b9ee5bd92-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml2-%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml2-e7babfe680a7e59b9ee5bd92"><span class="">线性回归</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml3-ke8bf91e982bbe7ae97e6b395-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml3-k%E8%BF%91%E9%82%BB%E7%AE%97%E6%B3%95/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml3-ke8bf91e982bbe7ae97e6b395"><span class="">近邻算法</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml4-e6849fe79fa5e69cba-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml4-%E6%84%9F%E7%9F%A5%E6%9C%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml4-e6849fe79fa5e69cba"><span class="">感知机</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml5-e8b49de58fb6e696afe58886e7b1bbe599a8-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml5-%E8%B4%9D%E5%8F%B6%E6%96%AF%E5%88%86%E7%B1%BB%E5%99%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml5-e8b49de58fb6e696afe58886e7b1bbe599a8"><span class="">贝叶斯分类器</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml6-e980bbe8be91e59b9ee5bd92e4b88ee69c80e5a4a7e786b5e6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml6-%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92%E4%B8%8E%E6%9C%80%E5%A4%A7%E7%86%B5%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml6-e980bbe8be91e59b9ee5bd92e4b88ee69c80e5a4a7e786b5e6a8a1e59e8b"><span class="">逻辑回归与最大熵模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml7-e694afe68c81e59091e9878fe69cba-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml7-%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml7-e694afe68c81e59091e9878fe69cba"><span class="">支持向量机</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml8-e586b3e7ad96e6a091-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml8-%E5%86%B3%E7%AD%96%E6%A0%91/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml8-e586b3e7ad96e6a091"><span class="">决策树</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml9-e99b86e68890e5ada6e4b9a0-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml9-%E9%9B%86%E6%88%90%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml9-e99b86e68890e5ada6e4b9a0"><span class="">集成学习</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml10-eme7ae97e6b395-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml10-em%E7%AE%97%E6%B3%95/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml10-eme7ae97e6b395"><span class="">EM算法</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml11-e8819ae7b1bb-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml11-%E8%81%9A%E7%B1%BB/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml11-e8819ae7b1bb"><span class="">聚类</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml12-e9998de7bbb4-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml12-%E9%99%8D%E7%BB%B4/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml12-e9998de7bbb4"><span class="">降维</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml13-e789b9e5be81e98089e68ba9-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml13-%E7%89%B9%E5%BE%81%E9%80%89%E6%8B%A9/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml13-e789b9e5be81e98089e68ba9"><span class="">特征选择</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml14-e8af9de9a298e6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml14-%E8%AF%9D%E9%A2%98%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml14-e8af9de9a298e6a8a1e59e8b"><span class="">话题模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml15-e6a682e78e87e59bbee6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml15-%E6%A6%82%E7%8E%87%E5%9B%BE%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml15-e6a682e78e87e59bbee6a8a1e59e8b"><span class="">概率图模型</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m-3-e6b7b1e5baa6e5ada6e4b9a0-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-3-e6b7b1e5baa6e5ada6e4b9a0"><span class="">3-深度学习</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl1-e6b7b1e5baa6e5ada6e4b9a0e6a682e8bfb0-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl1-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E6%A6%82%E8%BF%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl1-e6b7b1e5baa6e5ada6e4b9a0e6a682e8bfb0"><span class="">深度学习概述</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl2-e7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl2-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl2-e7a59ee7bb8fe7bd91e7bb9c"><span class="">神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl3-e58db7e7a7afe7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl3-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl3-e58db7e7a7afe7a59ee7bb8fe7bd91e7bb9c"><span class="">卷积神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl4-e5beaae78eafe7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl4-%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl4-e5beaae78eafe7a59ee7bb8fe7bd91e7bb9c"><span class="">循环神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl5-e7a59ee7bb8fe7bd91e7bb9ce79a84e4bc98e58c96-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl5-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E7%9A%84%E4%BC%98%E5%8C%96/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl5-e7a59ee7bb8fe7bd91e7bb9ce79a84e4bc98e58c96"><span class="">神经网络的优化</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl6-e887aae7bc96e7a081e599a8-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl6-%E8%87%AA%E7%BC%96%E7%A0%81%E5%99%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl6-e887aae7bc96e7a081e599a8"><span class="">自编码器</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl7-e6b7b1e5baa6e7949fe68890e6a8a1e59e8b-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl7-%E6%B7%B1%E5%BA%A6%E7%94%9F%E6%88%90%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl7-e6b7b1e5baa6e7949fe68890e6a8a1e59e8b"><span class="">深度生成模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl8-e6b3a8e6848fe58a9be69cbae588b6e4b88ee5a496e983a8e8aeb0e5bf86-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl8-%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%E4%B8%8E%E5%A4%96%E9%83%A8%E8%AE%B0%E5%BF%86/" class="align-left ps-0 active td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl8-e6b3a8e6848fe58a9be69cbae588b6e4b88ee5a496e983a8e8aeb0e5bf86"><span class="td-sidebar-nav-active-item">注意力机制与外部记忆</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl9-e59bbee7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl9-%E5%9B%BE%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl9-e59bbee7a59ee7bb8fe7bd91e7bb9c"><span class="">图神经网络</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-4-e887aae784b6e8afade8a880e5a484e79086-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-4-e887aae784b6e8afade8a880e5a484e79086"><span class="">4-自然语言处理</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp1-e887aae784b6e8afade8a880e5a484e79086e6a682e8bfb0-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp1-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E6%A6%82%E8%BF%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp1-e887aae784b6e8afade8a880e5a484e79086e6a682e8bfb0"><span class="">自然语言处理概述</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp2-e8af8de59091e9878f-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp2-%E8%AF%8D%E5%90%91%E9%87%8F/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp2-e8af8de59091e9878f"><span class="">词向量</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp3-e8afade8a880e6a8a1e59e8b-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp3-%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp3-e8afade8a880e6a8a1e59e8b"><span class="">语言模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp4-seq2seqe4b88eattention-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp4-seq2seq%E4%B8%8Eattention/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp4-seq2seqe4b88eattention"><span class="">seq2seq与attention</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp5-e9a284e8aeade7bb83e6a8a1e59e8b-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp5-%E9%A2%84%E8%AE%AD%E7%BB%83%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp5-e9a284e8aeade7bb83e6a8a1e59e8b"><span class="">预训练模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp6-e887aae784b6e8afade8a880e5a484e79086e5ba94e794a8-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp6-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E5%BA%94%E7%94%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp6-e887aae784b6e8afade8a880e5a484e79086e5ba94e794a8"><span class="">自然语言处理应用</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-5-aie7a094e7a9b6e6898be5868c-li">
+  <a href="/5-ai%E7%A0%94%E7%A9%B6%E6%89%8B%E5%86%8C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-5-aie7a094e7a9b6e6898be5868c"><span class="">5-AI研究手册</span></a>
+</li>
+  </ul>
+</li>
+    </ul>
+  </nav>
+</div>
+
+
+          </aside>
+          <aside class="d-none d-xl-block col-xl-2 td-sidebar-toc d-print-none">
+            <div class="td-page-meta ms-2 pb-1 pt-2 mb-0">
+
+</div>
+
+            <div class="td-toc">
+        <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#注意力">注意力</a></li>
+        <li><a href="#注意力机制的应用">注意力机制的应用</a></li>
+        <li><a href="#外部记忆">外部记忆</a></li>
+        <li><a href="#参考资料">参考资料</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+      </div>
+    
+            
+
+          </aside>
+          <main class="col-12 col-md-9 col-xl-8 " role="main">
+            <nav class="td-navbar js-navbar-scroll" data-bs-theme="dark">
+<div class="container-fluid flex-column flex-md-row">
+  <a class="navbar-brand" href="/"><span class="navbar-brand__logo navbar-logo"><svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" style="enable-background:new 0 0 500 500"><g><path style="fill:#fff" d="M116.8525 421.9722c-5.7041.0-10.3442-4.3127-10.3442-9.6129V88.183c0-5.3002 4.6401-9.6117 10.3442-9.6117H320.858c3.0347.0 9.3959.5498 11.7506 2.6302l.3545.3442 58.905 63.2912c2.3101 2.491 2.9202 8.4928 2.9202 11.3184v256.2039c0 5.3002-4.6407 9.6129-10.3436 9.6129H116.8525z"/><g><g><g><path style="fill:#767676" d="M384.4445 423.2066H116.852c-6.3839.0-11.5786-4.8658-11.5786-10.8474V88.1831c0-5.9804 5.1947-10.8461 11.5786-10.8461h204.0062c.377.0 9.2786.0329 12.568 2.9389l.3947.3833 58.9508 63.337c3.2135 3.4652 3.2514 11.7924 3.2514 12.1593v256.2036C396.0231 418.3408 390.8284 423.2066 384.4445 423.2066zM116.5079 411.9189c.0848.0278.1999.0531.3441.0531h267.5925c.1442.0.2581-.0253.3441-.0531V156.1556c-.0076-.9033-.3593-3.7347-.7034-5.0037l-57.6527-61.9416c-1.4651-.3176-4.4533-.6389-5.5742-.6389H116.852c-.143.0-.2594.024-.3441.0531V411.9189zm267.4533-261.149zM327.0321 89.371v.0013V89.371z"/></g></g></g><g><g><path style="fill:#5b7fc0" d="M189.0874 210.1754l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4473C177.5953 212.627 183.0601 210.1742 189.0874 210.1754zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 234.1722 197.0804 232.033z"/><path style="opacity:.3;fill:#fff" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/><g><defs><path id="SVGID_1_" d="M194.7376 237.6875c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 234.2399 196.1861 236.239 194.7376 237.6875z"/></defs><clipPath id="SVGID_2_"><use xlink:href="#SVGID_1_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_2_);fill:#fff" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/><path style="opacity:.13;clip-path:url(#SVGID_2_);fill:#020202" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/></g><g><defs><path id="SVGID_3_" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/></defs><clipPath id="SVGID_4_"><use xlink:href="#SVGID_3_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_4_);fill:#5b7fc0" d="M172.6595 215.6045c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8475-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 209.1953 176.6171 211.647 172.6595 215.6045z"/></g></g><rect x="198.8952" y="225.1043" style="fill:#5b7fc0" width="122.6266" height="13.8671"/></g><g><path style="fill:#d95140" d="M189.0874 155.7611l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.0249 2.454-11.4897 6.4116-15.4473C177.5953 158.2128 183.0601 155.7599 189.0874 155.7611zm7.993 21.8577c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.2508 181.7667 197.0816 179.758 197.0804 177.6188z"/><path style="opacity:.3;fill:#fff" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/><g><defs><path id="SVGID_5_" d="M194.7376 183.2733c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 179.8256 196.1861 181.8248 194.7376 183.2733z"/></defs><clipPath id="SVGID_6_"><use xlink:href="#SVGID_5_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_6_);fill:#fff" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/><path style="opacity:.13;clip-path:url(#SVGID_6_);fill:#020202" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/></g><g><defs><path id="SVGID_7_" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/></defs><clipPath id="SVGID_8_"><use xlink:href="#SVGID_7_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_8_);fill:#d95140" d="M172.6595 161.1903c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 154.7811 176.6171 157.2327 172.6595 161.1903z"/></g><rect x="198.8952" y="170.69" style="fill:#d95140" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#56a55c" d="M189.5379 264.6147l.0012-.0012c7.7751.0012 15.0294 4.1862 18.932 10.9235 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032-5.8394.0-11.3281-2.2733-15.458-6.4032-4.13-4.13-6.4032-9.6186-6.4056-15.4628.0012-6.0249 2.454-11.4897 6.4116-15.4472C178.0458 267.0663 183.5105 264.6135 189.5379 264.6147zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6538 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.7013 290.6202 197.5321 288.6115 197.5309 286.4723z"/><path style="opacity:.3;fill:#fff" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/><g><defs><path id="SVGID_9_" d="M195.1881 292.1268c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9941 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.5344 288.6792 196.6366 290.6783 195.1881 292.1268z"/></defs><clipPath id="SVGID_10_"><use xlink:href="#SVGID_9_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_10_);fill:#fff" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/><path style="opacity:.13;clip-path:url(#SVGID_10_);fill:#020202" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/></g><g><defs><path id="SVGID_11_" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/></defs><clipPath id="SVGID_12_"><use xlink:href="#SVGID_11_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_12_);fill:#56a55c" d="M173.11 270.0439c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7325-11.1497-10.9151-18.926-10.9151C182.5311 263.6346 177.0676 266.0863 173.11 270.0439z"/></g></g><rect x="199.3456" y="279.5436" style="fill:#56a55c" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#f1bc42" d="M189.0874 318.7208l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3305-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4472C177.5953 321.1724 183.0601 318.7196 189.0874 318.7208zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 342.7176 197.0804 340.5784z"/><path style="opacity:.3;fill:#fff" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/><g><defs><path id="SVGID_13_" d="M194.7376 346.2329c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 342.7853 196.1861 344.7844 194.7376 346.2329z"/></defs><clipPath id="SVGID_14_"><use xlink:href="#SVGID_13_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_14_);fill:#fff" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/><path style="opacity:.13;clip-path:url(#SVGID_14_);fill:#020202" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/></g><g><defs><path id="SVGID_15_" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/></defs><clipPath id="SVGID_16_"><use xlink:href="#SVGID_15_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_16_);fill:#f1bc42" d="M172.6595 324.15c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8474-1.0151-7.6327-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 317.7407 176.6171 320.1924 172.6595 324.15z"/></g></g><rect x="198.8952" y="333.6497" style="fill:#f1bc42" width="122.6266" height="13.8671"/></g></g></svg></span><span class="navbar-brand__name">知予AI</span></a>
+  <div class="td-navbar-nav-scroll ms-md-auto" id="main_navbar">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="https://github.com/knove-ai" target="_blank" rel="noopener"><i class="fa fa-github"></i><span>Github</span></a>
+      </li>
+      </ul>
+  </div>
+  <div class="d-none d-lg-block">
+    
+  </div>
+</div>
+</nav>
+
+            <div class="ps-md-5">
+              
+  
+
+              <nav aria-label="breadcrumb" class="td-breadcrumbs">
+  <ol class="breadcrumb">
+  <li class="breadcrumb-item">
+    <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">3-深度学习</a></li>
+  <li class="breadcrumb-item active" aria-current="page">
+    注意力机制与外部记忆</li>
+  </ol>
+</nav>
+              
+<div class="td-content">
+	<h1>注意力机制与外部记忆</h1>
+	
+	<header class="article-meta">
+		
+</header>
+	<p>根据通用近似定理，前馈网络和循环网络都有很强的能力。但由于优化算法和计算能力的限制，在实践中很难达到通用近似的能力。特别是在处理复杂任务时，比如需要处理大量的输入信息或者复杂的计算流程时，目前计算机的计算能力依然是限制神经网络发展的瓶颈。</p>
+<p>为了减少计算复杂度，通过部分借鉴生物神经网络的一些机制，我们引入了局部连接、权重共享以及汇聚操作来简化神经网络结构。虽然这些机制可以有效缓解模型的复杂度和表达能力之间的矛盾，但是我们依然希望<strong>在不过度增加模型复杂度(主要是模型参数)的情况下来提高模型的表达能力</strong>。</p>
+<p>神经网络中可以存储的信息量称为<strong>网络容量(network capacity)</strong>。一般来讲，利用一组神经元来存储信息时，其存储容量和神经元的数量以及网络的复杂度成正比。如果要存储越多的信息，神经元数量就要越多或者网络要越复杂，进而导致神经网络的参数成倍地增加。</p>
+<p>人脑的生物神经网络同样存在网络容量问题，工作记忆大概只有几秒钟的时间，类似于循环神经网络中的隐状态。而人脑每个时刻接收的外界输入信息非常多，包括来自于视觉、听觉、触觉的各种各样的信息。单就视觉来说，眼睛每秒钟都会发送千万比特的信息给视觉神经系统。人脑在有限的资源下，并不能同时处理这些过载的输入信息。大脑神经系统有两个重要机制可以解决信息过载问题：<strong>注意力(attention)</strong> 和<strong>记忆(memory)</strong> 机制。注意力机制通过自上而下的信息选择机制来过滤掉大量的无关信息；记忆机制引入额外外部记忆，优化神经网络的记忆结构来提高神经网络存储信息的容量。</p>
+<h3 id="注意力">注意力</h3>
+<h4 id="认知神经学中的注意力">认知神经学中的注意力</h4>
+<p>注意力是一种人类不可或缺的复杂认知功能，指人可以在关注一些信息的同时忽略另一些信息的选择能力。在日常生活中，我们通过视觉、听觉、触觉等方式接收大量的感觉输入。但是人脑还能在这些外界的信息轰炸中有条不紊地工作，是因为人脑可以有意或无意地从这些大量输入信息中<strong>选择小部分的有用信息来重点处理</strong>，并忽略其他信息。这种能力就叫做注意力。注意力可以作用在外部的刺激(听觉、视觉、味觉等)，也可以作用在内部的意识(思考、回忆等)。注意力一般分为两种：</p>
+<p>一种是<strong>自上而下的有意识的注意力</strong>，称为<strong>聚焦式注意力(focus attention)</strong>。聚焦式注意力是指有预定目的、依赖任务的，主动有意识地聚焦于某一对象的注意力。</p>
+<p>另一种是<strong>自下而上的无意识的注意力</strong>，称为<strong>基于显著性的注意力(saliency based attention)</strong>。基于显著性的注意力是由外界刺激驱动的注意，不需要主动干预，也和任务无关。<strong>如果一个对象的刺激信息不同于其周围信息，一种无意识的“赢者通吃”(winner-take-all)或者门控(gating)机制就可以把注意力转向这个对象</strong>。不管这些注意力是有意还是无意，大部分的人脑活动都需要依赖注意力，比如记忆信息、阅读或思考等。</p>
+<p>一个和注意力有关的例子是<strong>鸡尾酒会效应</strong>。当一个人在吵闹的鸡尾酒会上和朋友聊天时，尽管周围噪音干扰很多，他还是可以听到朋友的谈话内容，而<strong>忽略其他人的声音(聚焦式注意力)</strong>。同时，如果未注意到的背景声中有重要的词(比如他的名字)，<strong>他会马上注意到(显著性注意力)</strong>。</p>
+<p>聚焦式注意力一般会随着环境、情景或任务的不同而选择不同的信息。比如当要从人群中寻找某个人时，我们会专注于每个人的<strong>脸部</strong>；而当要统计人群的人数时，我们只需要专注于每个人的<strong>轮廓</strong>。</p>
+<h4 id="人工神经网络中的注意力">人工神经网络中的注意力</h4>
+<p>用$X = [\boldsymbol x_1, \cdots, \boldsymbol x_N]$表示$N$组输入信息，其中每个向量$\boldsymbol x_i$都表示一组输入信息。为了节省计算资源，不需要将所有信息都输入到神经网络，只需要从$X$中选择一些和任务相关的信息。<strong>注意力机制的计算可以分为两步：一是在所有输入信息上计算注意力分布，二是根据注意力分布来计算输入信息的加权平均</strong>。</p>
+<p>(1) 注意力分布</p>
+<p>为了从$N$个输入向量$X = [\boldsymbol x_1, \cdots, \boldsymbol x_N]$中选择出和某个特定任务相关的信息，我们需要引入一个<strong>和任务相关的表示</strong>，称为<strong>查询向量(query vector)</strong>，并通过一个<strong>打分函数</strong>来计算<strong>每个输入向量和查询向量之间的相关性</strong>。</p>
+$$
+\begin{aligned}
+\alpha_{i} &=p(z=i | X, \boldsymbol{q}) \\
+&=\operatorname{softmax}\left(s\left(\boldsymbol{x}_{i}, \boldsymbol{q}\right)\right) \\
+&=\frac{\exp \left(s\left(\boldsymbol{x}_{i}, \boldsymbol{q}\right)\right)}{\sum_{j=1}^{N} \exp \left(s\left(\boldsymbol{x}_{j}, \boldsymbol{q}\right)\right)}
+\end{aligned}
+$$<p>
+其中$\alpha_i$称为<strong>注意力分布(attention distribution)</strong>，$s(\boldsymbol x_i,\boldsymbol q)$为注意力打分函数，可以使用以下几种方式来计算：</p>
+<p>加性模型：$s(\boldsymbol{x}<em>{i}, \boldsymbol{q})=\boldsymbol{v}^{\mathrm{T}} \tanh (W \boldsymbol{x}</em>{i}+U \boldsymbol{q})$；</p>
+<p>点积模型：$s\left(\boldsymbol{x}<em>{i}, \boldsymbol{q}\right)=\boldsymbol{x}</em>{i}^{\mathrm{T}} \boldsymbol{q}$；</p>
+<p>缩放点积模型：$s(\boldsymbol{x}<em>{i}, \boldsymbol{q})=\frac{\boldsymbol{x}</em>{i}^{\mathrm{T}} \boldsymbol{q}}{\sqrt{d}}$；</p>
+<p>双线性模型：$s(\boldsymbol{x}<em>{i}, \boldsymbol{q})=\boldsymbol{x}</em>{i}^{\mathrm{T}} W \boldsymbol{q}$；</p>
+<p>其中，$W,U,\boldsymbol v$为可学习的参数，$d$为输入向量的维度。</p>
+<p>(2) 加权平均</p>
+$$
+\begin{aligned}
+\operatorname{att}(X, \boldsymbol{q}) &=\sum_{i=1}^{N} \alpha_{i} \boldsymbol{x}_{i} \\
+&=\mathbb{E}_{z \sim p(z | X, \boldsymbol{q})}[\boldsymbol{x}_{z}]
+\end{aligned}
+$$<p>
+上式称为<strong>软性注意力机制(soft attention mechanism)</strong>，下图给出了软性注意力机制的示例图：</p>
+<div align="center">
+<img src="/images/3/image-20201004205649318.png" style="zoom:40%;" />
+</div>
+<p>人工神经网络中注意力机制的实现：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">class</span> <span style="color:#000">Attention</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Layer</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">def</span> <span style="color:#000">__init__</span><span style="color:#000;font-weight:bold">(</span><span style="color:#3465a4">self</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">units</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87">super</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">BahdanauAttention</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#3465a4">self</span><span style="color:#000;font-weight:bold">)</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">__init__</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">W1</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Dense</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">units</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">W2</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Dense</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">units</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">V</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Dense</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">def</span> <span style="color:#000">call</span><span style="color:#000;font-weight:bold">(</span><span style="color:#3465a4">self</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">query</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">values</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># query  shape == (batch_size, hidden size)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># values shape == (batch_size, max_len, hidden size)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">query_with_time_axis</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">expand_dims</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">query</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># we are doing this to broadcast addition along the time axis to calculate the score</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># query_with_time_axis shape == (batch_size, 1, hidden size)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># score shape == (batch_size, max_length, 1)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># we get 1 at the last axis because we are applying score to self.V</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># the shape of the tensor before applying self.V is (batch_size, max_length, units)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">score</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">V</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">nn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">tanh</span><span style="color:#000;font-weight:bold">(</span><span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">W1</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">query_with_time_axis</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">+</span> <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">W2</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">values</span><span style="color:#000;font-weight:bold">)))</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># 这里评分函数score可以换成其他几种实现形式</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># attention_weights shape == (batch_size, max_length, 1)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">attention_weights</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">nn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">softmax</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">score</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">axis</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># context_vector shape after sum == (batch_size, hidden_size)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">context_vector</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">attention_weights</span> <span style="color:#ce5c00;font-weight:bold">*</span> <span style="color:#000">values</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">context_vector</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">reduce_sum</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">context_vector</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">axis</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87;font-weight:bold">return</span> <span style="color:#000">context_vector</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">attention_weights</span>
+</span></span></code></pre></div><h4 id="注意力机制的变体">注意力机制的变体</h4>
+<h5 id="硬性注意力">硬性注意力</h5>
+<p>软性注意力选择的信息是所有输入向量在注意力分布下的期望，而<strong>硬性注意力只关注某一个输入向量</strong>。硬性注意力有两种实现方式，一种是<strong>选取最高概率</strong>的一个输入向量，另一种方式是在注意力分布上<strong>随机采样</strong>。</p>
+<p>硬性注意力的一个缺点是基于最大采样或随机采样的方式来选择信息，使得最终的损失函数与注意力分布之间的函数关系不可导，因此无法使用反向传播算法进行训练。<strong>为了使用反向传播算法，一般使用软性注意力来代替硬性注意力</strong>。硬性注意力需要通过<strong>强化学习</strong>来进行训练。</p>
+<h5 id="键值对注意力">键值对注意力</h5>
+$$
+\begin{aligned}
+\operatorname{att}((K, V), \boldsymbol{q}) &=\sum_{i=1}^{N} \alpha_{i} \boldsymbol{v}_{i} \\
+&=\sum_{i=1}^{N} \frac{\exp (s(\boldsymbol{k}_{i}, \boldsymbol{q}))}{\sum_{j} \exp (s(\boldsymbol{k}_{j}, \boldsymbol{q}))} \boldsymbol{v}_{i}
+\end{aligned}
+$$<p>
+当$K=V$时，键值对模式就等价于普通的注意力机制。</p>
+<h5 id="多头注意力">多头注意力</h5>
+$$
+\operatorname{att}((K, V), Q)=\operatorname{att}((K, V), \boldsymbol{q}_{1}) \oplus \cdots \oplus \operatorname{att}((K, V), \boldsymbol{q}_{M})
+$$<p>
+其中$\oplus$表示为向量的拼接。</p>
+<h5 id="结构化注意力">结构化注意力</h5>
+<p>在之前介绍中，我们假设所有的输入信息是同等重要的，是一种<strong>扁平(flat)结构</strong>，注意力分布实际上是在所有输入信息上的多项分布。但如果输入信息本身具有<strong>层次(hierarchical)结构</strong>，比如文本可以分为词、句子、段落、篇章等不同粒度的层次，我们可以使用<strong>层次化的注意力</strong>来进行更好的信息选择。此外，还可以假设注意力为上下文相关的二项分布，用一种图模型来构建更复杂的结构化注意力分布。</p>
+<h3 id="注意力机制的应用">注意力机制的应用</h3>
+<p>注意力机制可以单独使用，但更多地用作神经网络中的一个组件。</p>
+<h4 id="指针网络">指针网络</h4>
+<p>注意力机制主要是用来做信息筛选，从输入信息中选取相关的信息。注意力机制可以分为两步：一是计算<strong>注意力分布</strong>$\alpha$，二是根据$\alpha$来计算输入信息的<strong>加权平均</strong>。我们可以只利用注意力机制中的第一步，<strong>将注意力分布作为一个软性的指针(pointer)来指出相关信息的位置</strong>。</p>
+<p><strong>指针网络(pointer network)</strong> 是一种序列到序列模型，其输入是长度为$n$的向量序列$X=\boldsymbol x_1, \cdots, \boldsymbol x_n$，输出是<strong>下标序列</strong>$c_{1:m}=c_1,c_2,\cdots,c_m, c_i \in [1,n], \forall i$。</p>
+<p>和一般的序列到序列任务不同，这里的<strong>输出序列是输入序列的下标(索引)</strong>。比如输入一组乱序的数字，输出为按大小排序的输入数字序列的下标。比如<strong>输入为20*,* 5*,* 10，输出为1*,* 3*,* 2</strong>。</p>
+$$
+\begin{aligned}
+p(c_{1: m} | \boldsymbol{x}_{1: n}) &=\prod_{i=1}^{m} p(c_{i} | c_{1: i-1}, \boldsymbol{x}_{1: n}) \\
+& \approx \prod_{i=1}^{m} p(c_{i} | \boldsymbol{x}_{c_{1}}, \cdots, \boldsymbol{x}_{c_{i-1}}, \boldsymbol{x}_{1: n})
+\end{aligned}
+$$$$
+s_{i, j}=\boldsymbol{v}^{\mathrm{T}} \tanh (W \boldsymbol{x}_{j}+U \boldsymbol{h}_{i}), \forall j \in[1, n]
+$$<p>
+根据传统的注意力机制，所谓的$s_{i,j}$正是针对输入序列的权重，完全可以<strong>把它拿出来作为指向输入序列的指针，在每次预测一个元素的时候找到输入序列中权重最大的那个元素</strong>。这便是指针网络对于传统注意力机制的简化。</p>
+<p>下图给出了指针网络的示例：</p>
+<div align="center">
+<img src="/images/3/image-20201004221027115.png" style="zoom:30%;" />
+</div>
+<h4 id="自注意力模型">自注意力模型</h4>
+<p>当使用神经网络来处理一个变长的向量序列时，我们通常可以使用卷积网络或循环网络进行编码来得到一个相同长度的输出向量序列，如下图所示：</p>
+<div align="center">
+<img src="/images/3/image-20201004230604413.png" style="zoom:30%;" />
+</div>
+<p>基于卷积或循环网络的序列编码都可以看做是一种局部的编码方式，只建模了输入信息的局部依赖关系。虽然循环网络理论上可以建立长距离依赖关系，但是由于信息传递的容量以及梯度消失问题，实际上也只能建立短距离依赖关系。</p>
+<p>如果要建立输入序列之间的长距离依赖关系，可以使用以下两种方法：一种方法是增加网络的层数，通过一个<strong>深层网络</strong>来获取远距离的信息交互；另一种方法是使用<strong>全连接网络</strong>。全连接网络是一种非常直接的建模远距离依赖的模型，但是无法处理变长的输入序列。不同的输入长度，其连接权重的大小也是不同的。自注意力也称为<strong>内部注意力(intra-attention)</strong>。这时我们就可以利用注意力机制来“动态”地生成不同连接的权重，这就是<strong>自注意力模型(self-attention model)</strong>。</p>
+$$
+\begin{aligned}
+Q&=W_{Q} X \in \mathbb{R}^{d_{3} \times N} \\
+K&=W_{K} X \in \mathbb{R}^{d_{3} \times N} \\
+V&=W_{V} X \in \mathbb{R}^{d_{2} \times N}
+\end{aligned}
+$$$$
+\begin{aligned}
+\boldsymbol{h}_{i} &=\operatorname{att}((K, V), \boldsymbol{q}_{i}) \\
+&=\sum_{j=1}^{N} \alpha_{i j} \boldsymbol{v}_{j} \\
+&=\sum_{j=1}^{N} \operatorname{softmax}(s(\boldsymbol{k}_{j}, \boldsymbol{q}_{i})) \boldsymbol{v}_{j}
+\end{aligned}
+$$<p>
+其中$i,j \in [1,N]$为输出和输入向量序列的位置，连接权重$\alpha_{ij}$由注意力机制动态生成。</p>
+$$
+H=V \text{softmax}(\frac{K^TQ}{\sqrt{d_3}})
+$$<p>
+其中softmax为<strong>按列进行归一化</strong>的函数。</p>
+<p>自注意力模型可以作为神经网络中的一层来使用，既可以用来替换卷积层和循环层，也可以和它们一起交替使用(比如$X$可以是<strong>卷积层或循环层的输出</strong>)。自注意力模型计算的权重$\alpha_{ij}$只依赖$\boldsymbol q_i$和$\boldsymbol k_j$的相关性，而忽略了输入信息的位置信息。因此在单独使用时，自注意力模型一般需要加入<strong>位置编码信息</strong>来进行修正。</p>
+<h3 id="外部记忆">外部记忆</h3>
+<h4 id="人脑中的记忆">人脑中的记忆</h4>
+<p>记忆在大脑皮层是<strong>分布式存储</strong>的，而不是存储于某个局部区域。人脑中的记忆具有周期性和联想性：</p>
+<p>(1) 记忆周期</p>
+<p>人脑记忆的一个特点是，记忆一般分为长期记忆和短期记忆。<strong>长期记忆(long-term memory)</strong>，也称为结构记忆或<strong>知识(knowledge)</strong>，体现为神经元之间的连接形态，其更新速度比较慢。**短期记忆(short-term memory)**体现为神经元的活动，更新较快，维持时间为几秒至几分钟。短期记忆是神经连接的暂时性强化，通过不断巩固、强化可形成长期记忆。短期记忆、长期记忆的动态更新过程称为演化（Evolution）过程。</p>
+<p>因此，长期记忆可以类比于人工神经网络中的<strong>权重参数</strong>，而短期记忆可以类比于人工神经网络中的<strong>隐状态</strong>。</p>
+<p>除了长期记忆和短期记忆，人脑中还会存在一个“缓存”，称为<strong>工作记忆(working memory)</strong>。在执行某个认知行为(比如记下电话号码，算术运算)时，工作记忆是一个记忆的临时存储和处理系统，维持时间通常为<strong>几秒钟</strong>。从时间上看，<strong>工作记忆也是一种短期记忆</strong>，但和短期记忆的内涵不同。短期记忆一般指外界的输入信息在人脑中的表示和短期存储，不关心这些记忆如何被使用；而<strong>工作记忆是一个和任务相关的“容器”，可以临时存放和某项任务相关的短期记忆和其它相关的内在记忆</strong>。工作记忆的容量比较小，一般可以容纳4组项目。</p>
+<p>(2) 联想记忆</p>
+<p>大脑记忆的一个主要特点是通过联想来进行检索的。<strong>联想记忆(associative memory)<strong>是指一种</strong>学习和记住不同对象之间关系的能力</strong>，比如看见一个人然后想起他的名字，或记住某种食物的味道等。联想记忆指一种可以通过内容匹配的方法进行寻址的信息存储方式，也称为<strong>基于内容寻址的存储(content addressable memory, CAM)</strong>；现代计算机的存储方式是根据地址来进行存储的，称为<strong>随机访问存储(random access memory, RAM)</strong>。</p>
+<p>和LSTM中的<strong>记忆单元</strong>相比，<strong>外部记忆可以存储更多的信息，并且不直接参与计算，通过读写接口来进行操作</strong>。而LSTM模型中的记忆单元包含了信息存储和计算两种功能，不能存储太多的信息。</p>
+<p>借鉴人脑中工作记忆，可以在神经网络中引入一个<strong>外部记忆单元</strong>来提高网络容量。外部记忆的实现途径有两种：一种是<strong>结构化的记忆</strong>，这种记忆和计算机中的信息存储方法比较类似，可以分为多个记忆片段，并按照一定的结构来存储；另一种是<strong>基于神经动力学的联想记忆</strong>，这种记忆方式具有更好的生物学解释性。</p>
+<h4 id="结构化的外部记忆">结构化的外部记忆</h4>
+<p>为增强网络容量，一种简单的方式是引入结构化的记忆模块，<strong>将和任务相关的短期记忆保存在记忆中，需要时再进行读取</strong>。这种装备外部记忆的神经网络也称为<strong>记忆网络(memory network, MN)</strong> 或<strong>记忆增强神经网络(memory augmented neural network, MANN)</strong>。</p>
+<p>记忆网络结构如下所示，一般由以下几个模块构成：</p>
+<div align="center">
+<img src="/images/3/image-20201005101509539.png" style="zoom:30%;" />
+</div>
+<p>(1) <strong>主网络(控制器)</strong>$C$：负责信息处理，并与外界进行交互(接受外界的输入信息并产生输出到外界)。主网络还同时通过读写模块和外部记忆进行交互。</p>
+<p>(2) <strong>外部记忆单元</strong>$M$：外部记忆单元用来存储信息，一般可以分为很多<strong>记忆片段(memory segment)</strong>，这些片段按照一定的结构来进行组织。<strong>记忆片段一般用向量来表示</strong>，外部记忆单元可以用<strong>一组向量</strong>$\boldsymbol m_{1:N}=[\boldsymbol m_1, \cdots, \boldsymbol m_N]$来表示。<strong>这些向量的组织方式可以是集合、树、栈或队列等</strong>。大部分信息存储于外部记忆中，<strong>不需要全时参与主网络的运算</strong>。</p>
+<p>(3) <strong>读取模块</strong>$R$：根据主网络生成的查询向量$\boldsymbol q_r$，从外部记忆单元中读取相应的信息$\boldsymbol r=R(\boldsymbol m_{1:N},\boldsymbol q_r)$。</p>
+<p>(4) <strong>写入模块</strong>$W$：根据主网络生成的查询向量$\boldsymbol q_w$和要写入的信息$\boldsymbol a$来更新外部记忆$\boldsymbol m_{1:N}=W(\boldsymbol m_{1:N},\boldsymbol q_w,\boldsymbol a)$。</p>
+$$
+\begin{aligned}
+\boldsymbol{r} &=\sum_{i=1}^{N} \alpha_{i} \boldsymbol{m}_{i} \\
+\alpha_{i} &=\operatorname{softmax}(s(\boldsymbol{m}_{i}, \boldsymbol{q}_{r}))
+\end{aligned}
+$$<p>
+其中$\boldsymbol q_r$是主网络生成的查询向量，$s(\cdot, \cdot)$为打分函数。类比于计算机的存储器读取，<strong>计算注意力分布的过程相当于是计算机的“寻址”过程</strong>，信息加权平均的过程相当于计算机的“内容读取”过程。因此，结构化的外部记忆也是一种联想记忆，只是其结构以及读写的操作方式更像是受计算机架构的启发。</p>
+<p>通过引入外部记忆，可以将神经网络的参数和记忆容量“分离”，即<strong>在少量增加网络参数的条件下可以大幅增加网络容量</strong>。注意力机制可以看做是一个<strong>接口</strong>，将信息的存储于计算分离。</p>
+<h5 id="端到端记忆网络">端到端记忆网络</h5>
+<p><strong>端到端记忆网络(end-to-end memory network, MemN2N)</strong> 采用一种可微的网络结构，可以多次从外部信息中读取信息。在端到端记忆网络中，外部记忆单元是只读的。</p>
+$$
+r=\sum_{i=1}^{N} \operatorname{softmax}(\boldsymbol{a}_{i}^{\mathrm{T}} \boldsymbol{q}) \boldsymbol{c}_{i}
+$$<p>
+并产生输出$\boldsymbol y=f(\boldsymbol q+\boldsymbol r)$，其中$f(\cdot)$为预测函数。当应用到分类任务时，$f(\cdot)$可以设为softmax函数。</p>
+<p>为了实现更复杂的计算，可以让主网络和外部记忆进行多轮交互。在第$k$轮交互中，主网络根据上次从外部记忆中读取的信息$\boldsymbol r^{(k-1)}$，产生新的查询向量$\boldsymbol{q}^{(k)}=\boldsymbol{r}^{(k-1)}+\boldsymbol{q}^{(k-1)}$，其中$\boldsymbol q^{(0)}$为初始查询向量，$\boldsymbol r^{(0)}=0$。</p>
+$$
+\boldsymbol{r}^{(k)}=\sum_{i=1}^{N} \operatorname{softmax}((\boldsymbol{a}_{i}^{(k)})^{\mathrm{T}} \boldsymbol{q}^{(k)}) \boldsymbol{c}_{i}^{(k)}
+$$<p>
+在$K$轮交互后，用$\boldsymbol y=f(\boldsymbol q^{(K)}+\boldsymbol r^{(K)})$进行预测。这种多轮的交互方式也称为 <strong>多跳(multi-hop)</strong> 操作。多跳操作中的参数一般是共享的，为了简化起见，每轮交互的外部记忆也可以共享使用，比如$A^{(1)}=\cdots=A^{(K)}$。</p>
+<p>端到端记忆网络结构如下所示：</p>
+<div align="center">
+<img src="/images/3/image-20201005120052297.png" style="zoom:30%;" />
+</div>
+<h5 id="神经图灵机">神经图灵机</h5>
+<p><strong>神经图灵机(neural Turing machine, NTM)</strong> 主要由两个部件构成：控制器和外部记忆。<strong>外部记忆</strong>定义为矩阵$M \in \mathbb R^{d \times N}$，其中$N$是记忆片段的数量，$d$是每个记忆片段的大小。<strong>控制器</strong>为一个前馈或循环神经网络。神经图灵机中的外部记忆是可读写的，其结构如下所示：</p>
+<div align="center">
+<img src="/images/3/image-20201028105252105.png" style="zoom:40%;" />
+</div>
+<p>在每个时刻$t$，控制器接受当前时刻的输入$\boldsymbol x_t$、上一时刻的输出$\boldsymbol h_{t-1}$和上一时刻从外部记忆中读取的信息$\boldsymbol r_{t-1}$，并产生输出$\boldsymbol h_t$，同时生成和读写外部记忆相关的三个向量：查询向量$\boldsymbol q_t$、删除向量$\boldsymbol e_t$和增加向量$\boldsymbol a_t$，然后对外部记忆$M_t$进行读写操作，生成读向量$\boldsymbol r_t$和新的外部记忆$M_{t+1}$。</p>
+<p>(1) 读操作</p>
+<p>在时刻$t$，外部记忆的内容记为$M_t=[\boldsymbol{m}<em>{t, 1}, \cdots, \boldsymbol{m}</em>{t, n}]$，读操作为从外部记忆$M_t$中读取信息$\boldsymbol r_t \in \mathbb R^d$。</p>
+$$
+\boldsymbol{r}_{t}=\sum_{i=1}^{n} \alpha_{i} \boldsymbol{m}_{t, i}
+$$<p>
+(2) 写操作</p>
+<p>外部记忆的写操作可以分解为两个子操作：<strong>删除和增加</strong>。</p>
+<p>首先，控制器产生删除向量$\boldsymbol e_t$和增加向量$\boldsymbol a_t$，分别为要从外部记忆中删除的信息和要增加的信息。</p>
+$$
+\boldsymbol{m}_{t+1, i}=\boldsymbol{m}_{t, i}(\mathbf{1}-\alpha_{t, i} )\boldsymbol{e}_{t}+\alpha_{t, i} \boldsymbol{a}_{t}, \forall i \in[1, n]
+$$<p>
+通过写操作得到下一时刻的外部记忆$M_{t+1}$。</p>
+<h3 id="参考资料">参考资料</h3>
+<ul>
+<li>邱锡鹏. 神经网络与深度学习. 北京: 机械工业出版社, 2020.</li>
+<li>生物神经网络基础：https://www.jiqizhixin.com/articles/spiking-neurons</li>
+<li>Attention机制维基百科：https://en.wikipedia.org/wiki/Attention_(machine_learning)</li>
+</ul>
+
+	
+</div>
+
+
+            </div>
+
+          </main>
+        </div>
+      </div>
+      <footer class="td-footer row d-print-none">
+  <div class="container-fluid">
+    <div class="row mx-md-2">
+      <div class="td-footer__left col-6 col-sm-4 order-sm-1">
+        
+      </div><div class="td-footer__right col-6 col-sm-4 order-sm-3">
+        
+      </div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2">
+        
+      </div>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css"
+      integrity="sha512-r2+FkHzf1u0+SQbZOoIz2RxWOIWfdEzRuYybGjzKq18jG9zaSfEy9s3+jMqG/zPtRor/q4qaUCYQpmSjTw8M+g==" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"
+        integrity="sha512-INps9zQ2GUEMCQD7xiZQbGUVnqnzEvlynVy6eqcTcHN4+aQiLo9/uaQqckDpdJ8Zm3M0QBs+Pktg4pz0kEklUg=="
+        crossorigin="anonymous">
+</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"
+       integrity="sha512-YJVxTjqttjsU3cSvaTRqsSl0wbRgZUNF+NGGCgto/MUbIvaLdXQzGTCQu4CvyJZbZctgflVB0PXw9LLmTWm5/w==" crossorigin="anonymous"
+       onload='renderMathInElement(document.body, {"delimiters":[{"display":true,"left":"$$","right":"$$"},{"display":false,"left":"$","right":"$"},{"display":false,"left":"\\(","right":"\\)"},{"display":true,"left":"\\[","right":"\\]"}],"errorcolor":"#CD5C5C","throwonerror":false});'>
+</script>
+<script src="/js/main.min.613b131e2c315a570f2f0f22f51f752a53e30fc078f674f7ab0885a6ce15ad68.js" integrity="sha256-YTsTHiwxWlcPLw8i9R91KlPjD8B49nT3qwiFps4VrWg=" crossorigin="anonymous"></script>
+<script defer src="/js/click-to-copy.min.73478a7d4807698aed7e355eb23f9890ca18fea3158604c8471746d046702bad.js" integrity="sha256-c0eKfUgHaYrtfjVesj&#43;YkMoY/qMVhgTIRxdG0EZwK60=" crossorigin="anonymous"></script>
+<script src='/js/tabpane-persist.js'></script>
+
+  </body>
+</html>

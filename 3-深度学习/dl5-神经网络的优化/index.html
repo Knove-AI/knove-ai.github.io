@@ -1,0 +1,713 @@
+<!doctype html>
+<html itemscope itemtype="http://schema.org/WebPage" lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+
+
+<link rel="shortcut icon" href="/favicons/favicon.ico" >
+<link rel="apple-touch-icon" href="/favicons/apple-touch-icon-180x180.png" sizes="180x180">
+<link rel="icon" type="image/png" href="/favicons/favicon-16x16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="/favicons/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/favicons/android-36x36.png" sizes="36x36">
+<link rel="icon" type="image/png" href="/favicons/android-48x48.png" sizes="48x48">
+<link rel="icon" type="image/png" href="/favicons/android-72x72.png" sizes="72x72">
+<link rel="icon" type="image/png" href="/favicons/android-96x96.png" sizes="96x96">
+<link rel="icon" type="image/png" href="/favicons/android-144x144.png" sizes="144x144">
+<link rel="icon" type="image/png" href="/favicons/android-192x192.png" sizes="192x192">
+
+<title>神经网络的优化 | 知予AI</title>
+<meta name="description" content="网络优化的难点 网络结构多样性 神经网络的种类非常多，比如卷积网络、循环网络等，其结构也非常不同。有些比较深，有些比较宽。不同参数在网络中的作用也有很大的差异，比如连接权重和偏置的不同，以及循环网络中循环连接上的权重和其它权重的不同。由于网络结构的多样性，我们很难找到一种通用的优化方法。不同的优化方法在不同网络结构上的差异也都比较大。此外，网络的超参数一般也比较多，这也给优化带来很大的挑战。
+高维变量的非凸优化 低维空间的非凸优化问题主要是存在一些局部最优点。基于梯度下降的优化方法会陷入局部最优点，因此低维空间非凸优化的主要难点是如何选择初始化参数和逃离局部最优点。深度神经网络的参数非常多，其参数学习是在非常高维空间中的非凸优化问题，其挑战和在低维空间的非凸优化问题有所不同。在高维空间中，非凸优化的难点并不在于如何逃离局部最优点，而是如何逃离鞍点(saddle point)。鞍点的叫法是因为其形状像马鞍。鞍点的梯度是0，但是在一些维度上是最高点，在另一些维度上是最低点。
+在高维空间中，局部最优点要求在每一维度上都是最低点，这种概率非常低。假设网络有10,000维参数，一个点在某一维上是局部最低点的概率为$p$，那么在整个参数空间中，局部最优点的概率为$p^{10,000}$，这种可能性非常小。也就是说高维空间中，大部分梯度为0的点都是鞍点。基于梯度下降的优化方法会在鞍点附近接近于停滞，同样很难从这些鞍点中逃离。
+深度神经网络的参数非常多，并且冗余性很高，这使得每个参数对最终损失的影响都比较小，这导致了损失函数在局部最优点附近是一个平坦的区域，称为平坦最小值(flat minima)。
+目前，深度神经网络的参数学习主要是通过梯度下降法来寻找一组可以最小化结构风险的参数。在具体实现中，梯度下降法可以分为批量梯度下降、随机梯度下降以及小批量梯度下降三种形式。除了在收敛效果和效率上的差异，这三种方法都存在一些共同的问题，比如如何改进优化算法、如何初始化参数、如何预处理数据等。
+优化算法 小批量梯度下降 在训练深度神经网络时，训练数据的规模通常都比较大。如果在梯度下降时，每次迭代都要计算整个训练数据上的梯度，这就需要比较多的计算资源。另外大规模训练集中的数据通常会非常冗余，也没有必要在整个训练集上计算梯度。因此，在训练深度神经网络时，经常使用小批量梯度下降法(mini-batch gradient descent)，即仅在训练集中选择一个较小的子集来更新梯度。
+影响小批量梯度下降法的因素有：(1) 批量大小$K$；(2) 学习率$\alpha$；(3) 梯度估计。为了更有效地训练深度神经网络，在标准的小批量梯度下降法的基础上，也经常使用一些改进方法以加快优化速度，比如如何选择批量大小、如何调整学习率以及如何修正梯度估计。
+批量大小选择 在小批量梯度下降法中，批量大小(batch size) 对网络优化的影响非常大。一般而言，批量大小不影响随机梯度的期望，但是会影响随机梯度的方差。批量大小越大，随机梯度的方差越小，引入的噪声也越小，训练也越稳定，因此可以设置较大的学习率。批量大小较小时，需要设置较小的学习率，否则模型会不收敛。学习率通常要随着批量大小的增大而相应地增大。一个简单有效的方法是线性缩放规则：当批量大小增加$m$倍时，学习率也增加$m$倍。线性缩放规则往往在批量大小较小时适用，当批量大小非常大时，线性缩放会使训练不稳定。
+下图给出了从epoch(回合)和iteration(更新次数)的角度，批量大小对损失下降的影响：
+从epoch图可以看出，可以看出，批量样本数越小，适当小的批量大小会导致更快的收敛；从iteration图可以看出，批量大小越大，下降效果越明显，并且下降曲线越平滑。
+学习率调整 学习率是神经网络优化时的重要超参数。在梯度下降法中，学习率的取值非常关键，如果过大就不会收敛，如果过小则收敛速度太慢。常用的学习率调整方法包括学习率衰减、学习率预热、周期性学习率调整以及一些自适应调整学习率的方法，如AdaGrad、RMSprop、AdaDelta等。自适应学习率方法可针对每个参数设置不同的学习率。
+学习率衰减 从经验上看，学习率在一开始要保持大些来保证收敛速度，在收敛到最优点附近时要小些以避免来回震荡。简单的学习率调整可通过学习率衰减(learning rate decay)来实现，也称为学习率退火(learning rate annealing)。不失一般性，衰减方式设置为按迭代次数进行衰减。假设初始化学习率为$\alpha_0$，在第$t$次迭代时的学习率$\alpha_t$，衰减率一般用$\beta$表示。常见的衰减方法有以下几种：
+(1) 分段常数衰减(piecewise constant decay)：每经过$T_1,T_2,\cdots$次迭代将学习率衰减为原来的$\beta_1,\beta_2,\cdots$倍，其中$T_i和$$\beta_i$为根据经验设置的超参数。分段常数衰减也称为步衰减(step decay)。
+$$\alpha_{t}=\alpha_{0} \frac{1}{1&#43;\beta \times t}$$$$\alpha_{t}=\alpha_{0} \beta^{t}$$$$\alpha_{t}=\alpha_{0} \exp (-\beta \times t)$$$$\alpha_{t}=\frac{1}{2} \alpha_{0}\left(1&#43;\cos \left(\frac{t \pi}{T}\right)\right)$$ 下图给出了不同衰减方法的示例(假设初始学习率为1)。
+学习率预热 在小批量梯度下降法中，当批量大小的设置比较大时，通常需要比较大的学习率。但在刚开始训练时，由于参数是随机初始化的，梯度往往也比较大，再加上比较大的初始学习率，会使得训练不稳定。为了提高训练稳定性，我们可以在最初几轮迭代时，采用比较小的学习率，等梯度下降到一定程度后再恢复到初始的学习率，这种方法称为学习率预热(learning rate warmup)。
+$$\alpha_{t}^{\prime}=\frac{t}{T^{\prime}} \alpha_{0}, \quad 1 \leq t \leq T^{\prime}$$ 当预热过程结束，再选择一种学习率衰减方法来逐渐降低学习率。">
+<meta property="og:url" content="https://knove-ai.github.io/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl5-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E7%9A%84%E4%BC%98%E5%8C%96/">
+  <meta property="og:site_name" content="知予AI">
+  <meta property="og:title" content="神经网络的优化">
+  <meta property="og:description" content="网络优化的难点 网络结构多样性 神经网络的种类非常多，比如卷积网络、循环网络等，其结构也非常不同。有些比较深，有些比较宽。不同参数在网络中的作用也有很大的差异，比如连接权重和偏置的不同，以及循环网络中循环连接上的权重和其它权重的不同。由于网络结构的多样性，我们很难找到一种通用的优化方法。不同的优化方法在不同网络结构上的差异也都比较大。此外，网络的超参数一般也比较多，这也给优化带来很大的挑战。
+高维变量的非凸优化 低维空间的非凸优化问题主要是存在一些局部最优点。基于梯度下降的优化方法会陷入局部最优点，因此低维空间非凸优化的主要难点是如何选择初始化参数和逃离局部最优点。深度神经网络的参数非常多，其参数学习是在非常高维空间中的非凸优化问题，其挑战和在低维空间的非凸优化问题有所不同。在高维空间中，非凸优化的难点并不在于如何逃离局部最优点，而是如何逃离鞍点(saddle point)。鞍点的叫法是因为其形状像马鞍。鞍点的梯度是0，但是在一些维度上是最高点，在另一些维度上是最低点。
+在高维空间中，局部最优点要求在每一维度上都是最低点，这种概率非常低。假设网络有10,000维参数，一个点在某一维上是局部最低点的概率为$p$，那么在整个参数空间中，局部最优点的概率为$p^{10,000}$，这种可能性非常小。也就是说高维空间中，大部分梯度为0的点都是鞍点。基于梯度下降的优化方法会在鞍点附近接近于停滞，同样很难从这些鞍点中逃离。
+深度神经网络的参数非常多，并且冗余性很高，这使得每个参数对最终损失的影响都比较小，这导致了损失函数在局部最优点附近是一个平坦的区域，称为平坦最小值(flat minima)。
+目前，深度神经网络的参数学习主要是通过梯度下降法来寻找一组可以最小化结构风险的参数。在具体实现中，梯度下降法可以分为批量梯度下降、随机梯度下降以及小批量梯度下降三种形式。除了在收敛效果和效率上的差异，这三种方法都存在一些共同的问题，比如如何改进优化算法、如何初始化参数、如何预处理数据等。
+优化算法 小批量梯度下降 在训练深度神经网络时，训练数据的规模通常都比较大。如果在梯度下降时，每次迭代都要计算整个训练数据上的梯度，这就需要比较多的计算资源。另外大规模训练集中的数据通常会非常冗余，也没有必要在整个训练集上计算梯度。因此，在训练深度神经网络时，经常使用小批量梯度下降法(mini-batch gradient descent)，即仅在训练集中选择一个较小的子集来更新梯度。
+影响小批量梯度下降法的因素有：(1) 批量大小$K$；(2) 学习率$\alpha$；(3) 梯度估计。为了更有效地训练深度神经网络，在标准的小批量梯度下降法的基础上，也经常使用一些改进方法以加快优化速度，比如如何选择批量大小、如何调整学习率以及如何修正梯度估计。
+批量大小选择 在小批量梯度下降法中，批量大小(batch size) 对网络优化的影响非常大。一般而言，批量大小不影响随机梯度的期望，但是会影响随机梯度的方差。批量大小越大，随机梯度的方差越小，引入的噪声也越小，训练也越稳定，因此可以设置较大的学习率。批量大小较小时，需要设置较小的学习率，否则模型会不收敛。学习率通常要随着批量大小的增大而相应地增大。一个简单有效的方法是线性缩放规则：当批量大小增加$m$倍时，学习率也增加$m$倍。线性缩放规则往往在批量大小较小时适用，当批量大小非常大时，线性缩放会使训练不稳定。
+下图给出了从epoch(回合)和iteration(更新次数)的角度，批量大小对损失下降的影响：
+从epoch图可以看出，可以看出，批量样本数越小，适当小的批量大小会导致更快的收敛；从iteration图可以看出，批量大小越大，下降效果越明显，并且下降曲线越平滑。
+学习率调整 学习率是神经网络优化时的重要超参数。在梯度下降法中，学习率的取值非常关键，如果过大就不会收敛，如果过小则收敛速度太慢。常用的学习率调整方法包括学习率衰减、学习率预热、周期性学习率调整以及一些自适应调整学习率的方法，如AdaGrad、RMSprop、AdaDelta等。自适应学习率方法可针对每个参数设置不同的学习率。
+学习率衰减 从经验上看，学习率在一开始要保持大些来保证收敛速度，在收敛到最优点附近时要小些以避免来回震荡。简单的学习率调整可通过学习率衰减(learning rate decay)来实现，也称为学习率退火(learning rate annealing)。不失一般性，衰减方式设置为按迭代次数进行衰减。假设初始化学习率为$\alpha_0$，在第$t$次迭代时的学习率$\alpha_t$，衰减率一般用$\beta$表示。常见的衰减方法有以下几种：
+(1) 分段常数衰减(piecewise constant decay)：每经过$T_1,T_2,\cdots$次迭代将学习率衰减为原来的$\beta_1,\beta_2,\cdots$倍，其中$T_i和$$\beta_i$为根据经验设置的超参数。分段常数衰减也称为步衰减(step decay)。
+$$\alpha_{t}=\alpha_{0} \frac{1}{1&#43;\beta \times t}$$$$\alpha_{t}=\alpha_{0} \beta^{t}$$$$\alpha_{t}=\alpha_{0} \exp (-\beta \times t)$$$$\alpha_{t}=\frac{1}{2} \alpha_{0}\left(1&#43;\cos \left(\frac{t \pi}{T}\right)\right)$$ 下图给出了不同衰减方法的示例(假设初始学习率为1)。
+学习率预热 在小批量梯度下降法中，当批量大小的设置比较大时，通常需要比较大的学习率。但在刚开始训练时，由于参数是随机初始化的，梯度往往也比较大，再加上比较大的初始学习率，会使得训练不稳定。为了提高训练稳定性，我们可以在最初几轮迭代时，采用比较小的学习率，等梯度下降到一定程度后再恢复到初始的学习率，这种方法称为学习率预热(learning rate warmup)。
+$$\alpha_{t}^{\prime}=\frac{t}{T^{\prime}} \alpha_{0}, \quad 1 \leq t \leq T^{\prime}$$ 当预热过程结束，再选择一种学习率衰减方法来逐渐降低学习率。">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="3-深度学习">
+    <meta property="article:published_time" content="2017-01-01T00:00:00+00:00">
+    <meta property="article:modified_time" content="2017-01-01T00:00:00+00:00">
+
+  <meta itemprop="name" content="神经网络的优化">
+  <meta itemprop="description" content="网络优化的难点 网络结构多样性 神经网络的种类非常多，比如卷积网络、循环网络等，其结构也非常不同。有些比较深，有些比较宽。不同参数在网络中的作用也有很大的差异，比如连接权重和偏置的不同，以及循环网络中循环连接上的权重和其它权重的不同。由于网络结构的多样性，我们很难找到一种通用的优化方法。不同的优化方法在不同网络结构上的差异也都比较大。此外，网络的超参数一般也比较多，这也给优化带来很大的挑战。
+高维变量的非凸优化 低维空间的非凸优化问题主要是存在一些局部最优点。基于梯度下降的优化方法会陷入局部最优点，因此低维空间非凸优化的主要难点是如何选择初始化参数和逃离局部最优点。深度神经网络的参数非常多，其参数学习是在非常高维空间中的非凸优化问题，其挑战和在低维空间的非凸优化问题有所不同。在高维空间中，非凸优化的难点并不在于如何逃离局部最优点，而是如何逃离鞍点(saddle point)。鞍点的叫法是因为其形状像马鞍。鞍点的梯度是0，但是在一些维度上是最高点，在另一些维度上是最低点。
+在高维空间中，局部最优点要求在每一维度上都是最低点，这种概率非常低。假设网络有10,000维参数，一个点在某一维上是局部最低点的概率为$p$，那么在整个参数空间中，局部最优点的概率为$p^{10,000}$，这种可能性非常小。也就是说高维空间中，大部分梯度为0的点都是鞍点。基于梯度下降的优化方法会在鞍点附近接近于停滞，同样很难从这些鞍点中逃离。
+深度神经网络的参数非常多，并且冗余性很高，这使得每个参数对最终损失的影响都比较小，这导致了损失函数在局部最优点附近是一个平坦的区域，称为平坦最小值(flat minima)。
+目前，深度神经网络的参数学习主要是通过梯度下降法来寻找一组可以最小化结构风险的参数。在具体实现中，梯度下降法可以分为批量梯度下降、随机梯度下降以及小批量梯度下降三种形式。除了在收敛效果和效率上的差异，这三种方法都存在一些共同的问题，比如如何改进优化算法、如何初始化参数、如何预处理数据等。
+优化算法 小批量梯度下降 在训练深度神经网络时，训练数据的规模通常都比较大。如果在梯度下降时，每次迭代都要计算整个训练数据上的梯度，这就需要比较多的计算资源。另外大规模训练集中的数据通常会非常冗余，也没有必要在整个训练集上计算梯度。因此，在训练深度神经网络时，经常使用小批量梯度下降法(mini-batch gradient descent)，即仅在训练集中选择一个较小的子集来更新梯度。
+影响小批量梯度下降法的因素有：(1) 批量大小$K$；(2) 学习率$\alpha$；(3) 梯度估计。为了更有效地训练深度神经网络，在标准的小批量梯度下降法的基础上，也经常使用一些改进方法以加快优化速度，比如如何选择批量大小、如何调整学习率以及如何修正梯度估计。
+批量大小选择 在小批量梯度下降法中，批量大小(batch size) 对网络优化的影响非常大。一般而言，批量大小不影响随机梯度的期望，但是会影响随机梯度的方差。批量大小越大，随机梯度的方差越小，引入的噪声也越小，训练也越稳定，因此可以设置较大的学习率。批量大小较小时，需要设置较小的学习率，否则模型会不收敛。学习率通常要随着批量大小的增大而相应地增大。一个简单有效的方法是线性缩放规则：当批量大小增加$m$倍时，学习率也增加$m$倍。线性缩放规则往往在批量大小较小时适用，当批量大小非常大时，线性缩放会使训练不稳定。
+下图给出了从epoch(回合)和iteration(更新次数)的角度，批量大小对损失下降的影响：
+从epoch图可以看出，可以看出，批量样本数越小，适当小的批量大小会导致更快的收敛；从iteration图可以看出，批量大小越大，下降效果越明显，并且下降曲线越平滑。
+学习率调整 学习率是神经网络优化时的重要超参数。在梯度下降法中，学习率的取值非常关键，如果过大就不会收敛，如果过小则收敛速度太慢。常用的学习率调整方法包括学习率衰减、学习率预热、周期性学习率调整以及一些自适应调整学习率的方法，如AdaGrad、RMSprop、AdaDelta等。自适应学习率方法可针对每个参数设置不同的学习率。
+学习率衰减 从经验上看，学习率在一开始要保持大些来保证收敛速度，在收敛到最优点附近时要小些以避免来回震荡。简单的学习率调整可通过学习率衰减(learning rate decay)来实现，也称为学习率退火(learning rate annealing)。不失一般性，衰减方式设置为按迭代次数进行衰减。假设初始化学习率为$\alpha_0$，在第$t$次迭代时的学习率$\alpha_t$，衰减率一般用$\beta$表示。常见的衰减方法有以下几种：
+(1) 分段常数衰减(piecewise constant decay)：每经过$T_1,T_2,\cdots$次迭代将学习率衰减为原来的$\beta_1,\beta_2,\cdots$倍，其中$T_i和$$\beta_i$为根据经验设置的超参数。分段常数衰减也称为步衰减(step decay)。
+$$\alpha_{t}=\alpha_{0} \frac{1}{1&#43;\beta \times t}$$$$\alpha_{t}=\alpha_{0} \beta^{t}$$$$\alpha_{t}=\alpha_{0} \exp (-\beta \times t)$$$$\alpha_{t}=\frac{1}{2} \alpha_{0}\left(1&#43;\cos \left(\frac{t \pi}{T}\right)\right)$$ 下图给出了不同衰减方法的示例(假设初始学习率为1)。
+学习率预热 在小批量梯度下降法中，当批量大小的设置比较大时，通常需要比较大的学习率。但在刚开始训练时，由于参数是随机初始化的，梯度往往也比较大，再加上比较大的初始学习率，会使得训练不稳定。为了提高训练稳定性，我们可以在最初几轮迭代时，采用比较小的学习率，等梯度下降到一定程度后再恢复到初始的学习率，这种方法称为学习率预热(learning rate warmup)。
+$$\alpha_{t}^{\prime}=\frac{t}{T^{\prime}} \alpha_{0}, \quad 1 \leq t \leq T^{\prime}$$ 当预热过程结束，再选择一种学习率衰减方法来逐渐降低学习率。">
+  <meta itemprop="datePublished" content="2017-01-01T00:00:00+00:00">
+  <meta itemprop="dateModified" content="2017-01-01T00:00:00+00:00">
+  <meta itemprop="wordCount" content="743">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="神经网络的优化">
+  <meta name="twitter:description" content="网络优化的难点 网络结构多样性 神经网络的种类非常多，比如卷积网络、循环网络等，其结构也非常不同。有些比较深，有些比较宽。不同参数在网络中的作用也有很大的差异，比如连接权重和偏置的不同，以及循环网络中循环连接上的权重和其它权重的不同。由于网络结构的多样性，我们很难找到一种通用的优化方法。不同的优化方法在不同网络结构上的差异也都比较大。此外，网络的超参数一般也比较多，这也给优化带来很大的挑战。
+高维变量的非凸优化 低维空间的非凸优化问题主要是存在一些局部最优点。基于梯度下降的优化方法会陷入局部最优点，因此低维空间非凸优化的主要难点是如何选择初始化参数和逃离局部最优点。深度神经网络的参数非常多，其参数学习是在非常高维空间中的非凸优化问题，其挑战和在低维空间的非凸优化问题有所不同。在高维空间中，非凸优化的难点并不在于如何逃离局部最优点，而是如何逃离鞍点(saddle point)。鞍点的叫法是因为其形状像马鞍。鞍点的梯度是0，但是在一些维度上是最高点，在另一些维度上是最低点。
+在高维空间中，局部最优点要求在每一维度上都是最低点，这种概率非常低。假设网络有10,000维参数，一个点在某一维上是局部最低点的概率为$p$，那么在整个参数空间中，局部最优点的概率为$p^{10,000}$，这种可能性非常小。也就是说高维空间中，大部分梯度为0的点都是鞍点。基于梯度下降的优化方法会在鞍点附近接近于停滞，同样很难从这些鞍点中逃离。
+深度神经网络的参数非常多，并且冗余性很高，这使得每个参数对最终损失的影响都比较小，这导致了损失函数在局部最优点附近是一个平坦的区域，称为平坦最小值(flat minima)。
+目前，深度神经网络的参数学习主要是通过梯度下降法来寻找一组可以最小化结构风险的参数。在具体实现中，梯度下降法可以分为批量梯度下降、随机梯度下降以及小批量梯度下降三种形式。除了在收敛效果和效率上的差异，这三种方法都存在一些共同的问题，比如如何改进优化算法、如何初始化参数、如何预处理数据等。
+优化算法 小批量梯度下降 在训练深度神经网络时，训练数据的规模通常都比较大。如果在梯度下降时，每次迭代都要计算整个训练数据上的梯度，这就需要比较多的计算资源。另外大规模训练集中的数据通常会非常冗余，也没有必要在整个训练集上计算梯度。因此，在训练深度神经网络时，经常使用小批量梯度下降法(mini-batch gradient descent)，即仅在训练集中选择一个较小的子集来更新梯度。
+影响小批量梯度下降法的因素有：(1) 批量大小$K$；(2) 学习率$\alpha$；(3) 梯度估计。为了更有效地训练深度神经网络，在标准的小批量梯度下降法的基础上，也经常使用一些改进方法以加快优化速度，比如如何选择批量大小、如何调整学习率以及如何修正梯度估计。
+批量大小选择 在小批量梯度下降法中，批量大小(batch size) 对网络优化的影响非常大。一般而言，批量大小不影响随机梯度的期望，但是会影响随机梯度的方差。批量大小越大，随机梯度的方差越小，引入的噪声也越小，训练也越稳定，因此可以设置较大的学习率。批量大小较小时，需要设置较小的学习率，否则模型会不收敛。学习率通常要随着批量大小的增大而相应地增大。一个简单有效的方法是线性缩放规则：当批量大小增加$m$倍时，学习率也增加$m$倍。线性缩放规则往往在批量大小较小时适用，当批量大小非常大时，线性缩放会使训练不稳定。
+下图给出了从epoch(回合)和iteration(更新次数)的角度，批量大小对损失下降的影响：
+从epoch图可以看出，可以看出，批量样本数越小，适当小的批量大小会导致更快的收敛；从iteration图可以看出，批量大小越大，下降效果越明显，并且下降曲线越平滑。
+学习率调整 学习率是神经网络优化时的重要超参数。在梯度下降法中，学习率的取值非常关键，如果过大就不会收敛，如果过小则收敛速度太慢。常用的学习率调整方法包括学习率衰减、学习率预热、周期性学习率调整以及一些自适应调整学习率的方法，如AdaGrad、RMSprop、AdaDelta等。自适应学习率方法可针对每个参数设置不同的学习率。
+学习率衰减 从经验上看，学习率在一开始要保持大些来保证收敛速度，在收敛到最优点附近时要小些以避免来回震荡。简单的学习率调整可通过学习率衰减(learning rate decay)来实现，也称为学习率退火(learning rate annealing)。不失一般性，衰减方式设置为按迭代次数进行衰减。假设初始化学习率为$\alpha_0$，在第$t$次迭代时的学习率$\alpha_t$，衰减率一般用$\beta$表示。常见的衰减方法有以下几种：
+(1) 分段常数衰减(piecewise constant decay)：每经过$T_1,T_2,\cdots$次迭代将学习率衰减为原来的$\beta_1,\beta_2,\cdots$倍，其中$T_i和$$\beta_i$为根据经验设置的超参数。分段常数衰减也称为步衰减(step decay)。
+$$\alpha_{t}=\alpha_{0} \frac{1}{1&#43;\beta \times t}$$$$\alpha_{t}=\alpha_{0} \beta^{t}$$$$\alpha_{t}=\alpha_{0} \exp (-\beta \times t)$$$$\alpha_{t}=\frac{1}{2} \alpha_{0}\left(1&#43;\cos \left(\frac{t \pi}{T}\right)\right)$$ 下图给出了不同衰减方法的示例(假设初始学习率为1)。
+学习率预热 在小批量梯度下降法中，当批量大小的设置比较大时，通常需要比较大的学习率。但在刚开始训练时，由于参数是随机初始化的，梯度往往也比较大，再加上比较大的初始学习率，会使得训练不稳定。为了提高训练稳定性，我们可以在最初几轮迭代时，采用比较小的学习率，等梯度下降到一定程度后再恢复到初始的学习率，这种方法称为学习率预热(learning rate warmup)。
+$$\alpha_{t}^{\prime}=\frac{t}{T^{\prime}} \alpha_{0}, \quad 1 \leq t \leq T^{\prime}$$ 当预热过程结束，再选择一种学习率衰减方法来逐渐降低学习率。">
+<link rel="preload" href="/scss/main.min.a52b2e54f3e921e61502207760f8ecb468b09dc55f348cc42d9b9b9132637847.css" as="style" integrity="sha256-pSsuVPPpIeYVAiB3YPjstGiwncVfNIzELZubkTJjeEc=" crossorigin="anonymous">
+<link href="/scss/main.min.a52b2e54f3e921e61502207760f8ecb468b09dc55f348cc42d9b9b9132637847.css" rel="stylesheet" integrity="sha256-pSsuVPPpIeYVAiB3YPjstGiwncVfNIzELZubkTJjeEc=" crossorigin="anonymous">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda+SC:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Bodoni+Moda:ital,opsz,wght@1,6..96,800&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Sen:wght@400..800&display=swap" rel="stylesheet">
+<script
+  src="https://code.jquery.com/jquery-3.7.1.min.js"
+  integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+  crossorigin="anonymous"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: '\\[', right: '\\]', display: true},   
+        {left: '$$', right: '$$', display: true},     
+        {left: '\\(', right: '\\)', display: false},  
+      ],
+      throwOnError : false
+    });
+  });
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+  </head>
+  <body class="td-page">
+    <header>
+      
+    </header>
+    <div class="container-fluid td-outer">
+      <div class="td-main">
+        <div class="row flex-xl-nowrap">
+          <aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none">
+            <div id="td-sidebar-menu" class="td-sidebar__inner">
+  <image src="/logo.png" style="width: 100%;" />
+
+
+  <form class="td-sidebar__search d-flex align-items-center">
+    
+    <button class="btn btn-link td-sidebar__toggle d-md-none p-0 ms-3 fas fa-bars" type="button" data-bs-toggle="collapse" data-bs-target="#td-section-nav" aria-controls="td-section-nav" aria-expanded="false" aria-label="Toggle section navigation">
+    </button>
+  </form>
+  <nav class="td-sidebar-nav collapse" id="td-section-nav">
+    <ul class="td-sidebar-nav__section pe-md-3 ul-0">
+      <li> <a href="/">首页</a></li>
+      <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m--li">
+  <a href="/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id="m-"><span class=""></span></a>
+  <ul class="ul-1">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-1-e695b0e5ada6e59fbae7a180-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" title="数学基础" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-1-e695b0e5ada6e59fbae7a180"><span class="">1-数学基础</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math1-e7babfe680a7e4bba3e695b0-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math1-%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math1-e7babfe680a7e4bba3e695b0"><span class="">线性代数</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math2-e5beaee7a7afe58886-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math2-%E5%BE%AE%E7%A7%AF%E5%88%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math2-e5beaee7a7afe58886"><span class="">微积分</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math3-e695b0e5ada6e4bc98e58c96-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math3-%E6%95%B0%E5%AD%A6%E4%BC%98%E5%8C%96/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math3-e695b0e5ada6e4bc98e58c96"><span class="">数学优化</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math4-e6a682e78e87e7bb9fe8aea1-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math4-%E6%A6%82%E7%8E%87%E7%BB%9F%E8%AE%A1/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math4-e6a682e78e87e7bb9fe8aea1"><span class="">概率统计</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math5-e4bfa1e681afe8aeba-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math5-%E4%BF%A1%E6%81%AF%E8%AE%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math5-e4bfa1e681afe8aeba"><span class="">信息论</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-2-e69cbae599a8e5ada6e4b9a0-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-2-e69cbae599a8e5ada6e4b9a0"><span class="">2-机器学习</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml1-e69cbae599a8e5ada6e4b9a0e59fbae7a180-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml1-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%9F%BA%E7%A1%80/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml1-e69cbae599a8e5ada6e4b9a0e59fbae7a180"><span class="">机器学习基础</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml2-e7babfe680a7e59b9ee5bd92-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml2-%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml2-e7babfe680a7e59b9ee5bd92"><span class="">线性回归</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml3-ke8bf91e982bbe7ae97e6b395-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml3-k%E8%BF%91%E9%82%BB%E7%AE%97%E6%B3%95/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml3-ke8bf91e982bbe7ae97e6b395"><span class="">近邻算法</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml4-e6849fe79fa5e69cba-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml4-%E6%84%9F%E7%9F%A5%E6%9C%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml4-e6849fe79fa5e69cba"><span class="">感知机</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml5-e8b49de58fb6e696afe58886e7b1bbe599a8-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml5-%E8%B4%9D%E5%8F%B6%E6%96%AF%E5%88%86%E7%B1%BB%E5%99%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml5-e8b49de58fb6e696afe58886e7b1bbe599a8"><span class="">贝叶斯分类器</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml6-e980bbe8be91e59b9ee5bd92e4b88ee69c80e5a4a7e786b5e6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml6-%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92%E4%B8%8E%E6%9C%80%E5%A4%A7%E7%86%B5%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml6-e980bbe8be91e59b9ee5bd92e4b88ee69c80e5a4a7e786b5e6a8a1e59e8b"><span class="">逻辑回归与最大熵模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml7-e694afe68c81e59091e9878fe69cba-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml7-%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml7-e694afe68c81e59091e9878fe69cba"><span class="">支持向量机</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml8-e586b3e7ad96e6a091-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml8-%E5%86%B3%E7%AD%96%E6%A0%91/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml8-e586b3e7ad96e6a091"><span class="">决策树</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml9-e99b86e68890e5ada6e4b9a0-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml9-%E9%9B%86%E6%88%90%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml9-e99b86e68890e5ada6e4b9a0"><span class="">集成学习</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml10-eme7ae97e6b395-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml10-em%E7%AE%97%E6%B3%95/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml10-eme7ae97e6b395"><span class="">EM算法</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml11-e8819ae7b1bb-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml11-%E8%81%9A%E7%B1%BB/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml11-e8819ae7b1bb"><span class="">聚类</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml12-e9998de7bbb4-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml12-%E9%99%8D%E7%BB%B4/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml12-e9998de7bbb4"><span class="">降维</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml13-e789b9e5be81e98089e68ba9-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml13-%E7%89%B9%E5%BE%81%E9%80%89%E6%8B%A9/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml13-e789b9e5be81e98089e68ba9"><span class="">特征选择</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml14-e8af9de9a298e6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml14-%E8%AF%9D%E9%A2%98%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml14-e8af9de9a298e6a8a1e59e8b"><span class="">话题模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml15-e6a682e78e87e59bbee6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml15-%E6%A6%82%E7%8E%87%E5%9B%BE%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml15-e6a682e78e87e59bbee6a8a1e59e8b"><span class="">概率图模型</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m-3-e6b7b1e5baa6e5ada6e4b9a0-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-3-e6b7b1e5baa6e5ada6e4b9a0"><span class="">3-深度学习</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl1-e6b7b1e5baa6e5ada6e4b9a0e6a682e8bfb0-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl1-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E6%A6%82%E8%BF%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl1-e6b7b1e5baa6e5ada6e4b9a0e6a682e8bfb0"><span class="">深度学习概述</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl2-e7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl2-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl2-e7a59ee7bb8fe7bd91e7bb9c"><span class="">神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl3-e58db7e7a7afe7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl3-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl3-e58db7e7a7afe7a59ee7bb8fe7bd91e7bb9c"><span class="">卷积神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl4-e5beaae78eafe7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl4-%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl4-e5beaae78eafe7a59ee7bb8fe7bd91e7bb9c"><span class="">循环神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl5-e7a59ee7bb8fe7bd91e7bb9ce79a84e4bc98e58c96-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl5-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E7%9A%84%E4%BC%98%E5%8C%96/" class="align-left ps-0 active td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl5-e7a59ee7bb8fe7bd91e7bb9ce79a84e4bc98e58c96"><span class="td-sidebar-nav-active-item">神经网络的优化</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl6-e887aae7bc96e7a081e599a8-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl6-%E8%87%AA%E7%BC%96%E7%A0%81%E5%99%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl6-e887aae7bc96e7a081e599a8"><span class="">自编码器</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl7-e6b7b1e5baa6e7949fe68890e6a8a1e59e8b-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl7-%E6%B7%B1%E5%BA%A6%E7%94%9F%E6%88%90%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl7-e6b7b1e5baa6e7949fe68890e6a8a1e59e8b"><span class="">深度生成模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl8-e6b3a8e6848fe58a9be69cbae588b6e4b88ee5a496e983a8e8aeb0e5bf86-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl8-%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%E4%B8%8E%E5%A4%96%E9%83%A8%E8%AE%B0%E5%BF%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl8-e6b3a8e6848fe58a9be69cbae588b6e4b88ee5a496e983a8e8aeb0e5bf86"><span class="">注意力机制与外部记忆</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl9-e59bbee7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl9-%E5%9B%BE%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl9-e59bbee7a59ee7bb8fe7bd91e7bb9c"><span class="">图神经网络</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-4-e887aae784b6e8afade8a880e5a484e79086-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-4-e887aae784b6e8afade8a880e5a484e79086"><span class="">4-自然语言处理</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp1-e887aae784b6e8afade8a880e5a484e79086e6a682e8bfb0-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp1-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E6%A6%82%E8%BF%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp1-e887aae784b6e8afade8a880e5a484e79086e6a682e8bfb0"><span class="">自然语言处理概述</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp2-e8af8de59091e9878f-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp2-%E8%AF%8D%E5%90%91%E9%87%8F/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp2-e8af8de59091e9878f"><span class="">词向量</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp3-e8afade8a880e6a8a1e59e8b-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp3-%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp3-e8afade8a880e6a8a1e59e8b"><span class="">语言模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp4-seq2seqe4b88eattention-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp4-seq2seq%E4%B8%8Eattention/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp4-seq2seqe4b88eattention"><span class="">seq2seq与attention</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp5-e9a284e8aeade7bb83e6a8a1e59e8b-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp5-%E9%A2%84%E8%AE%AD%E7%BB%83%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp5-e9a284e8aeade7bb83e6a8a1e59e8b"><span class="">预训练模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp6-e887aae784b6e8afade8a880e5a484e79086e5ba94e794a8-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp6-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E5%BA%94%E7%94%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp6-e887aae784b6e8afade8a880e5a484e79086e5ba94e794a8"><span class="">自然语言处理应用</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-5-aie7a094e7a9b6e6898be5868c-li">
+  <a href="/5-ai%E7%A0%94%E7%A9%B6%E6%89%8B%E5%86%8C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-5-aie7a094e7a9b6e6898be5868c"><span class="">5-AI研究手册</span></a>
+</li>
+  </ul>
+</li>
+    </ul>
+  </nav>
+</div>
+
+
+          </aside>
+          <aside class="d-none d-xl-block col-xl-2 td-sidebar-toc d-print-none">
+            <div class="td-page-meta ms-2 pb-1 pt-2 mb-0">
+
+</div>
+
+            <div class="td-toc">
+        <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#网络优化的难点">网络优化的难点</a></li>
+        <li><a href="#优化算法">优化算法</a></li>
+        <li><a href="#参数初始化">参数初始化</a></li>
+        <li><a href="#数据预处理">数据预处理</a></li>
+        <li><a href="#逐层归一化">逐层归一化</a></li>
+        <li><a href="#超参数优化">超参数优化</a></li>
+        <li><a href="#网络正则化">网络正则化</a></li>
+        <li><a href="#tensorflow实现神经网络并比较不同的优化器的优化效果">Tensorflow实现神经网络并比较不同的优化器的优化效果</a></li>
+        <li><a href="#参考资料">参考资料</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+      </div>
+    
+            
+
+          </aside>
+          <main class="col-12 col-md-9 col-xl-8 " role="main">
+            <nav class="td-navbar js-navbar-scroll" data-bs-theme="dark">
+<div class="container-fluid flex-column flex-md-row">
+  <a class="navbar-brand" href="/"><span class="navbar-brand__logo navbar-logo"><svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" style="enable-background:new 0 0 500 500"><g><path style="fill:#fff" d="M116.8525 421.9722c-5.7041.0-10.3442-4.3127-10.3442-9.6129V88.183c0-5.3002 4.6401-9.6117 10.3442-9.6117H320.858c3.0347.0 9.3959.5498 11.7506 2.6302l.3545.3442 58.905 63.2912c2.3101 2.491 2.9202 8.4928 2.9202 11.3184v256.2039c0 5.3002-4.6407 9.6129-10.3436 9.6129H116.8525z"/><g><g><g><path style="fill:#767676" d="M384.4445 423.2066H116.852c-6.3839.0-11.5786-4.8658-11.5786-10.8474V88.1831c0-5.9804 5.1947-10.8461 11.5786-10.8461h204.0062c.377.0 9.2786.0329 12.568 2.9389l.3947.3833 58.9508 63.337c3.2135 3.4652 3.2514 11.7924 3.2514 12.1593v256.2036C396.0231 418.3408 390.8284 423.2066 384.4445 423.2066zM116.5079 411.9189c.0848.0278.1999.0531.3441.0531h267.5925c.1442.0.2581-.0253.3441-.0531V156.1556c-.0076-.9033-.3593-3.7347-.7034-5.0037l-57.6527-61.9416c-1.4651-.3176-4.4533-.6389-5.5742-.6389H116.852c-.143.0-.2594.024-.3441.0531V411.9189zm267.4533-261.149zM327.0321 89.371v.0013V89.371z"/></g></g></g><g><g><path style="fill:#5b7fc0" d="M189.0874 210.1754l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4473C177.5953 212.627 183.0601 210.1742 189.0874 210.1754zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 234.1722 197.0804 232.033z"/><path style="opacity:.3;fill:#fff" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/><g><defs><path id="SVGID_1_" d="M194.7376 237.6875c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 234.2399 196.1861 236.239 194.7376 237.6875z"/></defs><clipPath id="SVGID_2_"><use xlink:href="#SVGID_1_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_2_);fill:#fff" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/><path style="opacity:.13;clip-path:url(#SVGID_2_);fill:#020202" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/></g><g><defs><path id="SVGID_3_" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/></defs><clipPath id="SVGID_4_"><use xlink:href="#SVGID_3_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_4_);fill:#5b7fc0" d="M172.6595 215.6045c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8475-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 209.1953 176.6171 211.647 172.6595 215.6045z"/></g></g><rect x="198.8952" y="225.1043" style="fill:#5b7fc0" width="122.6266" height="13.8671"/></g><g><path style="fill:#d95140" d="M189.0874 155.7611l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.0249 2.454-11.4897 6.4116-15.4473C177.5953 158.2128 183.0601 155.7599 189.0874 155.7611zm7.993 21.8577c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.2508 181.7667 197.0816 179.758 197.0804 177.6188z"/><path style="opacity:.3;fill:#fff" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/><g><defs><path id="SVGID_5_" d="M194.7376 183.2733c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 179.8256 196.1861 181.8248 194.7376 183.2733z"/></defs><clipPath id="SVGID_6_"><use xlink:href="#SVGID_5_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_6_);fill:#fff" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/><path style="opacity:.13;clip-path:url(#SVGID_6_);fill:#020202" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/></g><g><defs><path id="SVGID_7_" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/></defs><clipPath id="SVGID_8_"><use xlink:href="#SVGID_7_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_8_);fill:#d95140" d="M172.6595 161.1903c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 154.7811 176.6171 157.2327 172.6595 161.1903z"/></g><rect x="198.8952" y="170.69" style="fill:#d95140" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#56a55c" d="M189.5379 264.6147l.0012-.0012c7.7751.0012 15.0294 4.1862 18.932 10.9235 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032-5.8394.0-11.3281-2.2733-15.458-6.4032-4.13-4.13-6.4032-9.6186-6.4056-15.4628.0012-6.0249 2.454-11.4897 6.4116-15.4472C178.0458 267.0663 183.5105 264.6135 189.5379 264.6147zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6538 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.7013 290.6202 197.5321 288.6115 197.5309 286.4723z"/><path style="opacity:.3;fill:#fff" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/><g><defs><path id="SVGID_9_" d="M195.1881 292.1268c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9941 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.5344 288.6792 196.6366 290.6783 195.1881 292.1268z"/></defs><clipPath id="SVGID_10_"><use xlink:href="#SVGID_9_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_10_);fill:#fff" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/><path style="opacity:.13;clip-path:url(#SVGID_10_);fill:#020202" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/></g><g><defs><path id="SVGID_11_" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/></defs><clipPath id="SVGID_12_"><use xlink:href="#SVGID_11_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_12_);fill:#56a55c" d="M173.11 270.0439c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7325-11.1497-10.9151-18.926-10.9151C182.5311 263.6346 177.0676 266.0863 173.11 270.0439z"/></g></g><rect x="199.3456" y="279.5436" style="fill:#56a55c" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#f1bc42" d="M189.0874 318.7208l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3305-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4472C177.5953 321.1724 183.0601 318.7196 189.0874 318.7208zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 342.7176 197.0804 340.5784z"/><path style="opacity:.3;fill:#fff" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/><g><defs><path id="SVGID_13_" d="M194.7376 346.2329c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 342.7853 196.1861 344.7844 194.7376 346.2329z"/></defs><clipPath id="SVGID_14_"><use xlink:href="#SVGID_13_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_14_);fill:#fff" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/><path style="opacity:.13;clip-path:url(#SVGID_14_);fill:#020202" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/></g><g><defs><path id="SVGID_15_" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/></defs><clipPath id="SVGID_16_"><use xlink:href="#SVGID_15_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_16_);fill:#f1bc42" d="M172.6595 324.15c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8474-1.0151-7.6327-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 317.7407 176.6171 320.1924 172.6595 324.15z"/></g></g><rect x="198.8952" y="333.6497" style="fill:#f1bc42" width="122.6266" height="13.8671"/></g></g></svg></span><span class="navbar-brand__name">知予AI</span></a>
+  <div class="td-navbar-nav-scroll ms-md-auto" id="main_navbar">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="https://github.com/knove-ai" target="_blank" rel="noopener"><i class="fa fa-github"></i><span>Github</span></a>
+      </li>
+      </ul>
+  </div>
+  <div class="d-none d-lg-block">
+    
+  </div>
+</div>
+</nav>
+
+            <div class="ps-md-5">
+              
+  
+
+              <nav aria-label="breadcrumb" class="td-breadcrumbs">
+  <ol class="breadcrumb">
+  <li class="breadcrumb-item">
+    <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">3-深度学习</a></li>
+  <li class="breadcrumb-item active" aria-current="page">
+    神经网络的优化</li>
+  </ol>
+</nav>
+              
+<div class="td-content">
+	<h1>神经网络的优化</h1>
+	
+	<header class="article-meta">
+		
+</header>
+	<h3 id="网络优化的难点">网络优化的难点</h3>
+<h4 id="网络结构多样性">网络结构多样性</h4>
+<p>神经网络的种类非常多，比如卷积网络、循环网络等，其结构也非常不同。有些比较深，有些比较宽。不同参数在网络中的作用也有很大的差异，比如连接权重和偏置的不同，以及循环网络中循环连接上的权重和其它权重的不同。由于网络结构的多样性，我们很难找到一种通用的优化方法。<strong>不同的优化方法在不同网络结构上的差异也都比较大</strong>。此外，网络的超参数一般也比较多，这也给优化带来很大的挑战。</p>
+<h4 id="高维变量的非凸优化">高维变量的非凸优化</h4>
+<p>低维空间的非凸优化问题主要是存在一些局部最优点。基于梯度下降的优化方法会陷入局部最优点，因此低维空间非凸优化的主要难点是如何选择初始化参数和逃离局部最优点。深度神经网络的参数非常多，其参数学习是在非常高维空间中的非凸优化问题，其挑战和在低维空间的非凸优化问题有所不同。在高维空间中，非凸优化的难点并不在于如何逃离局部最优点，而是如何逃离<strong>鞍点(saddle point)</strong>。鞍点的叫法是因为其形状像马鞍。鞍点的梯度是0，但是在一些维度上是最高点，在另一些维度上是最低点。</p>
+<div align="center">
+<img src="/images/3/image-20200613202435836.png" style="zoom:25%;" /></div>
+<p>在高维空间中，局部最优点要求<strong>在每一维度上都是最低点</strong>，<strong>这种概率非常低</strong>。假设网络有10,000维参数，一个点在某一维上是局部最低点的概率为$p$，那么在整个参数空间中，局部最优点的概率为$p^{10,000}$，这种可能性非常小。也就是说<strong>高维空间中，大部分梯度为0的点都是鞍点</strong>。基于梯度下降的优化方法会<strong>在鞍点附近接近于停滞</strong>，同样很难从这些鞍点中逃离。</p>
+<p>深度神经网络的参数非常多，并且冗余性很高，这使得每个参数对最终损失的影响都比较小，这导致了损失函数在局部最优点附近是一个平坦的区域，称为<strong>平坦最小值(flat minima)</strong>。</p>
+<div align="center">
+<img src="/images/3/image-20200613202647979.png" style="zoom:30%;" />
+</div>
+<p>目前，深度神经网络的参数学习主要是通过梯度下降法来寻找一组可以最小化结构风险的参数。在具体实现中，梯度下降法可以分为<strong>批量梯度下降、随机梯度下降以及小批量梯度下降</strong>三种形式。除了在收敛效果和效率上的差异，这三种方法都存在一些共同的问题，比如<strong>如何改进优化算法、如何初始化参数、如何预处理数据等</strong>。</p>
+<h3 id="优化算法">优化算法</h3>
+<h4 id="小批量梯度下降">小批量梯度下降</h4>
+<p>在训练深度神经网络时，训练数据的规模通常都比较大。如果在梯度下降时，每次迭代都要计算整个训练数据上的梯度，这就需要比较多的计算资源。另外大规模训练集中的数据通常会非常冗余，也没有必要在整个训练集上计算梯度。因此，在训练深度神经网络时，经常使用<strong>小批量梯度下降法(mini-batch gradient descent)</strong>，即<strong>仅在训练集中选择一个较小的子集来更新梯度</strong>。</p>
+<p>影响小批量梯度下降法的因素有：(1) 批量大小$K$；(2) 学习率$\alpha$；(3) 梯度估计。为了更有效地训练深度神经网络，在标准的小批量梯度下降法的基础上，也经常使用一些改进方法以加快优化速度，比如如何<strong>选择批量大小</strong>、如何<strong>调整学习率</strong>以及如何<strong>修正梯度估计</strong>。</p>
+<h4 id="批量大小选择">批量大小选择</h4>
+<p>在小批量梯度下降法中，<strong>批量大小(batch size)</strong> 对网络优化的影响非常大。一般而言，<strong>批量大小不影响随机梯度的期望，但是会影响随机梯度的方差</strong>。批量大小越大，随机梯度的<strong>方差越小</strong>，引入的噪声也越小，训练也越稳定，因此可以设置<strong>较大的学习率</strong>。批量大小较小时，需要设置较小的学习率，否则模型会<strong>不收敛</strong>。学习率通常要随着批量大小的增大而相应地增大。一个简单有效的方法是<strong>线性缩放规则</strong>：当批量大小增加$m$倍时，学习率也增加$m$倍。线性缩放规则往往在批量大小较小时适用，当批量大小非常大时，线性缩放会使训练不稳定。</p>
+<p>下图给出了从epoch(回合)和iteration(更新次数)的角度，批量大小对损失下降的影响：</p>
+<div align="center">
+<img src="/images/3/image-20200613203340367.png" style="zoom:35%;" />
+</div>
+<div align="center">
+<img src="/images/3/image-20200613203411932.png" style="zoom:35%;" />
+</div>
+<p>从epoch图可以看出，可以看出，<strong>批量样本数越小，适当小的批量大小会导致更快的收敛</strong>；从iteration图可以看出，<strong>批量大小越大，下降效果越明显，并且下降曲线越平滑</strong>。</p>
+<h4 id="学习率调整">学习率调整</h4>
+<p>学习率是神经网络优化时的重要超参数。在梯度下降法中，学习率的取值非常关键，如果<strong>过大就不会收敛</strong>，如果<strong>过小则收敛速度太慢</strong>。常用的学习率调整方法包括<strong>学习率衰减、学习率预热、周期性学习率调整</strong>以及一些<strong>自适应调整学习率的方法</strong>，如<strong>AdaGrad、RMSprop、AdaDelta</strong>等。自适应学习率方法可针对每个参数设置不同的学习率。</p>
+<h5 id="学习率衰减">学习率衰减</h5>
+<p>从经验上看，学习率在一开始要保持大些来保证收敛速度，在收敛到最优点附近时要小些以避免来回震荡。简单的学习率调整可通过<strong>学习率衰减(learning rate decay)<strong>来实现，也称为</strong>学习率退火(learning rate annealing)</strong>。不失一般性，衰减方式设置为<strong>按迭代次数进行衰减</strong>。假设初始化学习率为$\alpha_0$，在第$t$次迭代时的学习率$\alpha_t$，衰减率一般用$\beta$表示。常见的衰减方法有以下几种：</p>
+<p>(1) <strong>分段常数衰减(piecewise constant decay)</strong>：每经过$T_1,T_2,\cdots$次迭代将学习率衰减为原来的$\beta_1,\beta_2,\cdots$倍，其中$T_i和$$\beta_i$为根据经验设置的超参数。分段常数衰减也称为<strong>步衰减(step decay)</strong>。</p>
+$$
+\alpha_{t}=\alpha_{0} \frac{1}{1+\beta \times t}
+$$$$
+\alpha_{t}=\alpha_{0} \beta^{t}
+$$$$
+\alpha_{t}=\alpha_{0} \exp (-\beta \times t)
+$$$$
+\alpha_{t}=\frac{1}{2} \alpha_{0}\left(1+\cos \left(\frac{t \pi}{T}\right)\right)
+$$<p>
+下图给出了不同衰减方法的示例(假设<strong>初始学习率为1</strong>)。</p>
+<div align="center">
+<img src="/images/3/image-20200613204216218.png" style="zoom:35%;" />
+</div>
+<h5 id="学习率预热">学习率预热</h5>
+<p>在小批量梯度下降法中，当批量大小的设置比较大时，通常需要比较大的学习率。但在刚开始训练时，由于参数是随机初始化的，梯度往往也比较大，再加上比较大的初始学习率，会使得训练不稳定。为了提高训练稳定性，我们可以<strong>在最初几轮迭代时，采用比较小的学习率</strong>，等梯度下降到一定程度后再恢复到初始的学习率，这种方法称为<strong>学习率预热(learning rate warmup)</strong>。</p>
+$$
+\alpha_{t}^{\prime}=\frac{t}{T^{\prime}} \alpha_{0}, \quad 1 \leq t \leq T^{\prime}
+$$<p>
+<strong>当预热过程结束，再选择一种学习率衰减方法来逐渐降低学习率</strong>。</p>
+<h5 id="学习率周期性调整">学习率周期性调整</h5>
+<p>为了使得梯度下降法能够逃离局部最小值或鞍点，一种经验性的方式是在训练过程中<strong>周期性地增大学习率</strong>。虽然增大学习率可能短期内有损网络的收敛稳定性，但从长期来看<strong>有助于找到更好的局部最优解</strong>。一般而言，当一个模型收敛一个平坦的局部最小值时，其鲁棒性会更好，即微小的参数变动不会剧烈影响模型能力；而当模型收敛到一个尖锐的局部最小值时，其鲁棒性也会比较差。具备良好泛化能力的模型通常应该是鲁棒的，因此<strong>理想的局部最小值应该是平坦的</strong>。周期性学习率调整可以使得梯度下降法在优化过程中<strong>跳出尖锐的局部极小值</strong>，虽然会短期内会损害优化过程，但最终会收敛到更加理想的局部极小值。</p>
+<p>常用的两种周期性学习率调整方法(三角循环学习率、带热重启的余弦衰减)如下所示：</p>
+<div align="center">
+<img src="/images/3/image-20200613205808096.png" style="zoom:25%;" />
+</div>
+<h4 id="梯度估计修正">梯度估计修正</h4>
+<p>除了调整学习率之外，还可以进行<strong>梯度估计(gradient estimation)的修正</strong>。在随机(小批量)梯度下降法中，如果每次选取样本数量比较小，损失会<strong>呈现震荡的方式下降</strong>。也就是说，随机梯度下降方法中每次迭代的梯度估计和整个训练集上的最优梯度并不一致，具有一定的随机性。一种有效地缓解梯度估计随机性的方式是<strong>通过使用最近一段时间内的平均梯度来代替当前时刻的随机梯度作为参数更新的方向，从而提高优化速度</strong>。</p>
+$$
+\Delta \theta_{t}=\rho \Delta \theta_{t-1}-\alpha \boldsymbol{g}_{t}=-\alpha \sum_{\tau=1}^{t} \rho^{t-\tau} \boldsymbol{g}_{\tau}
+$$<p>其中$\rho$为动量因子，通常设为0.9，$\alpha$为学习率。</p>
+<p>(2) <strong>Nesterov加速梯度(nesterov accelerated gradient, NAG)</strong>：一种对动量法的改进。</p>
+$$
+\begin{aligned}
+\hat{\theta} &=\theta_{t-1}+\rho \Delta \theta_{t-1} \\
+\theta_{t} &=\hat{\theta}-\alpha \boldsymbol{g}_{t}
+\end{aligned}
+$$$$
+\Delta \theta_{t}=\rho \Delta \theta_{t-1}-\alpha \mathfrak{g}_{t}(\theta_{t-1}+\rho \Delta \theta_{t-1})
+$$<p>
+其中$\mathfrak{g}<em>{t}(\theta</em>{t-1}+\rho \Delta \theta_{t-1})$表示损失函数在点$\hat{\theta}=\theta_{t-1}+\rho \Delta \theta_{t-1}$上的偏导数。</p>
+<p>下图给出了动量法和Nesterov加速梯度在参数更新时的比较：</p>
+<div align="center">
+<img src="/images/3/image-20200721100647751.png" style="zoom:30%;" />
+</div>
+<p>(3) <strong>Adam(adaptive moment estimation)</strong> 可以看作动量法和RMSprop算法的结合，不但使用动量作为参数更新方向，而且可以自适应调整学习率。</p>
+<p>(4) <strong>梯度截断(gradient clipping)</strong>：在深度神经网络或循环神经网络中，除了梯度消失之外，梯度爆炸也是影响学习效率的主要因素。在基于梯度下降的优化过程中，如果梯度突然增大，用大的梯度更新参数反而会导致其远离最优点。为了避免这种情况，当梯度的模大于一定阈值时，就对梯度进行截断，称为梯度截断。</p>
+<h3 id="参数初始化">参数初始化</h3>
+<p>神经网络训练过程中的参数学习是基于梯度下降法进行优化的。梯度下降法需要在开始训练时给每一个参数赋一个初始值。这个初始值的选取十分关键。在<strong>感知器和logistic回归</strong>的训练中，我们一般将参数<strong>全部初始化为0</strong>。但是这<strong>在神经网络的训练中会存在一些问题</strong>。因为如果参数都为0，在第一遍前向计算时，<strong>所有的隐层神经元的激活值都相同。这样会导致深层神经元没有区分性。这种现象也称为对称权重现象</strong>。</p>
+<p><strong>随机初始化参数的一个问题是如何选取随机初始化的区间</strong>。如果参数取的太小，一是会导致神经元的输入过小，经过多层之后信号就慢慢消失了；二是还会使得sigmoid型激活函数丢失非线性的能力，因为sigmoid函数在0附近基本上是近似线性的。这样多层神经网络的优势也就不存在了。如果参数取的太大，会导致输入状态过大。对于sigmoid型激活函数来说，激活值变得饱和，从而导致梯度接近于0。</p>
+<p>因此，要高效地训练神经网络，给参数选取一个合适的随机初始化区间是非常重要的。一般而言，参数初始化的区间应该<strong>根据神经元的性质进行差异化的设置</strong>。如果一个神经元的输入连接很多，它的每个输入连接上的权重就应该小一些，以避免神经元的输出过大(当激活函数为ReLU时)或过饱和(当激活函数为sigmoid函数时)。</p>
+<p>经常使用的两种初始化方法有<strong>高斯分布初始化</strong>和<strong>均匀分布初始化</strong>。初始化一个深层网络时，一个比较好的初始化策略是<strong>保持每个神经元输入和输出的方差一致</strong>。</p>
+<h4 id="xavier初始化glorot初始化">Xavier初始化(Glorot初始化)</h4>
+$$
+r=\sqrt{\frac{6}{n^{l-1}+n^{l}}}
+$$<p>
+其中$n^l$和$n^{l-1}$分别代表第$l$层和第$l-1$层神经元的数量。</p>
+$$
+r=4 \sqrt{\frac{6}{n^{l-1}+n^{l}}}
+$$$$
+z^{l}=\sum_{i=1}^{n^{(l-1)}} w_{i}^{l} a_{i}^{(l-1)}
+$$<p>
+为了避免初始化参数使得激活值变得饱和，我们需要尽量使得$z^l$处于激活函数的线性区间，也就是其绝对值比较小的值。这时该神经元的激活值为$a^l=f(z^l) \approx z^l$。</p>
+$$
+\mathbb{E}[a^{l}]=\mathbb{E}\left[\sum_{i=1}^{n^{(l-1)}} w_{i}^{l} a_{i}^{(l-1)}\right]=\sum_{i=1}^{n^{(l-1)}} \mathbb{E}\left[\boldsymbol{w}_{i}\right] \mathbb{E}[a_{i}^{(l-1)}]=0
+$$$$
+\begin{aligned}
+\operatorname{var}[a^{l}] &=\operatorname{var}[\sum_{i=1}^{n^{(l-1)}} w_{i}^{l} a_{i}^{(l-1)}] \\
+&=\sum_{i=1}^{n^{(l-1)}} \operatorname{var}[w_{i}^{l}] \operatorname{var}[a_{i}^{(l-1)}] \\
+&=n^{(l-1)} \operatorname{var}[w_{i}^{l}] \operatorname{var}[a_{i}^{(l-1)}]
+\end{aligned}
+$$$$
+\operatorname{var}[w_{i}^{l}]=\frac{1}{n^{(l-1)}}
+$$$$
+\operatorname{var}\left[w_{i}^{l}\right]=\frac{1}{n^{(l)}}
+$$$$
+\operatorname{var}[w_{i}^{l}]=\frac{2}{n^{(l-1)}+n^{(l)}}
+$$$$
+\mathcal{N}\left(0, \sqrt{\frac{2}{n^{(l-1)}}+n^{(l)}}\right)
+$$$$
+\operatorname{var}[x]=\frac{(b-a)^{2}}{12}
+$$$$
+r=\sqrt{\frac{6}{n^{l-1}+n^{1}}}
+$$<h4 id="he初始化">He初始化</h4>
+$$
+\operatorname{var}[w_{i}^{l}]=\frac{2}{n^{(l-1)}}
+$$<p>
+其中$n^{(l-1)}$是第$l-1$层神经元个个数。因此当使用ReLU激活函数时，若采用高斯分布来初始化参数$w_i^l$，其方差为$\frac{2}{n^{(l-1)}}$；若采用区间为$[r, r]$的均分分布来初始化参数$w_i^l$，则$r=\sqrt{\frac{6}{n^{l-1}}}$。这种初始化方法称为$He$初始化。</p>
+<h3 id="数据预处理">数据预处理</h3>
+<p>一般而言，样本的原始特征中的每一维特征由于<strong>来源以及度量单位不同</strong>，其<strong>特征取值的分布范围往往差异很大</strong>。当我们计算不同样本之间的欧氏距离时，<strong>取值范围大的特征会起到主导作用</strong>。这样，对于基于相似度比较的机器学习方法(比如最近邻分类器)，必须先对样本进行预处理，将各个维度的特征归一化到同一个取值区间，并且消除不同特征之间的相关性，才能获得比较理想的结果。虽然<strong>神经网络可以通过参数的调整来适应不同特征的取值范围</strong>，但是会导致<strong>训练效率比较低</strong>，因为参数调整的过程需要花较长时间。</p>
+<p>不同输入特征的取值范围差异比较大时，梯度下降法的效率也会受到影响。下图给出了<strong>数据归一化对梯度的影响</strong>。其中，下图(a)为未归一化数据的等高线图。取值范围不同会造成在大多数位置上的梯度方向并不是最优的搜索方向。当使用梯度下降寻求最优解时，需要很多次迭代才能收敛。</p>
+<div align="center">
+<img src="/images/3/image-20200613210201201.png" style="zoom:30%;" />
+</div>
+<p>在神经网络中常用的归一化方式有以下几种：</p>
+$$
+\hat{x}^{(n)}=\frac{x^{(n)}-\min _{n}(x^{(n)})}{\max _{n}(x^{(n)})-\min _{n}(x^{(n)})}
+$$<p>
+其中$\min(x)$和$\max(x)$分别是<strong>特征</strong>$x$在所有样本上的最小值和最大值。</p>
+$$
+\begin{aligned}
+\mu &=\frac{1}{N} \sum_{n=1}^{N} x^{(n)} \\
+\sigma^{2} &=\frac{1}{N} \sum_{n=1}^{N}(x^{(n)}-\mu)^{2}
+\end{aligned}
+$$$$
+\hat{x}^{(n)}=\frac{x^{(n)}-\mu}{\sigma}
+$$<p>
+这里$\sigma$不能为0。<strong>如果方差为0，说明这一维特征没有任务区分性，可以直接删掉</strong>。</p>
+<p>(3) <strong>白化</strong>：一种重要的预处理方法，用来<strong>降低输入数据特征之间的冗余性</strong>。输入数据经过白化处理后，<strong>特征之间相关性较低，并且所有特征具有相同的方差</strong>。白化的一个主要实现方式是使用**主成分分析(principal component analysis, PCA)**方法去除掉各个成分之间的相关性。下图给出了标准归一化和PCA白化的比较。</p>
+<div align="center">
+<img src="/images/3/image-20200613211559224.png" style="zoom:35%;" />
+</div>
+<h3 id="逐层归一化">逐层归一化</h3>
+<p>在深度神经网络中，<strong>中间某一层的输入是其之前的神经层的输出</strong>。因此，<strong>其之前的神经层的参数变化会导致其输入的分布发生较大的差异</strong>。在使用随机梯度下降来训练网络时，每次参数更新都会导致网络中间每一层的输入的分布发生改变。越深的层，其输入的分布会改变得越明显。就像一栋高楼，低楼层发生一个较小的偏移，都会导致高楼层较大的偏移。</p>
+<p>从机器学习角度来看，如果某个神经层的输入分布发生了改变，那么其参数需要重新学习，这种现象叫做<strong>内部协变量偏移(internal covariate shift)</strong>。</p>
+<p>为了解决内部协变量偏移问题，就要使得每一个神经层的输入的分布在训练过程中保持一致。最<strong>简单直接的方法就是对每一个神经层都进行归一化操作，使其分布保持稳定</strong>。下面介绍几种比较常用的逐层归一化方法：批量归一化、层归一化和其它一些方法。</p>
+<h4 id="批量归一化">批量归一化</h4>
+$$
+\boldsymbol{a}^{(l)}=f(\boldsymbol{z}^{(l)})=f(W \boldsymbol{a}^{(l-1)}+\boldsymbol{b})
+$$<p>
+为了减少内部协变量偏移问题，就要使得净输入$\boldsymbol z^{(l)}$的分布一致，比如都归一化到标准正态分布。虽然归一化操作可以应用在输入$\boldsymbol a^{(l-1)}$上，但其<strong>分布性质</strong>不如$\boldsymbol z^{(l)}$稳定。因此，<strong>在实践中归一化操作一般应用在仿射变换之后，激活函数之前</strong>。</p>
+$$
+\hat{\boldsymbol{z}}^{(l)}=\frac{\boldsymbol{z}^{(l)}-\mathbb{E}[\boldsymbol{z}^{(l)}]}{\sqrt{\operatorname{var}(\boldsymbol{z}^{(l)})+\epsilon}}
+$$<p>
+其中$\mathbb{E}[\boldsymbol{z}^{(l)}]$和$\operatorname{var}(\boldsymbol{z}^{(l)})$是指当前参数下，$\boldsymbol{z}^{(l)}$的<strong>每一维在整个训练集上的期望和方差</strong>。因为目前主要的训练方法是基于小批量的随机梯度下降法，所以准确地计算的期望$\boldsymbol{z}^{(l)}$和方差是不可行的。因此，$\boldsymbol{z}^{(l)}$的<strong>期望和方差通常用当前小批量样本集的均值和方差近似估计</strong>。</p>
+$$
+\begin{aligned}
+\boldsymbol{\mu}_{\mathcal{B}} &=\frac{1}{K} \sum_{k=1}^{K} \boldsymbol{z}^{(k, l)} \\
+\boldsymbol{\sigma}_{\mathcal{B}}^{2} &=\frac{1}{K} \sum_{k=1}^{K}(\boldsymbol{z}^{(k, l)}-\boldsymbol{\mu}_{\mathcal{B}}) \odot(\boldsymbol{z}^{(k, l)}-\boldsymbol{\mu}_{\mathcal{B}})
+\end{aligned}
+$$<p>
+其中$\boldsymbol{\mu}<em>{\mathcal{B}}$和$\boldsymbol{\sigma}</em>{\mathcal{B}}^{2}$均为向量，其维度与数据的特征数相等。</p>
+$$
+\begin{aligned}
+\hat{\boldsymbol{z}}^{(l)} &=\frac{\boldsymbol{z}^{(l)}-\boldsymbol{\mu}_{\mathcal{B}}}{\sqrt{\sigma_{\mathcal{B}}^{2}+\epsilon}} \odot \gamma+\boldsymbol{\beta} \\
+& \triangleq \mathrm{B} \mathrm{N}_{\boldsymbol{\gamma}, \boldsymbol{\beta}}(\boldsymbol{z}^{(l)})
+\end{aligned}
+$$$$
+\boldsymbol{a}^{(l)}=f(\mathrm{BN}_{\gamma, \boldsymbol{\beta}}(\boldsymbol{z}^{(l)}))=f(\mathrm{BN}_{\gamma, \boldsymbol{\beta}}(W \boldsymbol{a}^{(l-1)}))
+$$<h4 id="层归一化">层归一化</h4>
+<p>批量归一化是对一个中间层的<strong>单个神经元(特征)</strong> 进行归一化操作，因此要求小批量样本的数量不能太小，否则难以计算单个神经元的统计信息。此外，如果一个神经元的净输入的分布在神经网络中是动态变化的，比如循环神经网络，那么就无法应用批量归一化操作。</p>
+<p>**层归一化(layer normalization)**是和批量归一化非常类似的方法。和批量归一化不同的是，层归一化是对一个中间层的所有神经元进行归一化。</p>
+$$
+\begin{aligned}
+\mu^{(l)} &=\frac{1}{n^{l}} \sum_{i=1}^{n^{l}} z_{i}^{(l)} \\
+\sigma^{(l)^{2}} &=\frac{1}{n^{l}} \sum_{i=1}^{n^{l}}(z_{i}^{(l)}-\mu^{(l)})^{2}
+\end{aligned}
+$$$$
+\begin{aligned}
+\hat{\boldsymbol{z}}^{(l)} &=\frac{\boldsymbol{z}^{(l)}-\mu^{(l)}}{\sqrt{\sigma^{(l)^{2}}+\epsilon}} \odot \boldsymbol \gamma+\boldsymbol{\beta} \\
+& \triangleq \mathrm{LN}_{\boldsymbol{\gamma}, \boldsymbol{\beta}}(\boldsymbol{z}^{(l)})
+\end{aligned}
+$$<p>
+其中$\boldsymbol \gamma$和$\boldsymbol \beta$分别代表缩放和平移的参数向量，和$\boldsymbol z^{(l)}$维数相同。</p>
+$$
+\begin{aligned}
+z_{t}=U \boldsymbol{h}_{t-1}+W \boldsymbol{x}_{t} \\
+\boldsymbol{h}_{t}=f(\mathrm{LN}_{\gamma, \boldsymbol{\beta}}(\boldsymbol{z}_{t}))
+\end{aligned}
+$$<p>
+其中$\boldsymbol x_t$为第$t$时刻的输入，$U,W$为网络参数。在标准循环神经网络中，循环神经层的净输入一般会随着时间慢慢变大或变小，从而导致梯度爆炸或消失。而<strong>层归一化的循环神经网络可以有效地缓解这种状况</strong>。</p>
+<p>层归一化和批量归一化整体上是十分类似的，差别在于归一化的方法不同。对于 $K$个样本的一个小批量集合$Z^{(l)}=[\boldsymbol{z}^{(1, l)} ; \cdots ; \boldsymbol{z}^{(K, l)}]$，层归一化是对矩阵$Z^{(l)}$的<strong>每一列</strong>进行归一化，而批量归一化是对<strong>每一行</strong>进行归一化。一般而言，<strong>批量归一化是一种更好的选择。当小批量样本数量比较小时，可以选择层归一化</strong>。</p>
+<p>除了上述两种归一化方法外，还有权重归一化、局部相应归一化等多种归一化方式。</p>
+<h3 id="超参数优化">超参数优化</h3>
+<p>在神经网络中，除了可学习参数之外，还存在很多<strong>超参数</strong>。这些超参数对网络性能的影响也很大。不同的机器学习任务往往需要不同的超参数。常见的超参数有以下三类：(1) <strong>网络结构</strong>，包括神经元间的连接关系、层数、每层的神经元数量、激活函数的类型等。(2) <strong>优化参数</strong>，包括优化方法、学习率、小批量的样本数量等。(3) <strong>正则化系数</strong>。</p>
+<p><strong>超参数优化(hyperparameter optimization)<strong>主要存在两方面的困难。(1) 超参数优化是一个</strong>组合优化问题</strong>，无法像一般参数那样通过梯度下降方法来优化，也没有一种通用有效的优化方法。(2) 评估一组超参数配置的<strong>时间代价非常高</strong>，从而导致一些优化方法在超参数优化中难以应用。</p>
+<h4 id="网格搜索">网格搜索</h4>
+<p>网格搜索(grid search)是一种通过尝试所有超参数的组合来寻址合适一组超参数配置的方法。假设总共有$K$个超参数，第$k$个超参数的可以取$m_k$个值。那么总共的配置组合数量为$m_1 \times m_2 \times \cdots \times m_K$。如果超参数是连续的，可以将超参数<strong>离散化</strong>，选择几个“经验”值。比如学习率$\alpha$，我们可以设置$α \in {0.01, 0.1, 0.5, 1.0}$。</p>
+<p>一般而言，对于连续的超参数，我们<strong>不能按等间隔的方式进行离散化</strong>，需要根据超参数自身的特点进行离散化。</p>
+<p>网格搜索根据这些超参数的不同组合分别训练一个模型，然后测试这些模型在开发集上的性能，<strong>选取一组性能最好的配置</strong>。</p>
+<h4 id="随机搜索">随机搜索</h4>
+<p>如果不同超参数对模型性能的影响有很大差异。<strong>有些超参数(比如正则化系数)对模型性能的影响有限</strong>，而<strong>另一些超参数(比如学习率)对模型性能影响比较大</strong>。在这种情况下，采用网格搜索会在不重要的超参数上进行不必要的尝试。一种在实践中比较有效的改进方法是<strong>对超参数进行随机组合</strong>，然后选取一个性能最好的配置，这就是<strong>随机搜索(random search)</strong>。随机搜索在实践中更容易实现，一般会比网格搜索更加有效。</p>
+<p>网格搜索和随机搜索都没有利用不同超参数组合之间的相关性，即如果模型的超参数组合比较类似，其模型性能也是比较接近的。因此这两种搜索方式一般都比较低效。下面我们介绍两种<strong>自适应的超参数优化方法</strong>：贝叶斯优化和动态资源分配。</p>
+<h4 id="贝叶斯优化">贝叶斯优化</h4>
+<p><strong>贝叶斯优化(Bayesian optimization)</strong> 是一种自适应的超参数优化方法，根据当前已经试验的超参数组合来预测下一个可能带来最大收益的组合。一种比较常用的贝叶斯优化方法为<strong>时序模型优化(sequential model-based optimization, SMBO)</strong>。</p>
+<h4 id="动态资源分配">动态资源分配</h4>
+<p>在超参数优化中，每组超参数配置的评估代价比较高。如果我们可以在较早的阶段就估计出一组配置的效果会比较差，那么我们就可以中止这组配置的评估，将更多的资源留给其它配置。这个问题可以归结为<strong>多臂赌博机问题</strong>的一个泛化问题：<strong>最优臂问题(best-arm problem)</strong>，即在给定有限的机会次数下，如何玩这些赌博机并找到收益最大的臂。</p>
+<p>由于目前神经网络的优化方法一般都采取随机梯度下降，因此我们可以通过一组超参数的学习曲线来预估这组超参数配置是否有希望得到比较好的结果。如果一组超参数配置的学习曲线不收敛或者收敛比较差，我们可以应用<strong>早期停止(early-stopping)<strong>策略来中止当前的训练。动态资源分配的一种有效方法是</strong>逐次减半(successive halving)方法</strong>，将超参数优化看作是一种非随机的最优臂问题。</p>
+<h4 id="神经架构搜索">神经架构搜索</h4>
+<p>上面介绍的超参数优化方法都是在固定(或变化比较小)的超参数空间中进行最优配置搜索，而最重要的神经网络架构一般还是需要由有经验的专家来进行设计。从某种角度来讲，深度学习使得机器学习中的“特征工程”问题转变为“网络架构工程”问题。</p>
+<p><strong>神经架构搜索(neural architecture search, NAS)</strong> 是一个新的比较有前景的研究方向，通过神经网络来自动实现网络架构的设计。一个神经网络的架构可以用一个变长的字符串来描述。利用元学习的思想，神经架构搜索利用一个控制器来生成另一个子网络的架构描述，控制器可以由一个循环神经网络来实现。控制器的训练可以通过强化学习来完成，其奖励信号为生成的子网络在开发集上的准确率。</p>
+<h3 id="网络正则化">网络正则化</h3>
+<p>机器学习模型的关键是<strong>泛化问题</strong>，即<strong>在样本真实分布上的期望风险最小化</strong>。而训练数据集上的经验风险最小化和期望风险并不一致。由于神经网络的拟合能力非常强，其在训练数据上的错误率往往都可以降到非常低，甚至可以到0，从而导致过拟合。因此，如何提高神经网络的泛化能力反而成为影响模型能力的最关键因素。</p>
+<p><strong>正则化(regularization)</strong> 是一类通过限制模型复杂度，从而避免过拟合，提高泛化能力的方法，比如引入约束、增加先验、提前停止等。</p>
+<p>在传统的机器学习中，提高泛化能力的方法主要是限制模型复杂度，比如采用$\ell_{1}$和$\ell_{2}$正则化等方式。而在训练深度神经网络时，特别是在**过度参数化(over-parameterization)**时，$\ell_{1}$和$\ell_{2}$正则化的效果往往不如浅层机器学习模型中显著，<strong>过度参数化是指模型参数的数量远远大于训练数据的数量</strong>。因此训练深度学习模型时，往往还会使用其它的正则化方法，比如数据增强、提前停止、丢弃法、集成法等。</p>
+<h4 id="ell_1和ell_2正则化">$\ell_{1}$和$\ell_{2}$正则化</h4>
+$$
+\theta^{*}=\underset{\theta}{\arg \min } \frac{1}{N} \sum_{n=1}^{N} \mathcal{L}(y^{(n)}, f(\boldsymbol{x}^{(n)} ; \theta))+\lambda \ell_{p}(\theta)
+$$<p>
+其中$p$通常取值1或2，代表$\ell_{1}$范式和$\ell_{2}$范式。</p>
+$$
+\theta^{*}=\underset{\theta}{\arg \min } \frac{1}{N} \sum_{n=1}^{N} \mathcal{L}(y^{(n)}, f(\boldsymbol{x}^{(n)} ; \theta)) \\
+\text{subject to } \ell_{p}(\theta) \leq 1
+$$$$
+\theta^{*}=\underset{\theta}{\arg \min } \frac{1}{N} \sum_{n=1}^{N} \mathcal{L}(y^{(n)}, f(\boldsymbol{x}^{(n)} ; \theta))+\lambda_{1} \ell_{1}(\theta)+\lambda_{2} \ell_{2}(\theta)
+$$<p>
+其中$\lambda_1$和$\lambda_2$分别为两个正则化系数。</p>
+<h4 id="权重衰减">权重衰减</h4>
+$$
+\theta_{t} \leftarrow(1-w) \theta_{t-1}-\alpha \mathbf{g}_{t}
+$$<p>
+其中$\mathbf{g}_{t}$为第$t$更新的梯度，$\alpha$为学习率，$w$为<strong>权重衰减系数</strong>，一般取值比较小，比如0*.*0005。在标准的随机梯度下降中，权重衰减正则化和正则化的$\ell_2$效果相同。因此，权重衰减在一些深度学习框架中通过$\ell_2$正则化来实现。但是，在**较为复杂的优化方法(比如 Adam)**中，权重衰减和$\ell_2$正则化并不等价。</p>
+<h4 id="提前停止">提前停止</h4>
+<p><strong>提前停止(early stop)</strong> 对于深度神经网络来说是一种简单有效的正则化方法。由于深度神经网络的拟合能力非常强，因此比较容易在训练集上过拟合。在使用梯度下降法进行优化时，我们可以使用一个和训练集独立的样本集合，称为<strong>验证集(validation set)</strong>，并<strong>用验证集上的错误来代替期望错误</strong>。<strong>当验证集上的错误率不再下降，就停止迭代</strong>。 然而在实际操作中，验证集上的错误率变化曲线<strong>并不一定是平衡曲线，很可能是先升高再降低</strong>。因此，提前停止的具体停止标准需要根据实际任务进行优化。</p>
+<h4 id="丢弃法">丢弃法</h4>
+$$
+d(\boldsymbol{x})=\left\{\begin{array}{ll}
+\boldsymbol{m} \odot \boldsymbol{x} & \text { when training } \\
+p \boldsymbol{x} & \text { when testing }
+\end{array}\right.
+$$<p>
+其中$\boldsymbol{m} \in{0,1}^{d}$为<strong>丢弃掩码(dropout mask)</strong>，通过以概率为$p$的<strong>伯努利分布</strong>随机生成。在<strong>训练时</strong>，激活神经元的平均数量为原来的$p$倍。而在测试时，所有的神经元都是可以激活的，这会造成训练和测试时网络的输出不一致。为了缓解这个问题，在<strong>测试时</strong>需要将神经层的输入$\boldsymbol x$乘以$p$，也相当于<strong>把不同的神经网络做了平均</strong>。丢弃率$p$可以通过验证集来选取一个最优的值。一般来讲，对于隐藏层的神经元，其丢弃率$p=0.5$时效果最好，这对大部分的网络和任务都比较有效。当$p=0.5$时，<strong>在训练时有一半的神经元被丢弃，只剩余一半的神经元是可以激活的，随机生成的网络结构最具多样性</strong>。对于<strong>输入层的神经元</strong>，其丢弃率通常设为更接近1的数，使得输入变化不大。对输入层神经元进行丢弃时，<strong>相当于给数据增加噪声，以此来提高网络的鲁棒性</strong>。</p>
+<div align="center">
+<img src="/images/3/image-20200806101947541.png" style="zoom:30%;" />
+</div>
+<p>Dropout一般是针对神经元进行随机丢弃，但是也可以扩展到<strong>对神经元之间的连接进行随机丢弃</strong>，或<strong>每一层进行随机丢弃</strong>。Dropout有以下两种解释：</p>
+<p>(1) <strong>集成学习的解释</strong>：每做一次丢弃，相当于从原始的网络中采样得到一个子网络。如果一个神经网络有$n$个神经元，那么总共可以采样出$2^n$个子网络。每次迭代都相当于训练一个不同的子网络，这些子网络共享原始网络的参数。那么，最终的网络可以近似看作<strong>集成了指数级个不同网络的组合模型</strong>。</p>
+$$
+\begin{aligned}
+\mathbb{E}_{q(\theta)}[y] &=\int_{q} f(\boldsymbol{x} ; \theta) q(\theta) d \theta \\
+& \approx \frac{1}{M} \sum_{m=1}^{M} f(\boldsymbol{x}, \theta_{m})
+\end{aligned}
+$$<p>
+其中$f(\boldsymbol{x}, \theta_{m})$为为第$m$次应用丢弃方法后的网络，其参数$\theta_m$为对全部参数$\theta$的一次<strong>采样</strong>。</p>
+<h4 id="数据增强">数据增强</h4>
+<p>深度神经网络一般都需要大量的训练数据才能获得比较理想的效果。在数据量有限的情况下，可以通过<strong>数据增强(data augmentation</strong>)来增加数据量，提高模型鲁棒性，避免过拟合。<strong>目前，数据增强还主要应用在图像数据上，在文本等其它类型的数据上还没有太好的方法</strong>。</p>
+<p>图像数据的增强主要是通过算法对图像进行转变，引入噪声等方法来增加数据的多样性。增强的方法主要有几种：</p>
+<p>(1) <strong>旋转(rotation)</strong>：将图像按顺时针或逆时针方向随机旋转一定角度。</p>
+<p>(2) <strong>翻转(flip)</strong>：将图像沿水平或垂直方法随机翻转一定角度。</p>
+<p>(3) <strong>缩放(zoom in/out)</strong>：将图像放大或缩小一定比例。</p>
+<p>(4) <strong>平移(shift)</strong>：将图像沿水平或垂直方法平移一定步长。</p>
+<p>(5) <strong>加噪声(noise)</strong>：加入随机噪声。</p>
+<h4 id="标签平滑">标签平滑</h4>
+<p>在数据增强中，我们可以给样本特征加入随机噪声来避免过拟合。同样，我们也可以给样本的标签引入一定的噪声。假设训练数据集中有一些样本的标签是<strong>被错误标注</strong>的，那么最小化这些样本上的损失函数会导致过拟合。一种改善的正则化方法是<strong>标签平滑(label smoothing)</strong>，即在输出标签中添加噪声来避免模型过拟合。</p>
+$$
+\boldsymbol{y}=[0, \cdots, 0,1,0, \cdots, 0]^{\mathrm{T}}
+$$$$
+\tilde{\boldsymbol{y}}=\left[\frac{\epsilon}{K-1}, \cdots, \frac{\epsilon}{K-1}, 1-\epsilon, \frac{\epsilon}{K-1}, \cdots, \frac{\epsilon}{K-1}\right]^{\mathrm{T}}
+$$<p>其中$K$为标签数量，这种标签可以看作是<strong>软目标(soft target)</strong>。标签平滑可以<strong>避免模型的输出过拟合到硬目标上</strong>，并且通常不会损害其分类能力。</p>
+<h3 id="tensorflow实现神经网络并比较不同的优化器的优化效果">Tensorflow实现神经网络并比较不同的优化器的优化效果</h3>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">tensorflow</span> <span style="color:#204a87;font-weight:bold">as</span> <span style="color:#000">tf</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">matplotlib.pyplot</span> <span style="color:#204a87;font-weight:bold">as</span> <span style="color:#000">plt</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 下载MNIST数据并进行归一化</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">mnist</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">datasets</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">mnist</span>
+</span></span><span style="display:flex;"><span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_train</span><span style="color:#000;font-weight:bold">),</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_test</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">mnist</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">load_data</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">X_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">X_test</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">X_train</span> <span style="color:#ce5c00;font-weight:bold">/</span> <span style="color:#0000cf;font-weight:bold">255.0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">X_test</span> <span style="color:#ce5c00;font-weight:bold">/</span> <span style="color:#0000cf;font-weight:bold">255.0</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_train</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">X_test</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_train</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_test</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 定义网络结构</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">def</span> <span style="color:#000">define_network</span><span style="color:#000;font-weight:bold">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">neural_network</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">models</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Sequential</span><span style="color:#000;font-weight:bold">([</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Input</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">shape</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">28</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">28</span><span style="color:#000;font-weight:bold">)),</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Flatten</span><span style="color:#000;font-weight:bold">(),</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Dense</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">512</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">activation</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;relu&#39;</span><span style="color:#000;font-weight:bold">),</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Dense</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">128</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">activation</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;relu&#39;</span><span style="color:#000;font-weight:bold">),</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Dense</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">10</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">activation</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;softmax&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">return</span> <span style="color:#000">neural_network</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 定义多个网络，后期使用不同的优化器进行优化</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">nn_sgd</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">define_network</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">nn_adagrad</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">define_network</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">nn_adam</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">define_network</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">nn_rms</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">define_network</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">nn_delta</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">define_network</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 配置并训练优化方式不同的模型</span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># SGD</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;SGD&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">nn_sgd</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">compile</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">optimizer</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">optimizers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">SGD</span><span style="color:#000;font-weight:bold">(),</span> <span style="color:#000">loss</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;sparse_categorical_crossentropy&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">metrics</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000;font-weight:bold">[</span><span style="color:#4e9a06">&#39;accuracy&#39;</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">history_sgd</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">nn_sgd</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">fit</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">batch_size</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">64</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">epochs</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">50</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">validation_data</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_test</span><span style="color:#000;font-weight:bold">),</span> <span style="color:#000">verbose</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># AdaGrad</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;AdaGrad&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">nn_adagrad</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">compile</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">optimizer</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">optimizers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Adagrad</span><span style="color:#000;font-weight:bold">(),</span> <span style="color:#000">loss</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;sparse_categorical_crossentropy&#39;</span><span style="color:#000;font-weight:bold">,</span>
+</span></span><span style="display:flex;"><span>                   <span style="color:#000">metrics</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000;font-weight:bold">[</span><span style="color:#4e9a06">&#39;accuracy&#39;</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">history_adagrad</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">nn_adagrad</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">fit</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">batch_size</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">64</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">epochs</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">50</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">validation_data</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_test</span><span style="color:#000;font-weight:bold">),</span>
+</span></span><span style="display:flex;"><span>                                 <span style="color:#000">verbose</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># Adam</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;Adam&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">nn_adam</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">compile</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">optimizer</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">optimizers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Adam</span><span style="color:#000;font-weight:bold">(),</span> <span style="color:#000">loss</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;sparse_categorical_crossentropy&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">metrics</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000;font-weight:bold">[</span><span style="color:#4e9a06">&#39;accuracy&#39;</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">history_adam</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">nn_adam</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">fit</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">batch_size</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">64</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">epochs</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">50</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">validation_data</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_test</span><span style="color:#000;font-weight:bold">),</span> <span style="color:#000">verbose</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># RMSprop</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;RMSprop&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">nn_rms</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">compile</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">optimizer</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">optimizers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">RMSprop</span><span style="color:#000;font-weight:bold">(),</span> <span style="color:#000">loss</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;sparse_categorical_crossentropy&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">metrics</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000;font-weight:bold">[</span><span style="color:#4e9a06">&#39;accuracy&#39;</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">history_rms</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">nn_rms</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">fit</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">batch_size</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">64</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">epochs</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">50</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">validation_data</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_test</span><span style="color:#000;font-weight:bold">),</span> <span style="color:#000">verbose</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># AdaDelta</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;AdaDelta&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">nn_delta</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">compile</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">optimizer</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">optimizers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Adadelta</span><span style="color:#000;font-weight:bold">(),</span> <span style="color:#000">loss</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;sparse_categorical_crossentropy&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">metrics</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000;font-weight:bold">[</span><span style="color:#4e9a06">&#39;accuracy&#39;</span><span style="color:#000;font-weight:bold">])</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">history_delta</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">nn_delta</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">fit</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">batch_size</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">64</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">epochs</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">50</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">validation_data</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_test</span><span style="color:#000;font-weight:bold">),</span> <span style="color:#000">verbose</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 绘制不同优化器的优化过程</span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># loss</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">subplot</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">plot</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">history_sgd</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">history</span><span style="color:#000;font-weight:bold">[</span><span style="color:#4e9a06">&#39;loss&#39;</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">label</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;SGD&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">plot</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">history_adagrad</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">history</span><span style="color:#000;font-weight:bold">[</span><span style="color:#4e9a06">&#39;loss&#39;</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">label</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;AdaGrad&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">plot</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">history_adam</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">history</span><span style="color:#000;font-weight:bold">[</span><span style="color:#4e9a06">&#39;loss&#39;</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">label</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;Adam&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">plot</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">history_rms</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">history</span><span style="color:#000;font-weight:bold">[</span><span style="color:#4e9a06">&#39;loss&#39;</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">label</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;RMSprop&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">plot</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">history_delta</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">history</span><span style="color:#000;font-weight:bold">[</span><span style="color:#4e9a06">&#39;loss&#39;</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">label</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;AdaDelta&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">legend</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># accuracy</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">subplot</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">plot</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">history_sgd</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">history</span><span style="color:#000;font-weight:bold">[</span><span style="color:#4e9a06">&#39;accuracy&#39;</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">label</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;SGD&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">plot</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">history_adagrad</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">history</span><span style="color:#000;font-weight:bold">[</span><span style="color:#4e9a06">&#39;accuracy&#39;</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">label</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;Adagrad&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">plot</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">history_adam</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">history</span><span style="color:#000;font-weight:bold">[</span><span style="color:#4e9a06">&#39;accuracy&#39;</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">label</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;Adam&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">plot</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">history_rms</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">history</span><span style="color:#000;font-weight:bold">[</span><span style="color:#4e9a06">&#39;accuracy&#39;</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">label</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;RMSprop&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">plot</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">history_delta</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">history</span><span style="color:#000;font-weight:bold">[</span><span style="color:#4e9a06">&#39;accuracy&#39;</span><span style="color:#000;font-weight:bold">],</span> <span style="color:#000">label</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;AdaDelta&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">legend</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">show</span><span style="color:#000;font-weight:bold">()</span>
+</span></span></code></pre></div><h3 id="参考资料">参考资料</h3>
+<ul>
+<li>邱锡鹏. 神经网络与深度学习. 北京: 机械工业出版社, 2020.</li>
+<li>Srivastava N, Hinton G, Krizhevsky A, et al. Dropout: a simple way to prevent neural networks from overfitting. The journal of machine learning research, 2014, 15(1): 1929-1958.</li>
+<li>神经网络的优化算法：https://zhuanlan.zhihu.com/p/27449596</li>
+</ul>
+
+	
+</div>
+
+
+            </div>
+
+          </main>
+        </div>
+      </div>
+      <footer class="td-footer row d-print-none">
+  <div class="container-fluid">
+    <div class="row mx-md-2">
+      <div class="td-footer__left col-6 col-sm-4 order-sm-1">
+        
+      </div><div class="td-footer__right col-6 col-sm-4 order-sm-3">
+        
+      </div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2">
+        
+      </div>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css"
+      integrity="sha512-r2+FkHzf1u0+SQbZOoIz2RxWOIWfdEzRuYybGjzKq18jG9zaSfEy9s3+jMqG/zPtRor/q4qaUCYQpmSjTw8M+g==" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"
+        integrity="sha512-INps9zQ2GUEMCQD7xiZQbGUVnqnzEvlynVy6eqcTcHN4+aQiLo9/uaQqckDpdJ8Zm3M0QBs+Pktg4pz0kEklUg=="
+        crossorigin="anonymous">
+</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"
+       integrity="sha512-YJVxTjqttjsU3cSvaTRqsSl0wbRgZUNF+NGGCgto/MUbIvaLdXQzGTCQu4CvyJZbZctgflVB0PXw9LLmTWm5/w==" crossorigin="anonymous"
+       onload='renderMathInElement(document.body, {"delimiters":[{"display":true,"left":"$$","right":"$$"},{"display":false,"left":"$","right":"$"},{"display":false,"left":"\\(","right":"\\)"},{"display":true,"left":"\\[","right":"\\]"}],"errorcolor":"#CD5C5C","throwonerror":false});'>
+</script>
+<script src="/js/main.min.613b131e2c315a570f2f0f22f51f752a53e30fc078f674f7ab0885a6ce15ad68.js" integrity="sha256-YTsTHiwxWlcPLw8i9R91KlPjD8B49nT3qwiFps4VrWg=" crossorigin="anonymous"></script>
+<script defer src="/js/click-to-copy.min.73478a7d4807698aed7e355eb23f9890ca18fea3158604c8471746d046702bad.js" integrity="sha256-c0eKfUgHaYrtfjVesj&#43;YkMoY/qMVhgTIRxdG0EZwK60=" crossorigin="anonymous"></script>
+<script src='/js/tabpane-persist.js'></script>
+
+  </body>
+</html>

@@ -1,0 +1,608 @@
+<!doctype html>
+<html itemscope itemtype="http://schema.org/WebPage" lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+
+
+<link rel="shortcut icon" href="/favicons/favicon.ico" >
+<link rel="apple-touch-icon" href="/favicons/apple-touch-icon-180x180.png" sizes="180x180">
+<link rel="icon" type="image/png" href="/favicons/favicon-16x16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="/favicons/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/favicons/android-36x36.png" sizes="36x36">
+<link rel="icon" type="image/png" href="/favicons/android-48x48.png" sizes="48x48">
+<link rel="icon" type="image/png" href="/favicons/android-72x72.png" sizes="72x72">
+<link rel="icon" type="image/png" href="/favicons/android-96x96.png" sizes="96x96">
+<link rel="icon" type="image/png" href="/favicons/android-144x144.png" sizes="144x144">
+<link rel="icon" type="image/png" href="/favicons/android-192x192.png" sizes="192x192">
+
+<title>卷积神经网络 | 知予AI</title>
+<meta name="description" content="卷积神经网络(convolutional neural network, CNN) 是一种具有局部连接、权重共享等特性的前馈神经网络。
+卷积神经网络最早是主要用来处理图像信息。在用全连接前馈网络来处理图像时，会存在参数太多、局部特征不变形等缺陷。卷积神经网络利用局部连接、权重共享以及汇聚三大结构上的特性，使得数据具有一定程度上的平移、缩放和旋转不变性。和前馈神经网络相比，卷积神经网络的参数更少。
+卷积神经网络主要使用在图像和视频分析的各种任务(如图像分类、人脸识别、物体识别、图像分割等)上，其准确率一般也远远超出了其它的神经网络模型。近年来卷积神经网络也广泛地应用到自然语言处理、推荐系统等领域。
+卷积 一维卷积 $$\begin{aligned}y_{t} &amp;=1 \times x_{t}&#43;1 / 2 \times x_{t-1}&#43;1 / 4 \times x_{t-2} \\&amp;=w_{1} \times x_{t}&#43;w_{2} \times x_{t-1}&#43;w_{3} \times x_{t-2} \\&amp;=\sum_{k=1}^{3} w_{k} \cdot x_{t-k&#43;1}\end{aligned}$$$$y_{t}=\sum_{k=1}^{m} w_{k} \cdot x_{t-k&#43;1}$$ 写作向量形式：$\boldsymbol{y}=\boldsymbol{w} \otimes \boldsymbol{x}$，其中$\otimes$表示卷积运算。当滤波器$w_k=1/m,1\leqslant k \leqslant m$时，卷积相当于信号序列的简单移动平均(moving average, MA)，窗口大小为$m$。
+一般情况下滤波器的长度$m$远小于信号序列的长度$n$。下图为一维卷积的示意图：
+二维卷积 $$y_{i j}=\sum_{u=1}^{m} \sum_{v=1}^{n} w_{u v} \cdot x_{i-u&#43;1, j-v&#43;1}$$ 下图给出了二维卷积的示例：
+均值滤波(mean filter) 就是当前位置的像素值设为滤波器窗口中所有像素的平均值，也就是$w_{uv}=1/mn$。
+在图像处理中，卷积经常作为特征提取的有效方法。一幅图像在经过卷积操作后得到结果称为特征映射(feature map)。下图给出在图像处理中几种常用的滤波器，以及其对应的特征映射。图中最上面的滤波器是常用的高斯滤波器，可以用来对图像进行平滑去噪；中间和最下面的滤波器可以用来提取边缘特征。">
+<meta property="og:url" content="https://knove-ai.github.io/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl3-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/">
+  <meta property="og:site_name" content="知予AI">
+  <meta property="og:title" content="卷积神经网络">
+  <meta property="og:description" content="卷积神经网络(convolutional neural network, CNN) 是一种具有局部连接、权重共享等特性的前馈神经网络。
+卷积神经网络最早是主要用来处理图像信息。在用全连接前馈网络来处理图像时，会存在参数太多、局部特征不变形等缺陷。卷积神经网络利用局部连接、权重共享以及汇聚三大结构上的特性，使得数据具有一定程度上的平移、缩放和旋转不变性。和前馈神经网络相比，卷积神经网络的参数更少。
+卷积神经网络主要使用在图像和视频分析的各种任务(如图像分类、人脸识别、物体识别、图像分割等)上，其准确率一般也远远超出了其它的神经网络模型。近年来卷积神经网络也广泛地应用到自然语言处理、推荐系统等领域。
+卷积 一维卷积 $$\begin{aligned}y_{t} &amp;=1 \times x_{t}&#43;1 / 2 \times x_{t-1}&#43;1 / 4 \times x_{t-2} \\&amp;=w_{1} \times x_{t}&#43;w_{2} \times x_{t-1}&#43;w_{3} \times x_{t-2} \\&amp;=\sum_{k=1}^{3} w_{k} \cdot x_{t-k&#43;1}\end{aligned}$$$$y_{t}=\sum_{k=1}^{m} w_{k} \cdot x_{t-k&#43;1}$$ 写作向量形式：$\boldsymbol{y}=\boldsymbol{w} \otimes \boldsymbol{x}$，其中$\otimes$表示卷积运算。当滤波器$w_k=1/m,1\leqslant k \leqslant m$时，卷积相当于信号序列的简单移动平均(moving average, MA)，窗口大小为$m$。
+一般情况下滤波器的长度$m$远小于信号序列的长度$n$。下图为一维卷积的示意图：
+二维卷积 $$y_{i j}=\sum_{u=1}^{m} \sum_{v=1}^{n} w_{u v} \cdot x_{i-u&#43;1, j-v&#43;1}$$ 下图给出了二维卷积的示例：
+均值滤波(mean filter) 就是当前位置的像素值设为滤波器窗口中所有像素的平均值，也就是$w_{uv}=1/mn$。
+在图像处理中，卷积经常作为特征提取的有效方法。一幅图像在经过卷积操作后得到结果称为特征映射(feature map)。下图给出在图像处理中几种常用的滤波器，以及其对应的特征映射。图中最上面的滤波器是常用的高斯滤波器，可以用来对图像进行平滑去噪；中间和最下面的滤波器可以用来提取边缘特征。">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="3-深度学习">
+    <meta property="article:published_time" content="2017-01-01T00:00:00+00:00">
+    <meta property="article:modified_time" content="2017-01-01T00:00:00+00:00">
+
+  <meta itemprop="name" content="卷积神经网络">
+  <meta itemprop="description" content="卷积神经网络(convolutional neural network, CNN) 是一种具有局部连接、权重共享等特性的前馈神经网络。
+卷积神经网络最早是主要用来处理图像信息。在用全连接前馈网络来处理图像时，会存在参数太多、局部特征不变形等缺陷。卷积神经网络利用局部连接、权重共享以及汇聚三大结构上的特性，使得数据具有一定程度上的平移、缩放和旋转不变性。和前馈神经网络相比，卷积神经网络的参数更少。
+卷积神经网络主要使用在图像和视频分析的各种任务(如图像分类、人脸识别、物体识别、图像分割等)上，其准确率一般也远远超出了其它的神经网络模型。近年来卷积神经网络也广泛地应用到自然语言处理、推荐系统等领域。
+卷积 一维卷积 $$\begin{aligned}y_{t} &amp;=1 \times x_{t}&#43;1 / 2 \times x_{t-1}&#43;1 / 4 \times x_{t-2} \\&amp;=w_{1} \times x_{t}&#43;w_{2} \times x_{t-1}&#43;w_{3} \times x_{t-2} \\&amp;=\sum_{k=1}^{3} w_{k} \cdot x_{t-k&#43;1}\end{aligned}$$$$y_{t}=\sum_{k=1}^{m} w_{k} \cdot x_{t-k&#43;1}$$ 写作向量形式：$\boldsymbol{y}=\boldsymbol{w} \otimes \boldsymbol{x}$，其中$\otimes$表示卷积运算。当滤波器$w_k=1/m,1\leqslant k \leqslant m$时，卷积相当于信号序列的简单移动平均(moving average, MA)，窗口大小为$m$。
+一般情况下滤波器的长度$m$远小于信号序列的长度$n$。下图为一维卷积的示意图：
+二维卷积 $$y_{i j}=\sum_{u=1}^{m} \sum_{v=1}^{n} w_{u v} \cdot x_{i-u&#43;1, j-v&#43;1}$$ 下图给出了二维卷积的示例：
+均值滤波(mean filter) 就是当前位置的像素值设为滤波器窗口中所有像素的平均值，也就是$w_{uv}=1/mn$。
+在图像处理中，卷积经常作为特征提取的有效方法。一幅图像在经过卷积操作后得到结果称为特征映射(feature map)。下图给出在图像处理中几种常用的滤波器，以及其对应的特征映射。图中最上面的滤波器是常用的高斯滤波器，可以用来对图像进行平滑去噪；中间和最下面的滤波器可以用来提取边缘特征。">
+  <meta itemprop="datePublished" content="2017-01-01T00:00:00+00:00">
+  <meta itemprop="dateModified" content="2017-01-01T00:00:00+00:00">
+  <meta itemprop="wordCount" content="817">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="卷积神经网络">
+  <meta name="twitter:description" content="卷积神经网络(convolutional neural network, CNN) 是一种具有局部连接、权重共享等特性的前馈神经网络。
+卷积神经网络最早是主要用来处理图像信息。在用全连接前馈网络来处理图像时，会存在参数太多、局部特征不变形等缺陷。卷积神经网络利用局部连接、权重共享以及汇聚三大结构上的特性，使得数据具有一定程度上的平移、缩放和旋转不变性。和前馈神经网络相比，卷积神经网络的参数更少。
+卷积神经网络主要使用在图像和视频分析的各种任务(如图像分类、人脸识别、物体识别、图像分割等)上，其准确率一般也远远超出了其它的神经网络模型。近年来卷积神经网络也广泛地应用到自然语言处理、推荐系统等领域。
+卷积 一维卷积 $$\begin{aligned}y_{t} &amp;=1 \times x_{t}&#43;1 / 2 \times x_{t-1}&#43;1 / 4 \times x_{t-2} \\&amp;=w_{1} \times x_{t}&#43;w_{2} \times x_{t-1}&#43;w_{3} \times x_{t-2} \\&amp;=\sum_{k=1}^{3} w_{k} \cdot x_{t-k&#43;1}\end{aligned}$$$$y_{t}=\sum_{k=1}^{m} w_{k} \cdot x_{t-k&#43;1}$$ 写作向量形式：$\boldsymbol{y}=\boldsymbol{w} \otimes \boldsymbol{x}$，其中$\otimes$表示卷积运算。当滤波器$w_k=1/m,1\leqslant k \leqslant m$时，卷积相当于信号序列的简单移动平均(moving average, MA)，窗口大小为$m$。
+一般情况下滤波器的长度$m$远小于信号序列的长度$n$。下图为一维卷积的示意图：
+二维卷积 $$y_{i j}=\sum_{u=1}^{m} \sum_{v=1}^{n} w_{u v} \cdot x_{i-u&#43;1, j-v&#43;1}$$ 下图给出了二维卷积的示例：
+均值滤波(mean filter) 就是当前位置的像素值设为滤波器窗口中所有像素的平均值，也就是$w_{uv}=1/mn$。
+在图像处理中，卷积经常作为特征提取的有效方法。一幅图像在经过卷积操作后得到结果称为特征映射(feature map)。下图给出在图像处理中几种常用的滤波器，以及其对应的特征映射。图中最上面的滤波器是常用的高斯滤波器，可以用来对图像进行平滑去噪；中间和最下面的滤波器可以用来提取边缘特征。">
+<link rel="preload" href="/scss/main.min.a52b2e54f3e921e61502207760f8ecb468b09dc55f348cc42d9b9b9132637847.css" as="style" integrity="sha256-pSsuVPPpIeYVAiB3YPjstGiwncVfNIzELZubkTJjeEc=" crossorigin="anonymous">
+<link href="/scss/main.min.a52b2e54f3e921e61502207760f8ecb468b09dc55f348cc42d9b9b9132637847.css" rel="stylesheet" integrity="sha256-pSsuVPPpIeYVAiB3YPjstGiwncVfNIzELZubkTJjeEc=" crossorigin="anonymous">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda+SC:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Bodoni+Moda:ital,opsz,wght@1,6..96,800&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Sen:wght@400..800&display=swap" rel="stylesheet">
+<script
+  src="https://code.jquery.com/jquery-3.7.1.min.js"
+  integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+  crossorigin="anonymous"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: '\\[', right: '\\]', display: true},   
+        {left: '$$', right: '$$', display: true},     
+        {left: '\\(', right: '\\)', display: false},  
+      ],
+      throwOnError : false
+    });
+  });
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+  </head>
+  <body class="td-page">
+    <header>
+      
+    </header>
+    <div class="container-fluid td-outer">
+      <div class="td-main">
+        <div class="row flex-xl-nowrap">
+          <aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none">
+            <div id="td-sidebar-menu" class="td-sidebar__inner">
+  <image src="/logo.png" style="width: 100%;" />
+
+
+  <form class="td-sidebar__search d-flex align-items-center">
+    
+    <button class="btn btn-link td-sidebar__toggle d-md-none p-0 ms-3 fas fa-bars" type="button" data-bs-toggle="collapse" data-bs-target="#td-section-nav" aria-controls="td-section-nav" aria-expanded="false" aria-label="Toggle section navigation">
+    </button>
+  </form>
+  <nav class="td-sidebar-nav collapse" id="td-section-nav">
+    <ul class="td-sidebar-nav__section pe-md-3 ul-0">
+      <li> <a href="/">首页</a></li>
+      <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m--li">
+  <a href="/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id="m-"><span class=""></span></a>
+  <ul class="ul-1">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-1-e695b0e5ada6e59fbae7a180-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" title="数学基础" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-1-e695b0e5ada6e59fbae7a180"><span class="">1-数学基础</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math1-e7babfe680a7e4bba3e695b0-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math1-%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math1-e7babfe680a7e4bba3e695b0"><span class="">线性代数</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math2-e5beaee7a7afe58886-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math2-%E5%BE%AE%E7%A7%AF%E5%88%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math2-e5beaee7a7afe58886"><span class="">微积分</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math3-e695b0e5ada6e4bc98e58c96-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math3-%E6%95%B0%E5%AD%A6%E4%BC%98%E5%8C%96/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math3-e695b0e5ada6e4bc98e58c96"><span class="">数学优化</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math4-e6a682e78e87e7bb9fe8aea1-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math4-%E6%A6%82%E7%8E%87%E7%BB%9F%E8%AE%A1/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math4-e6a682e78e87e7bb9fe8aea1"><span class="">概率统计</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math5-e4bfa1e681afe8aeba-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math5-%E4%BF%A1%E6%81%AF%E8%AE%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math5-e4bfa1e681afe8aeba"><span class="">信息论</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-2-e69cbae599a8e5ada6e4b9a0-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-2-e69cbae599a8e5ada6e4b9a0"><span class="">2-机器学习</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml1-e69cbae599a8e5ada6e4b9a0e59fbae7a180-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml1-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%9F%BA%E7%A1%80/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml1-e69cbae599a8e5ada6e4b9a0e59fbae7a180"><span class="">机器学习基础</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml2-e7babfe680a7e59b9ee5bd92-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml2-%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml2-e7babfe680a7e59b9ee5bd92"><span class="">线性回归</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml3-ke8bf91e982bbe7ae97e6b395-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml3-k%E8%BF%91%E9%82%BB%E7%AE%97%E6%B3%95/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml3-ke8bf91e982bbe7ae97e6b395"><span class="">近邻算法</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml4-e6849fe79fa5e69cba-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml4-%E6%84%9F%E7%9F%A5%E6%9C%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml4-e6849fe79fa5e69cba"><span class="">感知机</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml5-e8b49de58fb6e696afe58886e7b1bbe599a8-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml5-%E8%B4%9D%E5%8F%B6%E6%96%AF%E5%88%86%E7%B1%BB%E5%99%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml5-e8b49de58fb6e696afe58886e7b1bbe599a8"><span class="">贝叶斯分类器</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml6-e980bbe8be91e59b9ee5bd92e4b88ee69c80e5a4a7e786b5e6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml6-%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92%E4%B8%8E%E6%9C%80%E5%A4%A7%E7%86%B5%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml6-e980bbe8be91e59b9ee5bd92e4b88ee69c80e5a4a7e786b5e6a8a1e59e8b"><span class="">逻辑回归与最大熵模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml7-e694afe68c81e59091e9878fe69cba-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml7-%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml7-e694afe68c81e59091e9878fe69cba"><span class="">支持向量机</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml8-e586b3e7ad96e6a091-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml8-%E5%86%B3%E7%AD%96%E6%A0%91/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml8-e586b3e7ad96e6a091"><span class="">决策树</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml9-e99b86e68890e5ada6e4b9a0-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml9-%E9%9B%86%E6%88%90%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml9-e99b86e68890e5ada6e4b9a0"><span class="">集成学习</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml10-eme7ae97e6b395-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml10-em%E7%AE%97%E6%B3%95/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml10-eme7ae97e6b395"><span class="">EM算法</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml11-e8819ae7b1bb-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml11-%E8%81%9A%E7%B1%BB/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml11-e8819ae7b1bb"><span class="">聚类</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml12-e9998de7bbb4-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml12-%E9%99%8D%E7%BB%B4/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml12-e9998de7bbb4"><span class="">降维</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml13-e789b9e5be81e98089e68ba9-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml13-%E7%89%B9%E5%BE%81%E9%80%89%E6%8B%A9/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml13-e789b9e5be81e98089e68ba9"><span class="">特征选择</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml14-e8af9de9a298e6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml14-%E8%AF%9D%E9%A2%98%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml14-e8af9de9a298e6a8a1e59e8b"><span class="">话题模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml15-e6a682e78e87e59bbee6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml15-%E6%A6%82%E7%8E%87%E5%9B%BE%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml15-e6a682e78e87e59bbee6a8a1e59e8b"><span class="">概率图模型</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m-3-e6b7b1e5baa6e5ada6e4b9a0-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-3-e6b7b1e5baa6e5ada6e4b9a0"><span class="">3-深度学习</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl1-e6b7b1e5baa6e5ada6e4b9a0e6a682e8bfb0-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl1-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E6%A6%82%E8%BF%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl1-e6b7b1e5baa6e5ada6e4b9a0e6a682e8bfb0"><span class="">深度学习概述</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl2-e7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl2-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl2-e7a59ee7bb8fe7bd91e7bb9c"><span class="">神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl3-e58db7e7a7afe7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl3-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 active td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl3-e58db7e7a7afe7a59ee7bb8fe7bd91e7bb9c"><span class="td-sidebar-nav-active-item">卷积神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl4-e5beaae78eafe7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl4-%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl4-e5beaae78eafe7a59ee7bb8fe7bd91e7bb9c"><span class="">循环神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl5-e7a59ee7bb8fe7bd91e7bb9ce79a84e4bc98e58c96-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl5-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E7%9A%84%E4%BC%98%E5%8C%96/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl5-e7a59ee7bb8fe7bd91e7bb9ce79a84e4bc98e58c96"><span class="">神经网络的优化</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl6-e887aae7bc96e7a081e599a8-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl6-%E8%87%AA%E7%BC%96%E7%A0%81%E5%99%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl6-e887aae7bc96e7a081e599a8"><span class="">自编码器</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl7-e6b7b1e5baa6e7949fe68890e6a8a1e59e8b-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl7-%E6%B7%B1%E5%BA%A6%E7%94%9F%E6%88%90%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl7-e6b7b1e5baa6e7949fe68890e6a8a1e59e8b"><span class="">深度生成模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl8-e6b3a8e6848fe58a9be69cbae588b6e4b88ee5a496e983a8e8aeb0e5bf86-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl8-%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%E4%B8%8E%E5%A4%96%E9%83%A8%E8%AE%B0%E5%BF%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl8-e6b3a8e6848fe58a9be69cbae588b6e4b88ee5a496e983a8e8aeb0e5bf86"><span class="">注意力机制与外部记忆</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl9-e59bbee7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl9-%E5%9B%BE%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl9-e59bbee7a59ee7bb8fe7bd91e7bb9c"><span class="">图神经网络</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-4-e887aae784b6e8afade8a880e5a484e79086-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-4-e887aae784b6e8afade8a880e5a484e79086"><span class="">4-自然语言处理</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp1-e887aae784b6e8afade8a880e5a484e79086e6a682e8bfb0-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp1-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E6%A6%82%E8%BF%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp1-e887aae784b6e8afade8a880e5a484e79086e6a682e8bfb0"><span class="">自然语言处理概述</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp2-e8af8de59091e9878f-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp2-%E8%AF%8D%E5%90%91%E9%87%8F/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp2-e8af8de59091e9878f"><span class="">词向量</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp3-e8afade8a880e6a8a1e59e8b-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp3-%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp3-e8afade8a880e6a8a1e59e8b"><span class="">语言模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp4-seq2seqe4b88eattention-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp4-seq2seq%E4%B8%8Eattention/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp4-seq2seqe4b88eattention"><span class="">seq2seq与attention</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp5-e9a284e8aeade7bb83e6a8a1e59e8b-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp5-%E9%A2%84%E8%AE%AD%E7%BB%83%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp5-e9a284e8aeade7bb83e6a8a1e59e8b"><span class="">预训练模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp6-e887aae784b6e8afade8a880e5a484e79086e5ba94e794a8-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp6-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E5%BA%94%E7%94%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp6-e887aae784b6e8afade8a880e5a484e79086e5ba94e794a8"><span class="">自然语言处理应用</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-5-aie7a094e7a9b6e6898be5868c-li">
+  <a href="/5-ai%E7%A0%94%E7%A9%B6%E6%89%8B%E5%86%8C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-5-aie7a094e7a9b6e6898be5868c"><span class="">5-AI研究手册</span></a>
+</li>
+  </ul>
+</li>
+    </ul>
+  </nav>
+</div>
+
+
+          </aside>
+          <aside class="d-none d-xl-block col-xl-2 td-sidebar-toc d-print-none">
+            <div class="td-page-meta ms-2 pb-1 pt-2 mb-0">
+
+</div>
+
+            <div class="td-toc">
+        <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#卷积">卷积</a></li>
+        <li><a href="#卷积神经网络">卷积神经网络</a></li>
+        <li><a href="#参数学习">参数学习</a></li>
+        <li><a href="#几种常见的卷积神经网络">几种常见的卷积神经网络</a></li>
+        <li><a href="#其他卷积方式">其他卷积方式</a></li>
+        <li><a href="#tensorflow实现卷积神经网络进行fashion-mnist衣物识别">Tensorflow实现卷积神经网络进行Fashion MNIST衣物识别</a></li>
+        <li><a href="#pytorch实现卷积神经网络进行fashion-mnist衣物识别">Pytorch实现卷积神经网络进行Fashion MNIST衣物识别</a></li>
+        <li><a href="#参考资料">参考资料</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+      </div>
+    
+            
+
+          </aside>
+          <main class="col-12 col-md-9 col-xl-8 " role="main">
+            <nav class="td-navbar js-navbar-scroll" data-bs-theme="dark">
+<div class="container-fluid flex-column flex-md-row">
+  <a class="navbar-brand" href="/"><span class="navbar-brand__logo navbar-logo"><svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" style="enable-background:new 0 0 500 500"><g><path style="fill:#fff" d="M116.8525 421.9722c-5.7041.0-10.3442-4.3127-10.3442-9.6129V88.183c0-5.3002 4.6401-9.6117 10.3442-9.6117H320.858c3.0347.0 9.3959.5498 11.7506 2.6302l.3545.3442 58.905 63.2912c2.3101 2.491 2.9202 8.4928 2.9202 11.3184v256.2039c0 5.3002-4.6407 9.6129-10.3436 9.6129H116.8525z"/><g><g><g><path style="fill:#767676" d="M384.4445 423.2066H116.852c-6.3839.0-11.5786-4.8658-11.5786-10.8474V88.1831c0-5.9804 5.1947-10.8461 11.5786-10.8461h204.0062c.377.0 9.2786.0329 12.568 2.9389l.3947.3833 58.9508 63.337c3.2135 3.4652 3.2514 11.7924 3.2514 12.1593v256.2036C396.0231 418.3408 390.8284 423.2066 384.4445 423.2066zM116.5079 411.9189c.0848.0278.1999.0531.3441.0531h267.5925c.1442.0.2581-.0253.3441-.0531V156.1556c-.0076-.9033-.3593-3.7347-.7034-5.0037l-57.6527-61.9416c-1.4651-.3176-4.4533-.6389-5.5742-.6389H116.852c-.143.0-.2594.024-.3441.0531V411.9189zm267.4533-261.149zM327.0321 89.371v.0013V89.371z"/></g></g></g><g><g><path style="fill:#5b7fc0" d="M189.0874 210.1754l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4473C177.5953 212.627 183.0601 210.1742 189.0874 210.1754zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 234.1722 197.0804 232.033z"/><path style="opacity:.3;fill:#fff" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/><g><defs><path id="SVGID_1_" d="M194.7376 237.6875c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 234.2399 196.1861 236.239 194.7376 237.6875z"/></defs><clipPath id="SVGID_2_"><use xlink:href="#SVGID_1_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_2_);fill:#fff" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/><path style="opacity:.13;clip-path:url(#SVGID_2_);fill:#020202" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/></g><g><defs><path id="SVGID_3_" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/></defs><clipPath id="SVGID_4_"><use xlink:href="#SVGID_3_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_4_);fill:#5b7fc0" d="M172.6595 215.6045c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8475-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 209.1953 176.6171 211.647 172.6595 215.6045z"/></g></g><rect x="198.8952" y="225.1043" style="fill:#5b7fc0" width="122.6266" height="13.8671"/></g><g><path style="fill:#d95140" d="M189.0874 155.7611l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.0249 2.454-11.4897 6.4116-15.4473C177.5953 158.2128 183.0601 155.7599 189.0874 155.7611zm7.993 21.8577c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.2508 181.7667 197.0816 179.758 197.0804 177.6188z"/><path style="opacity:.3;fill:#fff" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/><g><defs><path id="SVGID_5_" d="M194.7376 183.2733c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 179.8256 196.1861 181.8248 194.7376 183.2733z"/></defs><clipPath id="SVGID_6_"><use xlink:href="#SVGID_5_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_6_);fill:#fff" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/><path style="opacity:.13;clip-path:url(#SVGID_6_);fill:#020202" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/></g><g><defs><path id="SVGID_7_" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/></defs><clipPath id="SVGID_8_"><use xlink:href="#SVGID_7_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_8_);fill:#d95140" d="M172.6595 161.1903c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 154.7811 176.6171 157.2327 172.6595 161.1903z"/></g><rect x="198.8952" y="170.69" style="fill:#d95140" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#56a55c" d="M189.5379 264.6147l.0012-.0012c7.7751.0012 15.0294 4.1862 18.932 10.9235 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032-5.8394.0-11.3281-2.2733-15.458-6.4032-4.13-4.13-6.4032-9.6186-6.4056-15.4628.0012-6.0249 2.454-11.4897 6.4116-15.4472C178.0458 267.0663 183.5105 264.6135 189.5379 264.6147zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6538 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.7013 290.6202 197.5321 288.6115 197.5309 286.4723z"/><path style="opacity:.3;fill:#fff" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/><g><defs><path id="SVGID_9_" d="M195.1881 292.1268c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9941 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.5344 288.6792 196.6366 290.6783 195.1881 292.1268z"/></defs><clipPath id="SVGID_10_"><use xlink:href="#SVGID_9_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_10_);fill:#fff" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/><path style="opacity:.13;clip-path:url(#SVGID_10_);fill:#020202" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/></g><g><defs><path id="SVGID_11_" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/></defs><clipPath id="SVGID_12_"><use xlink:href="#SVGID_11_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_12_);fill:#56a55c" d="M173.11 270.0439c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7325-11.1497-10.9151-18.926-10.9151C182.5311 263.6346 177.0676 266.0863 173.11 270.0439z"/></g></g><rect x="199.3456" y="279.5436" style="fill:#56a55c" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#f1bc42" d="M189.0874 318.7208l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3305-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4472C177.5953 321.1724 183.0601 318.7196 189.0874 318.7208zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 342.7176 197.0804 340.5784z"/><path style="opacity:.3;fill:#fff" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/><g><defs><path id="SVGID_13_" d="M194.7376 346.2329c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 342.7853 196.1861 344.7844 194.7376 346.2329z"/></defs><clipPath id="SVGID_14_"><use xlink:href="#SVGID_13_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_14_);fill:#fff" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/><path style="opacity:.13;clip-path:url(#SVGID_14_);fill:#020202" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/></g><g><defs><path id="SVGID_15_" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/></defs><clipPath id="SVGID_16_"><use xlink:href="#SVGID_15_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_16_);fill:#f1bc42" d="M172.6595 324.15c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8474-1.0151-7.6327-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 317.7407 176.6171 320.1924 172.6595 324.15z"/></g></g><rect x="198.8952" y="333.6497" style="fill:#f1bc42" width="122.6266" height="13.8671"/></g></g></svg></span><span class="navbar-brand__name">知予AI</span></a>
+  <div class="td-navbar-nav-scroll ms-md-auto" id="main_navbar">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="https://github.com/knove-ai" target="_blank" rel="noopener"><i class="fa fa-github"></i><span>Github</span></a>
+      </li>
+      </ul>
+  </div>
+  <div class="d-none d-lg-block">
+    
+  </div>
+</div>
+</nav>
+
+            <div class="ps-md-5">
+              
+  
+
+              <nav aria-label="breadcrumb" class="td-breadcrumbs">
+  <ol class="breadcrumb">
+  <li class="breadcrumb-item">
+    <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">3-深度学习</a></li>
+  <li class="breadcrumb-item active" aria-current="page">
+    卷积神经网络</li>
+  </ol>
+</nav>
+              
+<div class="td-content">
+	<h1>卷积神经网络</h1>
+	
+	<header class="article-meta">
+		
+</header>
+	<p><strong>卷积神经网络(convolutional neural network, CNN)</strong> 是一种具有局部连接、权重共享等特性的前馈神经网络。</p>
+<p>卷积神经网络最早是主要用来处理图像信息。在用全连接前馈网络来处理图像时，会存在参数太多、局部特征不变形等缺陷。卷积神经网络利用<strong>局部连接、权重共享以及汇聚</strong>三大结构上的特性，使得数据具有一定程度上的平移、缩放和旋转不变性。和前馈神经网络相比，卷积神经网络的参数更少。</p>
+<p>卷积神经网络主要使用在图像和视频分析的各种任务(如图像分类、人脸识别、物体识别、图像分割等)上，其准确率一般也远远超出了其它的神经网络模型。近年来卷积神经网络也广泛地应用到自然语言处理、推荐系统等领域。</p>
+<h3 id="卷积">卷积</h3>
+<h4 id="一维卷积">一维卷积</h4>
+$$
+\begin{aligned}
+y_{t} &=1 \times x_{t}+1 / 2 \times x_{t-1}+1 / 4 \times x_{t-2} \\
+&=w_{1} \times x_{t}+w_{2} \times x_{t-1}+w_{3} \times x_{t-2} \\
+&=\sum_{k=1}^{3} w_{k} \cdot x_{t-k+1}
+\end{aligned}
+$$$$
+y_{t}=\sum_{k=1}^{m} w_{k} \cdot x_{t-k+1}
+$$<p>
+写作<strong>向量形式</strong>：$\boldsymbol{y}=\boldsymbol{w} \otimes \boldsymbol{x}$，其中$\otimes$表示卷积运算。当滤波器$w_k=1/m,1\leqslant k \leqslant m$时，卷积相当于信号序列的简单<strong>移动平均(moving average, MA)</strong>，窗口大小为$m$。</p>
+<p>一般情况下滤波器的长度$m$远小于信号序列的长度$n$。下图为一维卷积的示意图：</p>
+<div align="center">
+<img src="/images/3/image-20200508144946346.png" style="zoom:30%;" />
+</div>
+<h4 id="二维卷积">二维卷积</h4>
+$$
+y_{i j}=\sum_{u=1}^{m} \sum_{v=1}^{n} w_{u v} \cdot x_{i-u+1, j-v+1}
+$$<p>
+下图给出了二维卷积的示例：</p>
+<div align="center">
+<img src="/images/3/image-20200508145402520.png" style="zoom:30%;" />
+</div>
+<p><strong>均值滤波(mean filter)</strong> 就是当前位置的像素值设为滤波器窗口中所有像素的平均值，也就是$w_{uv}=1/mn$。</p>
+<p>在图像处理中，卷积经常作为<strong>特征提取</strong>的有效方法。一幅图像在经过卷积操作后得到结果称为<strong>特征映射(feature map)</strong>。下图给出在图像处理中几种常用的滤波器，以及其对应的特征映射。图中最上面的滤波器是常用的<strong>高斯滤波器</strong>，可以用来对图像进行<strong>平滑去噪</strong>；中间和最下面的滤波器可以用来<strong>提取边缘特征</strong>。</p>
+<div align="center">
+<img src="/images/3/image-20200508145648460.png" style="zoom:50%;" />
+</div>
+<h4 id="互相关">互相关</h4>
+<p>在机器学习和图像处理领域，卷积的主要功能是在一个图像(或某种特征)上滑动一个卷积核(即滤波器)，通过卷积操作<strong>得到一组新的特征</strong>。在计算卷积的过程中，需要进行<strong>卷积核翻转</strong>。翻转就是从两个维度(从上到下、从左到右)颠倒次序，即旋转180度。在具体实现上，一般会以<strong>互相关</strong>操作来代替卷积，从而会减少不必要的或开销。</p>
+$$
+y_{i j}=\sum_{u=1}^{m} \sum_{v=1}^{n} w_{u v} \cdot x_{i+u-1, j+v-1}
+$$<p>
+写作向量形式：$Y=W \otimes X$。可以看出，互相关和卷积的区别仅在于卷积核是否进行翻转。因此互相关也可称为不翻转卷积。在神经网络中使用卷积是为了进行特征抽取，<strong>卷积核是否进行翻转和其特征抽取的能力无关</strong>。特别是当卷积核是可学习的参数时，卷积和互相关是等价的。<strong>因此，为了实现上(或描述上)的方便起见，我们用互相关来代替卷积</strong>。事实上，<strong>很多深度学习工具中卷积操作其实都是互相关操作</strong>。</p>
+<h4 id="卷积的变种">卷积的变种</h4>
+<p>在卷积的标准定义基础上，还可以引入滤波器的<strong>滑动步长(stride)<strong>和</strong>零填充(padding)</strong> 来增加卷积的多样性：</p>
+<div align="center">
+<img src="/images/3/image-20200508150317109.png" style="zoom:40%;" />
+</div>
+<p>假设卷积层的输入神经元个数为$n$，卷积大小为$m$，步长为$s$，输入神经元两端各填补$p$个零，那么该卷积层的神经元数量为$(n-m+2p)/s+1$。根据输出与输入的大小对比，卷积可以分为<strong>宽卷积</strong>、<strong>窄卷积</strong>和<strong>等宽卷积</strong>。</p>
+<h3 id="卷积神经网络">卷积神经网络</h3>
+<h4 id="卷积层">卷积层</h4>
+<p>卷积层有两个重要的概念：</p>
+<p>(1) <strong>局部连接</strong>：在卷积层(假设是第$l$层)中的每一个神经元都只和下一层(第$l-1$层)中<strong>某个局部窗口内的神经元</strong>相连接，构成一个<strong>局部连接网络</strong>。卷积层和下一层之间的<strong>连接数大大减少</strong>，由原来的$n^{(l)} \times n^{(l-1)}$个连接变为$n^{(l)} \times m$个连接，$m$为<strong>滤波器大小</strong>。</p>
+<p>(2) <strong>权重共享</strong>：可以看出，作为参数的滤波器$w^{(l)}$对于第$l$层的<strong>所有的神经元都是相同的</strong>。权重共享可以理解为<strong>一个滤波器只捕捉输入数据中的一种特定的局部特征</strong>。因此，<strong>如果要提取多种特征就需要使用多个不同的滤波器</strong>。</p>
+<p>卷积层的作用是提取一个局部区域的特征，<strong>不同的卷积核相当于不同的特征提取器</strong>。由于卷积网络主要应用在图像处理上，而图像为两维结构，因此为了更充分地利用图像的局部信息，通常将神经元组织为<strong>三维结构的神经层</strong> ，其大小为$M \times N \times D$，由$D$(深度)个$M \times N$大小的特征映射构成。</p>
+<p><strong>特征映射(feature map)<strong>为</strong>一幅图像(或其它特征映射)在经过卷积提取到的特征</strong>，每个特征映射可以作为一类抽取的图像特征。为了提高卷积网络的表示能力，可以<strong>在每一层使用多个不同的特征映射</strong>，以更好地表示图像的特征。<strong>在输入层，特征映射就是图像本身</strong>。如果是灰度图像，就是有一个特征映射，输入层的深度$D=1$；如果是彩色图像，分别有RGB三个颜色通道的特征映射，输入层的深度$D=3$。</p>
+<p>不失一般性，假设一个卷积层的结构如下：</p>
+<p>(1) <strong>输入特征映射组</strong>：$\boldsymbol{X} \in \mathbb{R}^{M \times N \times D}$为三维张量(tensor)，其中每个切片矩阵$X^{d} \in \mathbb{R}^{M \times N}$为一个输入特征映射。</p>
+<p>(2) <strong>输出特征映射组</strong>：$\boldsymbol{Y} \in \mathbb{R}^{M^{\prime} \times N^{\prime} \times P}$为三维张量，其中每个切片矩阵$Y^p \in \mathbb{R}^{M^{\prime} \times N^{\prime}}$为一个输出特征映射。</p>
+<p>(3) <strong>卷积核</strong>：$\boldsymbol{W} \in \mathbb{R}^{m \times n \times D \times P}$为四维张量，其中每个切片矩阵$W^{p, d} \in \mathbb{R}^{m \times n}$为一个二维卷积核。</p>
+<p>下图为卷积层的三维结构表示：</p>
+<div align="center">
+<img src="/images/3/image-20200608225322191.png" style="zoom:40%;" />
+</div>
+$$
+\begin{array}{l}
+Z^{p}=\boldsymbol{W}^{p} \otimes \boldsymbol{X}+b^{p}=\sum_{d=1}^{D} W^{p, d} \otimes X^{d}+b^{p} \\
+Y^{p}=f(Z^{p})
+\end{array}
+$$<p>
+整个计算过程如下图所示：</p>
+<img src="/images/3/image-20200609215408985.png" style="zoom:30%;" />
+<p>如果希望卷积层输出$P$个特征映射，可以将上述计算机过程重复$P$次，得到$P$个输出特征映射。</p>
+<h4 id="池化层">池化层</h4>
+<p><strong>池化层(pooling layer)</strong> 也叫<strong>子采样层(subsampling layer)<strong>或</strong>汇聚层</strong>，其作用是<strong>进行特征选择，降低特征数量，从而减少参数数量</strong>。卷积层虽然可以显著减少网络中连接的数量，但<strong>特征映射组</strong>中的神经元个数并没有显著减少。如果后面接一个<strong>分类器</strong>，分类器的输入维数依然很高，很容易出现过拟合。为了解决这个问题，可以在卷积层之后加上一个汇聚层，从而降低特征维度，避免过拟合。</p>
+<p>假设汇聚层的输入特征映射组为$\boldsymbol{X} \in \mathbb{R}^{M \times N \times D}$，对于其中每一个特征映射$X^p$，可以将其划分为很多个区域，这些区域可以重叠，也可以不重叠。池化操作对每个区域分别进行下采样，通常有最大池化和平均池化两种方式。其中，<strong>最大池化(max pooling)<strong>一般是取一个区域内所有神经元的最大值，而</strong>平均池化(mean pooling)</strong>：一般是取区域内所有神经元的平均值。下图为最大池化示意图：</p>
+<img src="/images/3/image-20200609220046921.png" style="zoom:40%;" />
+<p>典型的汇聚层是将每个特征映射划分为$2 \times 2$大小的不重叠区域，然后使用<strong>最大汇聚</strong>的方式进行下采样。汇聚层也可以看做是一个<strong>特殊的卷积层</strong>，卷积核大小为$m \times m$，步长为$s \times s$，卷积核为max函数或mean函数。过大的采样区域会急剧减少神经元的数量，也会造成<strong>过多的信息损失</strong>。</p>
+<h3 id="参数学习">参数学习</h3>
+<p>在卷积网络中，<strong>参数为卷积核中权重以及偏置</strong>。和全连接前馈网络类似，卷积网络也可以通过误差反向传播算法来进行参数学习。在全连接前馈神经网络中，梯度主要通过每一层的误差项$\delta$进行反向传播，并进一步计算每层参数的梯度。在卷积神经网络中，主要有两种不同功能的神经层：<strong>卷积层和汇聚层</strong>。而参数为卷积核以及偏置，因此<strong>只需要计算卷积层中参数的梯度</strong>。</p>
+$$
+Z^{(l, p)}=\sum_{d=1}^{D} W^{(l, p, d)} \otimes X^{(l-1, d)}+b^{(l, p)}
+$$$$
+\begin{aligned}
+\frac{\partial \mathcal{L}(Y, \hat{Y})}{\partial W^{(l, p, d)}} &=\frac{\partial \mathcal{L}(Y, \hat{Y})}{\partial Z^{(l, p)}} \otimes X^{(l-1, d)} \\
+&=\delta^{(l, p)} \otimes X^{(l-1, d)}
+\end{aligned}
+$$$$
+\frac{\partial \mathcal{L}(Y, \hat{Y})}{\partial b^{(l, p)}}=\sum_{i, j}[\delta^{(l, p)}]_{i, j}
+$$<p>
+在卷积网络中，每层参数的梯度依赖其所在层的误差项$\delta^{(l,p)}$。卷积层和汇聚层中误差项的计算有所不同，因此我们分别计算其误差项。</p>
+<p>(1) <strong>汇聚层</strong>的误差项</p>
+<p>当第$l+1$层为汇聚层时，因为汇聚层是下采样操作，$l+1$层的每个神经元的误差项$\delta$对应于第$l$层的相应特征映射的一个区域。$l$层的第$p$个特征映射中的每个神经元都有一条边和$l+1$层的第$p$个特征映射中的一个神经元相连。根据链式法则，第$l$层的一个特征映射的误差项$\delta^{(l,p)}$，只需要将$l+1$层对应特征映射的误差项进行上采样操作(和第$\delta^{(l+1,p)}$层的大小一样)，再和$l$层特征映射的激活值偏导数逐元素相乘，就得到了$\delta^{(l,p)}$。</p>
+$$
+\begin{aligned}
+\delta^{(l, p)} & \triangleq \frac{\partial \mathcal{L}(Y, \hat{Y})}{\partial Z^{(l, p)}} \\
+&=\frac{\partial X^{(l, p)}}{\partial Z^{(l, p)}} \cdot \frac{\partial Z^{(l+1, p)}}{\partial X^{(l, p)}} \cdot \frac{\partial \mathcal{L}(Y, \hat{Y})}{\partial Z^{(l+1, p)}} \\
+&=f_{l}^{\prime}(Z^{(l, p)}) \odot \operatorname{up}(\delta^{(l+1, p)})
+\end{aligned}
+$$<p>
+其中$f_{l}^{\prime}(\cdot)$为第$l$层使用的激活函数导数，$\text{up}$为<strong>上采样函数，与汇聚层中使用的下采样操作刚好相反</strong>。如果下采样是最大汇聚，误差项中每个$\delta^{(l+1,p)}$值会直接传递到上一层对应区域中的最大值所对应的神经元，该区域中其它神经元的误差项都设为0。如果下采样是平均汇聚，误差项$\delta^{(l+1,p)}$中每个值会被平均分配到上一层对应区域中的所有神经元上。</p>
+<p>(2) <strong>卷积层</strong>的误差项</p>
+$$
+Z^{(l+1, p)}=\sum_{d=1}^{D} W^{(l+1, p, d)} \otimes X^{(l, d)}+b^{(l+1, p)}
+$$<p>
+其中$W^{(l+1,p,d)}$和$b^{(l+1,p)}$为第$l+1$层的卷积核以及偏置。第$l+1$层中共有$P \times D$个卷积核和$P$个偏置。</p>
+$$
+\begin{aligned}
+\delta^{(l, d)} & \triangleq \frac{\partial \mathcal{L}(Y, \hat{Y})}{\partial Z^{(l, d)}} \\
+&=\frac{\partial X^{(l, d)}}{\partial Z^{(l, d)}} \cdot \frac{\partial \mathcal{L}(Y, \hat{Y})}{\partial X^{(l, d)}} \\
+&=f_{l}^{\prime}(Z^{(l)}) \odot \sum_{p=1}^{P}\left(\operatorname{rot} 180(W^{(l+1, p, d)}) \tilde{\otimes} \frac{\partial \mathcal{L}(Y, \hat{Y})}{\partial Z^{(l+1, p)}}\right) \\
+&=f_{l}^{\prime}(Z^{(l)}) \odot \sum_{p=1}^{P}\left(\operatorname{rot} 180(W^{(l+1, p, d)}) \tilde{\otimes} \delta^{(l+1, p)}\right)
+\end{aligned}
+$$<p>
+其中，$\tilde{\otimes}$为宽卷积。</p>
+<h3 id="几种常见的卷积神经网络">几种常见的卷积神经网络</h3>
+<h4 id="lenet-5">LeNet-5</h4>
+<img src="/images/3/image-20200609223620244.png" style="zoom:35%;" />
+<h4 id="alexnet">AlexNet</h4>
+<img src="/images/3/image-20200609225341639.png" style="zoom:35%;" />
+<h4 id="inception网络">Inception网络</h4>
+<p>在Inception网络中，一个卷积层包含多个<strong>不同大小的卷积操作</strong>，称为Inception模块。Inception网络是由有多个Inception模块和少量的汇聚层堆叠而成。Inception模块同时使用$1 \times 1, 3 \times 3, 5 \times 5$等不同大小的卷积核，并将得到的特征映射在深度上拼接(堆叠)起来作为输出特征映射。</p>
+<img src="/images/3/image-20200609224126448.png" style="zoom:30%;" />
+<p>Inception网络最早的v1版本就是非常著名的<strong>GoogLeNet</strong>，其赢得了2014年ImageNet图像分类竞赛的冠军。 Inception网络有多个改进版本，其中比较有代表性的有<strong>Inception v3</strong>网络。Inception v3网络用多层的小卷积核来替换大的卷积核，以减少计算量和参数量，并保持感受野不变。具体包括：(1) 使用两层3×3的卷积来替换v1中的5×5的卷积；(2) 使用连续的n×1和1×n来替换n×n的卷积。此外，Inception v3网络同时也引入了标签平滑以及批量归一化等优化方法进行训练。</p>
+<h4 id="残差网络">残差网络</h4>
+<p><strong>残差网络(residual network, ResNet)</strong> 是通过给非线性的卷积层增加直连边的方式来提高信息的传播效率。假设在一个深度网络中，我们期望一个非线性单元(可以为一层或多层的卷积层)$f(\boldsymbol x;\theta)$去逼近一个目标函数$h(\boldsymbol x)$。可以将目标函数拆分成两部分：<strong>恒等函数(identity function)</strong>$\boldsymbol x$和<strong>残差函数(residue function)</strong>$h(\boldsymbol x) - \boldsymbol x$：$h(\boldsymbol x) = \boldsymbol x + h(\boldsymbol x) - \boldsymbol x$。</p>
+<p>根据通用近似定理，一个由神经网络构成的非线性单元有足够的能力来近似逼近原始目标函数或残差函数，但<strong>实际中后者更容易学习</strong>。因此，原来的优化问题可以转换为：让非线性单元$f(\boldsymbol x;\theta)$去近似残差函数$h(\boldsymbol x) - \boldsymbol x$，并用$f(\boldsymbol x;\theta) + \boldsymbol x$去逼近$h(\boldsymbol x)$。</p>
+<p>下图给出了一个典型的残差单元示例。残差单元由多个级联的卷积层和一个跨层的直连边组成，再经过ReLU激活后得到输出。</p>
+<img src="/images/3/image-20211226220035949.png" style="zoom:45%;" />
+<p>残差网络就是将很多个残差单元串联起来构成的一个非常深的网络。和残差网络类似的还有<strong>Highway Network</strong>等。</p>
+<h3 id="其他卷积方式">其他卷积方式</h3>
+<h4 id="转置卷积">转置卷积</h4>
+<p>我们一般可以通过卷积操作来实现<strong>高维特征到低维特征的转换</strong>。比如在一维卷积中，一个5维的输入特征，经过一个大小为3的卷积核，其输出为3维特征。如果设置步长大于1，可以进一步降低输出特征的维数。但在一些任务中，我们需要<strong>将低维特征映射到高维特征</strong>，并且依然希望通过卷积操作来实现。假设有一个高维向量$\boldsymbol x \in \mathbb R^d$和一个低维向量$\boldsymbol z \in \mathbb R^p$，其中$p &lt; d$。如果使用仿射变换来实现高维到低维的映射$\boldsymbol z=W \boldsymbol x$，可以很容易地通过转置$W$来实现低维到高维的反向映射，即$\boldsymbol x=W^\text T \boldsymbol z$。</p>
+<p>在<strong>全连接网络</strong>中，<strong>忽略激活函数</strong>，<strong>前向计算和反向传播就是一种转置关系</strong>。比如前向计算时，第$l+1$层的净输入为$\boldsymbol{z}^{(l+1)}=W^{(l+1)} \boldsymbol{z}^{(l)}$，反向传播时，第$l$层的误差项为$\delta^{(l)}=(W^{(l+1)})^\text T \delta^{(l+1)}$。</p>
+$$
+\begin{aligned}
+\boldsymbol{z} &=\boldsymbol{w} \otimes \boldsymbol{x} \\
+&=\left[\begin{array}{lllll}
+w_{1} & w_{2} & w_{3} & 0 & 0 \\
+0 & w_{1} & w_{2} & w_{3} & 0 \\
+0 & 0 & w_{1} & w_{2} & w_{3}
+\end{array}\right] \cdot \boldsymbol{x} \\
+&=C \boldsymbol{x}
+\end{aligned}
+$$<p>
+其中$C$是一个稀疏矩阵，其非零元素来自于卷积核$\boldsymbol w$中的元素。如果要实现3维向量$\boldsymbol z$到5维向量$\boldsymbol x$的映射，可以通过仿射矩阵的转置来实现，即$\boldsymbol x=C^\text T \boldsymbol z=\operatorname{rot} 180(\boldsymbol{w}) \tilde{\oplus} \boldsymbol{z}$。</p>
+<p>从仿射变换的角度来看，两个卷积操作$\boldsymbol{z}=\boldsymbol{w} \otimes \boldsymbol{x}$和$\boldsymbol{x}=\operatorname{rot} 180(\boldsymbol{w}) \tilde{\oplus} \boldsymbol{z}$也是形式上的转置关系。因此，我们将低维特征映射到高维特征的卷积操作称为<strong>转置卷积(transposed convolution)</strong>，也称为<strong>反卷积(deconvolution)</strong>。</p>
+<p>在卷积网络中，卷积层的前向计算和反向传播也是一种转置关系。对一个$n$维的向量$\boldsymbol z$，和大小为$m$的卷积核，如果希望通过卷积操作来映射 到更高维的向量，只需要对向量$\boldsymbol z$进行两端补零$p=m-1$，然后进行卷积，可以得到$n+m-1$维的向量。</p>
+<p>转置卷积同样适用于二维卷积。下图给出了一个步长$s=1$，无零填充$p=0$的二维卷积和其对应的转置卷积：</p>
+<img src="/images/3/image-20200715153438844.png" style="zoom:30%;" />
+<p>我们可以通过增加卷积操作的步长$s&gt;1$来实现对输入特征的下采样操作，大幅降低特征维数。同样，我们也可以通过减少转置卷积的步长$s&lt;1$来实现上采样操作，大幅提高特征维数。步长$s&lt;1$的转置卷积也称为<strong>微步卷积(fractionally-strided convolution)</strong>。为了实现微步卷积，我们可以在输入特征之间插入0来间接地使得步长变小。</p>
+<p>如果卷积操作的步长为$s&gt;1$，希望其对应的转置卷积的步长为$\frac{1}{s}$，需要在输入特征之间插入$s-1$个0来使得其移动的速度变慢。</p>
+<p>以一维转置卷积为例，对一个$n$维的向量$\boldsymbol z$，和大小为$m$的卷积核，通过对向量$\boldsymbol z$进行两端补零$p=m-1$，并且在每两个向量元素之间插入$d$个0，然后进行步长为1的卷积，可以得到$(d+1) \times (n-1)+m$维的向量。</p>
+<p>下图给出了一个步长$s=2$，无零填充$p=0$的二维卷积和其对应的转置卷积：</p>
+<img src="/images/3/image-20200715154106926.png" style="zoom:30%;" />
+<h4 id="空洞卷积">空洞卷积</h4>
+<p><strong>空洞卷积(atrous convolution)</strong> 是一种不增加参数数量，同时增加输出单元感受野的一种方法，也称为<strong>膨胀卷积(dilated convolution)</strong>。空洞卷积通过<strong>给卷积核插入“空洞”</strong> 来变相地增加其大小。下图为空洞卷积的示例：</p>
+<img src="/images/3/image-20200715154412178.png" style="zoom:30%;" />
+<h3 id="tensorflow实现卷积神经网络进行fashion-mnist衣物识别">Tensorflow实现卷积神经网络进行Fashion MNIST衣物识别</h3>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">tensorflow</span> <span style="color:#204a87;font-weight:bold">as</span> <span style="color:#000">tf</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">__version__</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 下载Fashion MNIST数据并进行归一化</span>
+</span></span><span style="display:flex;"><span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_train</span><span style="color:#000;font-weight:bold">),</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_test</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">datasets</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">fashion_mnist</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">load_data</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">X_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">X_test</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">X_train</span> <span style="color:#ce5c00;font-weight:bold">/</span> <span style="color:#0000cf;font-weight:bold">255.0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">X_test</span> <span style="color:#ce5c00;font-weight:bold">/</span> <span style="color:#0000cf;font-weight:bold">255.0</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_train</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">X_test</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_train</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_test</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">X_train</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">expand_dims</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#ce5c00;font-weight:bold">-</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">)</span>  <span style="color:#8f5902;font-style:italic"># 扩展通道这一维度</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">X_test</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">expand_dims</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#ce5c00;font-weight:bold">-</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">)</span>  <span style="color:#8f5902;font-style:italic"># 扩展通道这一维度</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">X_train</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">X_test</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_train</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_test</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shape</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 将数据转化为tf.data.Dataset类型</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">train_ds</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">data</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Dataset</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">from_tensor_slices</span><span style="color:#000;font-weight:bold">((</span><span style="color:#000">X_train</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_train</span><span style="color:#000;font-weight:bold">))</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">shuffle</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">10000</span><span style="color:#000;font-weight:bold">)</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">batch</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">64</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">test_ds</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">data</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Dataset</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">from_tensor_slices</span><span style="color:#000;font-weight:bold">((</span><span style="color:#000">X_test</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">y_test</span><span style="color:#000;font-weight:bold">))</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">batch</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">64</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">class</span> <span style="color:#000">ConvNeuralNetwork</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Model</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">def</span> <span style="color:#000">__init__</span><span style="color:#000;font-weight:bold">(</span><span style="color:#3465a4">self</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87">super</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">ConvNeuralNetwork</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#3465a4">self</span><span style="color:#000;font-weight:bold">)</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">__init__</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">conv1</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Conv2D</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">64</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">5</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">5</span><span style="color:#000;font-weight:bold">),</span> <span style="color:#000">activation</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;relu&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">pool1</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">AveragePooling2D</span><span style="color:#000;font-weight:bold">((</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">conv2</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Conv2D</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">128</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">3</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">3</span><span style="color:#000;font-weight:bold">),</span> <span style="color:#000">activation</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;relu&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">pool2</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">AveragePooling2D</span><span style="color:#000;font-weight:bold">((</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">flatten</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Flatten</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">dense1</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Dense</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">256</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">activation</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;relu&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">dense2</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">layers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Dense</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">10</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">activation</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;softmax&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">def</span> <span style="color:#000">call</span><span style="color:#000;font-weight:bold">(</span><span style="color:#3465a4">self</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">x</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x_conv1</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">conv1</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">x</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x_pool1</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">pool1</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">x_conv1</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x_conv2</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">conv2</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">x_pool1</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x_pool2</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">pool2</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">x_conv2</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x_flatten</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">flatten</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">x_pool2</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x_dense1</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">dense1</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">x_flatten</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87;font-weight:bold">return</span> <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">dense2</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">x_dense1</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">cnn_model</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">ConvNeuralNetwork</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 定义损失函数和优化器</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">loss_function</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">losses</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">SparseCategoricalCrossentropy</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">optimizer</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">optimizers</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Adam</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 评价指标</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">train_loss</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">metrics</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Mean</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">name</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;train_loss&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">train_accuracy</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">metrics</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">SparseCategoricalAccuracy</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">name</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;train_accuracy&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">test_loss</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">metrics</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Mean</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">name</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;test_loss&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">test_accuracy</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">keras</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">metrics</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">SparseCategoricalAccuracy</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">name</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;test_accuracy&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 定义训练步</span>
+</span></span><span style="display:flex;"><span><span style="color:#5c35cc;font-weight:bold">@tf.function</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">def</span> <span style="color:#000">train_step</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">images</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">labels</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">with</span> <span style="color:#000">tf</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">GradientTape</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#204a87;font-weight:bold">as</span> <span style="color:#000">tape</span><span style="color:#000;font-weight:bold">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">predictions</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">cnn_model</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">images</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">loss</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">loss_function</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">labels</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">predictions</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">gradients</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">tape</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">gradient</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">loss</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">cnn_model</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">trainable_variables</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">optimizer</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">apply_gradients</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87">zip</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">gradients</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">cnn_model</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">trainable_variables</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">train_loss</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">loss</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">train_accuracy</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">labels</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">predictions</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 定义测试步</span>
+</span></span><span style="display:flex;"><span><span style="color:#5c35cc;font-weight:bold">@tf.function</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">def</span> <span style="color:#000">test_step</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">images</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">labels</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">predictions</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">cnn_model</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">images</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">loss</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">loss_function</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">labels</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">predictions</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">test_loss</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">loss</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">test_accuracy</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">labels</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">predictions</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">EPOCHS</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">10</span>  <span style="color:#8f5902;font-style:italic"># 训练轮次</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">epoch</span> <span style="color:#204a87;font-weight:bold">in</span> <span style="color:#204a87">range</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">EPOCHS</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">train_loss</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">reset_states</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">train_accuracy</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">reset_states</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">test_loss</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">reset_states</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">test_accuracy</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">reset_states</span><span style="color:#000;font-weight:bold">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">images</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">labels</span> <span style="color:#204a87;font-weight:bold">in</span> <span style="color:#000">train_ds</span><span style="color:#000;font-weight:bold">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">train_step</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">images</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">labels</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">test_images</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">test_labels</span> <span style="color:#204a87;font-weight:bold">in</span> <span style="color:#000">test_ds</span><span style="color:#000;font-weight:bold">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">test_step</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">test_images</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">test_labels</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">template</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#4e9a06">&#39;Epoch </span><span style="color:#4e9a06">{}</span><span style="color:#4e9a06">, Loss: </span><span style="color:#4e9a06">{}</span><span style="color:#4e9a06">, Accuracy: </span><span style="color:#4e9a06">{}</span><span style="color:#4e9a06">, Test Loss: </span><span style="color:#4e9a06">{}</span><span style="color:#4e9a06">, Test Accuracy: </span><span style="color:#4e9a06">{}</span><span style="color:#4e9a06">&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">template</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">format</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">epoch</span> <span style="color:#ce5c00;font-weight:bold">+</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">train_loss</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">result</span><span style="color:#000;font-weight:bold">(),</span> <span style="color:#000">train_accuracy</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">result</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">*</span> <span style="color:#0000cf;font-weight:bold">100</span><span style="color:#000;font-weight:bold">,</span>
+</span></span><span style="display:flex;"><span>                          <span style="color:#000">test_loss</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">result</span><span style="color:#000;font-weight:bold">(),</span> <span style="color:#000">test_accuracy</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">result</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">*</span> <span style="color:#0000cf;font-weight:bold">100</span><span style="color:#000;font-weight:bold">))</span>
+</span></span></code></pre></div><h3 id="pytorch实现卷积神经网络进行fashion-mnist衣物识别">Pytorch实现卷积神经网络进行Fashion MNIST衣物识别</h3>
+<p>整体框架与全连接神经网络进行MNIST手写数字识别一致，仅在网络结构上进行修改：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">class</span> <span style="color:#000">Net</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">nn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Module</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">def</span> <span style="color:#000">__init__</span><span style="color:#000;font-weight:bold">(</span><span style="color:#3465a4">self</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87">super</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">Net</span><span style="color:#000;font-weight:bold">,</span><span style="color:#3465a4">self</span><span style="color:#000;font-weight:bold">)</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">__init__</span><span style="color:#000;font-weight:bold">()</span>  
+</span></span><span style="display:flex;"><span>        <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">conv1</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">nn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Conv2d</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span><span style="color:#0000cf;font-weight:bold">10</span><span style="color:#000;font-weight:bold">,</span><span style="color:#000">kernel_size</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">5</span><span style="color:#000;font-weight:bold">)</span>     <span style="color:#8f5902;font-style:italic">#灰度图像单通道</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">conv2</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">nn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Conv2d</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">10</span><span style="color:#000;font-weight:bold">,</span><span style="color:#0000cf;font-weight:bold">20</span><span style="color:#000;font-weight:bold">,</span><span style="color:#000">kernel_size</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">5</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">pooling</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">nn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">MaxPool2d</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">)</span>     <span style="color:#8f5902;font-style:italic">#kernel_size=2的最大池化</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">fc1</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">nn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Linear</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">20</span><span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#0000cf;font-weight:bold">4</span><span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#0000cf;font-weight:bold">4</span><span style="color:#000;font-weight:bold">,</span><span style="color:#0000cf;font-weight:bold">70</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">fc2</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">nn</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Linear</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">70</span><span style="color:#000;font-weight:bold">,</span><span style="color:#0000cf;font-weight:bold">10</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">def</span> <span style="color:#000">forward</span><span style="color:#000;font-weight:bold">(</span><span style="color:#3465a4">self</span><span style="color:#000;font-weight:bold">,</span><span style="color:#000">x</span><span style="color:#000;font-weight:bold">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">batch_size</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">x</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">size</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">pooling</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">F</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">relu</span><span style="color:#000;font-weight:bold">(</span><span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">conv1</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">x</span><span style="color:#000;font-weight:bold">)))</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">pooling</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">F</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">relu</span><span style="color:#000;font-weight:bold">(</span><span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">conv2</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">x</span><span style="color:#000;font-weight:bold">)))</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">x</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">view</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">batch_size</span><span style="color:#000;font-weight:bold">,</span><span style="color:#ce5c00;font-weight:bold">-</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">F</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">relu</span><span style="color:#000;font-weight:bold">(</span><span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">fc1</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">x</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#3465a4">self</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">fc2</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">x</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87;font-weight:bold">return</span> <span style="color:#000">x</span>
+</span></span></code></pre></div><h3 id="参考资料">参考资料</h3>
+<ul>
+<li>
+<p>邱锡鹏. 神经网络与深度学习. 北京: 机械工业出版社, 2020.</p>
+</li>
+<li>
+<p>Khan A, Sohail A, Zahoora U, et al. A survey of the recent architectures of deep convolutional neural networks[J]. Artificial Intelligence Review, 2020, 53(8): 5455-5516.</p>
+</li>
+<li>
+<p>卷积神经网络维基百科：https://en.wikipedia.org/wiki/Convolutional_neural_network</p>
+</li>
+<li>
+<p>Pytorch实现手写数字识别（基于卷积神经网络）：https://blog.csdn.net/weixin_44851176/article/details/125902419?spm=1001.2014.3001.5502</p>
+</li>
+</ul>
+
+	
+</div>
+
+
+            </div>
+
+          </main>
+        </div>
+      </div>
+      <footer class="td-footer row d-print-none">
+  <div class="container-fluid">
+    <div class="row mx-md-2">
+      <div class="td-footer__left col-6 col-sm-4 order-sm-1">
+        
+      </div><div class="td-footer__right col-6 col-sm-4 order-sm-3">
+        
+      </div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2">
+        
+      </div>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css"
+      integrity="sha512-r2+FkHzf1u0+SQbZOoIz2RxWOIWfdEzRuYybGjzKq18jG9zaSfEy9s3+jMqG/zPtRor/q4qaUCYQpmSjTw8M+g==" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"
+        integrity="sha512-INps9zQ2GUEMCQD7xiZQbGUVnqnzEvlynVy6eqcTcHN4+aQiLo9/uaQqckDpdJ8Zm3M0QBs+Pktg4pz0kEklUg=="
+        crossorigin="anonymous">
+</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"
+       integrity="sha512-YJVxTjqttjsU3cSvaTRqsSl0wbRgZUNF+NGGCgto/MUbIvaLdXQzGTCQu4CvyJZbZctgflVB0PXw9LLmTWm5/w==" crossorigin="anonymous"
+       onload='renderMathInElement(document.body, {"delimiters":[{"display":true,"left":"$$","right":"$$"},{"display":false,"left":"$","right":"$"},{"display":false,"left":"\\(","right":"\\)"},{"display":true,"left":"\\[","right":"\\]"}],"errorcolor":"#CD5C5C","throwonerror":false});'>
+</script>
+<script src="/js/main.min.613b131e2c315a570f2f0f22f51f752a53e30fc078f674f7ab0885a6ce15ad68.js" integrity="sha256-YTsTHiwxWlcPLw8i9R91KlPjD8B49nT3qwiFps4VrWg=" crossorigin="anonymous"></script>
+<script defer src="/js/click-to-copy.min.73478a7d4807698aed7e355eb23f9890ca18fea3158604c8471746d046702bad.js" integrity="sha256-c0eKfUgHaYrtfjVesj&#43;YkMoY/qMVhgTIRxdG0EZwK60=" crossorigin="anonymous"></script>
+<script src='/js/tabpane-persist.js'></script>
+
+  </body>
+</html>

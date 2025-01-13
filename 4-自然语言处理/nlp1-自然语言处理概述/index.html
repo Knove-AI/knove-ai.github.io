@@ -1,0 +1,709 @@
+<!doctype html>
+<html itemscope itemtype="http://schema.org/WebPage" lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+
+
+<link rel="shortcut icon" href="/favicons/favicon.ico" >
+<link rel="apple-touch-icon" href="/favicons/apple-touch-icon-180x180.png" sizes="180x180">
+<link rel="icon" type="image/png" href="/favicons/favicon-16x16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="/favicons/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/favicons/android-36x36.png" sizes="36x36">
+<link rel="icon" type="image/png" href="/favicons/android-48x48.png" sizes="48x48">
+<link rel="icon" type="image/png" href="/favicons/android-72x72.png" sizes="72x72">
+<link rel="icon" type="image/png" href="/favicons/android-96x96.png" sizes="96x96">
+<link rel="icon" type="image/png" href="/favicons/android-144x144.png" sizes="144x144">
+<link rel="icon" type="image/png" href="/favicons/android-192x192.png" sizes="192x192">
+
+<title>自然语言处理概述 | 知予AI</title>
+<meta name="description" content="自然语言与编程语言 自然语言处理(natural language processing, NLP) 是一门融合了计算机科学、人工智能以及语言学的交叉学科(interdisciplinary field)。这门学科研究的是如何通过机器学习等技术，让计算机学会处理人类语言，乃至实现最终目标：理解人类语言或人工智能。
+自然语言处理同义词：注重语言学结构的学者喜欢使用计算语言学(conputational linguistics)，而强调最终目的的学者则更偏好自然语言理解(natural language understanding) 这个术语。
+完全理解和表达语言是极其困难的，正确的语言表达也没有精确并完备的特性。
+虽然自然语言和编程语言都称为“语言”，但二者有极大差异。自然语言和编程语言之间的不同：
+(1) 词汇量：编程语言的关键词数量有限且确定，而自然语言的词汇量是无尽的、可创造的。
+(2) 结构化：自然语言是非结构化的，而编程语言是结构化的。
+(3) 歧义性：自然语言含有大量歧义，这些歧义根据语境的不同而表现为特定的义项。语言中的歧义问题是自然语言难以处理的原因。
+(4) 容错性：自然语言具有很高的容错性，人们可以猜出有错的句子的含义；编程语言的拼写必须保证绝对正确，语法必须保证绝对规范。
+(5) 易变性：编程语言的变化缓慢温和，而自然语言的变化迅速嘈杂。
+(6) 简略性：人类语言往往简洁干练，我们经常省略大量背景知识或常识。
+自然语言处理的任务 (1) 语音、图像和文本的处理
+自然语言处理系统的输入源有语音、图像和文本。其中文本占主要地位，语音和图像受制于存储容量和传输速度的限制，它们的信息总量不如文本多。通常进行**语音识别(speech recognition)将语音转化为文本，使用光学字符识别(optical character recognition, OCR)**将图像转化为文本。
+(2) 词法分析
+这三个任务都是围绕词语进行的分析，所以统称词法分析(lexical analysis)。词法分析的主要任务是：将文本分隔为有意义的词语，即分词(segmentation)；确定每个词语的类别和浅层的歧义消除，即词性标注(part-of-speech tagging)；并且识别出一些较长的专有名词，即命名实体识别(named entity recognition, NER)。
+(3) 信息抽取
+词法分析以后，文本已经呈现出部分结构化的趋势，计算机看到的不再是一个长字符串，而是有意义的单词列表，且每个单词还附有自己的词性及其他标签。根据这些单词与标签，可以利用信息抽取(information extraction)技术来抽取文本中的有用信息，从简单的高频词到高级算法提取出的关键词，从公司名称到专业术语，其中词语级别的信息已经可以进行很多的抽取。我们还可以根据词语之间的统计学信息抽取出关键短语乃至句子，更大粒度的文本对用户更加友好。
+(4) 文本分类与文本聚类
+文本分类(text classification) 任务可以判断一段话是褒义还是贬义、分析一句话的感情是积极还是消极、判断一封邮件是否是垃圾邮件等。**文本聚类(text clustering)**任务可以将相似的文本归档到一起、排除重复文档等，在信息检索等领域有着广泛的应用。
+(5) 句法分析
+句法分析(syntactic parsing)将零散词汇信息进行分析，得到词语间的关系。问答系统、搜索引擎和机器翻译等系统中，句法分析都是很重要的。
+(6) 语义分析
+相较于语法分析，语义分析(semantic analysis) 侧重语义而非语法。它包括词意消解(确定一个词在语境中的含义)、语义角色标注(标准组句子中的谓语与其他成分的关系)乃至语义依存分析(分析句子中词语之间的语义关系)。
+(7) 其他高级任务
+除了上述任务以外，还有很多综合性的任务，与终端应用级产品联系更加紧密。比如：自动问答(QA)、自动摘要(summarization)、机器翻译(machine translation) 等。注意，一般认为信息检索(information retrieve, IR) 是区别于自然语言处理的独立学科。虽然二者具有密切的联系，但IR的目标是查询信息，而NLP的目标是理解语言，二者的目标具有本质上的区别。
+自然语言处理的知识域 计算机分析所接受声音信号，并且把单词序列转换成声音信号，分别需要语音学和音系学的知识，这样的知识可以帮助我们建立词如何在话语中发音的模型。">
+<meta property="og:url" content="https://knove-ai.github.io/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp1-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E6%A6%82%E8%BF%B0/">
+  <meta property="og:site_name" content="知予AI">
+  <meta property="og:title" content="自然语言处理概述">
+  <meta property="og:description" content="自然语言与编程语言 自然语言处理(natural language processing, NLP) 是一门融合了计算机科学、人工智能以及语言学的交叉学科(interdisciplinary field)。这门学科研究的是如何通过机器学习等技术，让计算机学会处理人类语言，乃至实现最终目标：理解人类语言或人工智能。
+自然语言处理同义词：注重语言学结构的学者喜欢使用计算语言学(conputational linguistics)，而强调最终目的的学者则更偏好自然语言理解(natural language understanding) 这个术语。
+完全理解和表达语言是极其困难的，正确的语言表达也没有精确并完备的特性。
+虽然自然语言和编程语言都称为“语言”，但二者有极大差异。自然语言和编程语言之间的不同：
+(1) 词汇量：编程语言的关键词数量有限且确定，而自然语言的词汇量是无尽的、可创造的。
+(2) 结构化：自然语言是非结构化的，而编程语言是结构化的。
+(3) 歧义性：自然语言含有大量歧义，这些歧义根据语境的不同而表现为特定的义项。语言中的歧义问题是自然语言难以处理的原因。
+(4) 容错性：自然语言具有很高的容错性，人们可以猜出有错的句子的含义；编程语言的拼写必须保证绝对正确，语法必须保证绝对规范。
+(5) 易变性：编程语言的变化缓慢温和，而自然语言的变化迅速嘈杂。
+(6) 简略性：人类语言往往简洁干练，我们经常省略大量背景知识或常识。
+自然语言处理的任务 (1) 语音、图像和文本的处理
+自然语言处理系统的输入源有语音、图像和文本。其中文本占主要地位，语音和图像受制于存储容量和传输速度的限制，它们的信息总量不如文本多。通常进行**语音识别(speech recognition)将语音转化为文本，使用光学字符识别(optical character recognition, OCR)**将图像转化为文本。
+(2) 词法分析
+这三个任务都是围绕词语进行的分析，所以统称词法分析(lexical analysis)。词法分析的主要任务是：将文本分隔为有意义的词语，即分词(segmentation)；确定每个词语的类别和浅层的歧义消除，即词性标注(part-of-speech tagging)；并且识别出一些较长的专有名词，即命名实体识别(named entity recognition, NER)。
+(3) 信息抽取
+词法分析以后，文本已经呈现出部分结构化的趋势，计算机看到的不再是一个长字符串，而是有意义的单词列表，且每个单词还附有自己的词性及其他标签。根据这些单词与标签，可以利用信息抽取(information extraction)技术来抽取文本中的有用信息，从简单的高频词到高级算法提取出的关键词，从公司名称到专业术语，其中词语级别的信息已经可以进行很多的抽取。我们还可以根据词语之间的统计学信息抽取出关键短语乃至句子，更大粒度的文本对用户更加友好。
+(4) 文本分类与文本聚类
+文本分类(text classification) 任务可以判断一段话是褒义还是贬义、分析一句话的感情是积极还是消极、判断一封邮件是否是垃圾邮件等。**文本聚类(text clustering)**任务可以将相似的文本归档到一起、排除重复文档等，在信息检索等领域有着广泛的应用。
+(5) 句法分析
+句法分析(syntactic parsing)将零散词汇信息进行分析，得到词语间的关系。问答系统、搜索引擎和机器翻译等系统中，句法分析都是很重要的。
+(6) 语义分析
+相较于语法分析，语义分析(semantic analysis) 侧重语义而非语法。它包括词意消解(确定一个词在语境中的含义)、语义角色标注(标准组句子中的谓语与其他成分的关系)乃至语义依存分析(分析句子中词语之间的语义关系)。
+(7) 其他高级任务
+除了上述任务以外，还有很多综合性的任务，与终端应用级产品联系更加紧密。比如：自动问答(QA)、自动摘要(summarization)、机器翻译(machine translation) 等。注意，一般认为信息检索(information retrieve, IR) 是区别于自然语言处理的独立学科。虽然二者具有密切的联系，但IR的目标是查询信息，而NLP的目标是理解语言，二者的目标具有本质上的区别。
+自然语言处理的知识域 计算机分析所接受声音信号，并且把单词序列转换成声音信号，分别需要语音学和音系学的知识，这样的知识可以帮助我们建立词如何在话语中发音的模型。">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="4-自然语言处理">
+    <meta property="article:published_time" content="2017-01-01T00:00:00+00:00">
+    <meta property="article:modified_time" content="2017-01-01T00:00:00+00:00">
+
+  <meta itemprop="name" content="自然语言处理概述">
+  <meta itemprop="description" content="自然语言与编程语言 自然语言处理(natural language processing, NLP) 是一门融合了计算机科学、人工智能以及语言学的交叉学科(interdisciplinary field)。这门学科研究的是如何通过机器学习等技术，让计算机学会处理人类语言，乃至实现最终目标：理解人类语言或人工智能。
+自然语言处理同义词：注重语言学结构的学者喜欢使用计算语言学(conputational linguistics)，而强调最终目的的学者则更偏好自然语言理解(natural language understanding) 这个术语。
+完全理解和表达语言是极其困难的，正确的语言表达也没有精确并完备的特性。
+虽然自然语言和编程语言都称为“语言”，但二者有极大差异。自然语言和编程语言之间的不同：
+(1) 词汇量：编程语言的关键词数量有限且确定，而自然语言的词汇量是无尽的、可创造的。
+(2) 结构化：自然语言是非结构化的，而编程语言是结构化的。
+(3) 歧义性：自然语言含有大量歧义，这些歧义根据语境的不同而表现为特定的义项。语言中的歧义问题是自然语言难以处理的原因。
+(4) 容错性：自然语言具有很高的容错性，人们可以猜出有错的句子的含义；编程语言的拼写必须保证绝对正确，语法必须保证绝对规范。
+(5) 易变性：编程语言的变化缓慢温和，而自然语言的变化迅速嘈杂。
+(6) 简略性：人类语言往往简洁干练，我们经常省略大量背景知识或常识。
+自然语言处理的任务 (1) 语音、图像和文本的处理
+自然语言处理系统的输入源有语音、图像和文本。其中文本占主要地位，语音和图像受制于存储容量和传输速度的限制，它们的信息总量不如文本多。通常进行**语音识别(speech recognition)将语音转化为文本，使用光学字符识别(optical character recognition, OCR)**将图像转化为文本。
+(2) 词法分析
+这三个任务都是围绕词语进行的分析，所以统称词法分析(lexical analysis)。词法分析的主要任务是：将文本分隔为有意义的词语，即分词(segmentation)；确定每个词语的类别和浅层的歧义消除，即词性标注(part-of-speech tagging)；并且识别出一些较长的专有名词，即命名实体识别(named entity recognition, NER)。
+(3) 信息抽取
+词法分析以后，文本已经呈现出部分结构化的趋势，计算机看到的不再是一个长字符串，而是有意义的单词列表，且每个单词还附有自己的词性及其他标签。根据这些单词与标签，可以利用信息抽取(information extraction)技术来抽取文本中的有用信息，从简单的高频词到高级算法提取出的关键词，从公司名称到专业术语，其中词语级别的信息已经可以进行很多的抽取。我们还可以根据词语之间的统计学信息抽取出关键短语乃至句子，更大粒度的文本对用户更加友好。
+(4) 文本分类与文本聚类
+文本分类(text classification) 任务可以判断一段话是褒义还是贬义、分析一句话的感情是积极还是消极、判断一封邮件是否是垃圾邮件等。**文本聚类(text clustering)**任务可以将相似的文本归档到一起、排除重复文档等，在信息检索等领域有着广泛的应用。
+(5) 句法分析
+句法分析(syntactic parsing)将零散词汇信息进行分析，得到词语间的关系。问答系统、搜索引擎和机器翻译等系统中，句法分析都是很重要的。
+(6) 语义分析
+相较于语法分析，语义分析(semantic analysis) 侧重语义而非语法。它包括词意消解(确定一个词在语境中的含义)、语义角色标注(标准组句子中的谓语与其他成分的关系)乃至语义依存分析(分析句子中词语之间的语义关系)。
+(7) 其他高级任务
+除了上述任务以外，还有很多综合性的任务，与终端应用级产品联系更加紧密。比如：自动问答(QA)、自动摘要(summarization)、机器翻译(machine translation) 等。注意，一般认为信息检索(information retrieve, IR) 是区别于自然语言处理的独立学科。虽然二者具有密切的联系，但IR的目标是查询信息，而NLP的目标是理解语言，二者的目标具有本质上的区别。
+自然语言处理的知识域 计算机分析所接受声音信号，并且把单词序列转换成声音信号，分别需要语音学和音系学的知识，这样的知识可以帮助我们建立词如何在话语中发音的模型。">
+  <meta itemprop="datePublished" content="2017-01-01T00:00:00+00:00">
+  <meta itemprop="dateModified" content="2017-01-01T00:00:00+00:00">
+  <meta itemprop="wordCount" content="501">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="自然语言处理概述">
+  <meta name="twitter:description" content="自然语言与编程语言 自然语言处理(natural language processing, NLP) 是一门融合了计算机科学、人工智能以及语言学的交叉学科(interdisciplinary field)。这门学科研究的是如何通过机器学习等技术，让计算机学会处理人类语言，乃至实现最终目标：理解人类语言或人工智能。
+自然语言处理同义词：注重语言学结构的学者喜欢使用计算语言学(conputational linguistics)，而强调最终目的的学者则更偏好自然语言理解(natural language understanding) 这个术语。
+完全理解和表达语言是极其困难的，正确的语言表达也没有精确并完备的特性。
+虽然自然语言和编程语言都称为“语言”，但二者有极大差异。自然语言和编程语言之间的不同：
+(1) 词汇量：编程语言的关键词数量有限且确定，而自然语言的词汇量是无尽的、可创造的。
+(2) 结构化：自然语言是非结构化的，而编程语言是结构化的。
+(3) 歧义性：自然语言含有大量歧义，这些歧义根据语境的不同而表现为特定的义项。语言中的歧义问题是自然语言难以处理的原因。
+(4) 容错性：自然语言具有很高的容错性，人们可以猜出有错的句子的含义；编程语言的拼写必须保证绝对正确，语法必须保证绝对规范。
+(5) 易变性：编程语言的变化缓慢温和，而自然语言的变化迅速嘈杂。
+(6) 简略性：人类语言往往简洁干练，我们经常省略大量背景知识或常识。
+自然语言处理的任务 (1) 语音、图像和文本的处理
+自然语言处理系统的输入源有语音、图像和文本。其中文本占主要地位，语音和图像受制于存储容量和传输速度的限制，它们的信息总量不如文本多。通常进行**语音识别(speech recognition)将语音转化为文本，使用光学字符识别(optical character recognition, OCR)**将图像转化为文本。
+(2) 词法分析
+这三个任务都是围绕词语进行的分析，所以统称词法分析(lexical analysis)。词法分析的主要任务是：将文本分隔为有意义的词语，即分词(segmentation)；确定每个词语的类别和浅层的歧义消除，即词性标注(part-of-speech tagging)；并且识别出一些较长的专有名词，即命名实体识别(named entity recognition, NER)。
+(3) 信息抽取
+词法分析以后，文本已经呈现出部分结构化的趋势，计算机看到的不再是一个长字符串，而是有意义的单词列表，且每个单词还附有自己的词性及其他标签。根据这些单词与标签，可以利用信息抽取(information extraction)技术来抽取文本中的有用信息，从简单的高频词到高级算法提取出的关键词，从公司名称到专业术语，其中词语级别的信息已经可以进行很多的抽取。我们还可以根据词语之间的统计学信息抽取出关键短语乃至句子，更大粒度的文本对用户更加友好。
+(4) 文本分类与文本聚类
+文本分类(text classification) 任务可以判断一段话是褒义还是贬义、分析一句话的感情是积极还是消极、判断一封邮件是否是垃圾邮件等。**文本聚类(text clustering)**任务可以将相似的文本归档到一起、排除重复文档等，在信息检索等领域有着广泛的应用。
+(5) 句法分析
+句法分析(syntactic parsing)将零散词汇信息进行分析，得到词语间的关系。问答系统、搜索引擎和机器翻译等系统中，句法分析都是很重要的。
+(6) 语义分析
+相较于语法分析，语义分析(semantic analysis) 侧重语义而非语法。它包括词意消解(确定一个词在语境中的含义)、语义角色标注(标准组句子中的谓语与其他成分的关系)乃至语义依存分析(分析句子中词语之间的语义关系)。
+(7) 其他高级任务
+除了上述任务以外，还有很多综合性的任务，与终端应用级产品联系更加紧密。比如：自动问答(QA)、自动摘要(summarization)、机器翻译(machine translation) 等。注意，一般认为信息检索(information retrieve, IR) 是区别于自然语言处理的独立学科。虽然二者具有密切的联系，但IR的目标是查询信息，而NLP的目标是理解语言，二者的目标具有本质上的区别。
+自然语言处理的知识域 计算机分析所接受声音信号，并且把单词序列转换成声音信号，分别需要语音学和音系学的知识，这样的知识可以帮助我们建立词如何在话语中发音的模型。">
+<link rel="preload" href="/scss/main.min.a52b2e54f3e921e61502207760f8ecb468b09dc55f348cc42d9b9b9132637847.css" as="style" integrity="sha256-pSsuVPPpIeYVAiB3YPjstGiwncVfNIzELZubkTJjeEc=" crossorigin="anonymous">
+<link href="/scss/main.min.a52b2e54f3e921e61502207760f8ecb468b09dc55f348cc42d9b9b9132637847.css" rel="stylesheet" integrity="sha256-pSsuVPPpIeYVAiB3YPjstGiwncVfNIzELZubkTJjeEc=" crossorigin="anonymous">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda+SC:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Bodoni+Moda:ital,opsz,wght@1,6..96,800&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Sen:wght@400..800&display=swap" rel="stylesheet">
+<script
+  src="https://code.jquery.com/jquery-3.7.1.min.js"
+  integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+  crossorigin="anonymous"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: '\\[', right: '\\]', display: true},   
+        {left: '$$', right: '$$', display: true},     
+        {left: '\\(', right: '\\)', display: false},  
+      ],
+      throwOnError : false
+    });
+  });
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+  </head>
+  <body class="td-page">
+    <header>
+      
+    </header>
+    <div class="container-fluid td-outer">
+      <div class="td-main">
+        <div class="row flex-xl-nowrap">
+          <aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none">
+            <div id="td-sidebar-menu" class="td-sidebar__inner">
+  <image src="/logo.png" style="width: 100%;" />
+
+
+  <form class="td-sidebar__search d-flex align-items-center">
+    
+    <button class="btn btn-link td-sidebar__toggle d-md-none p-0 ms-3 fas fa-bars" type="button" data-bs-toggle="collapse" data-bs-target="#td-section-nav" aria-controls="td-section-nav" aria-expanded="false" aria-label="Toggle section navigation">
+    </button>
+  </form>
+  <nav class="td-sidebar-nav collapse" id="td-section-nav">
+    <ul class="td-sidebar-nav__section pe-md-3 ul-0">
+      <li> <a href="/">首页</a></li>
+      <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m--li">
+  <a href="/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id="m-"><span class=""></span></a>
+  <ul class="ul-1">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-1-e695b0e5ada6e59fbae7a180-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" title="数学基础" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-1-e695b0e5ada6e59fbae7a180"><span class="">1-数学基础</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math1-e7babfe680a7e4bba3e695b0-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math1-%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math1-e7babfe680a7e4bba3e695b0"><span class="">线性代数</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math2-e5beaee7a7afe58886-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math2-%E5%BE%AE%E7%A7%AF%E5%88%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math2-e5beaee7a7afe58886"><span class="">微积分</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math3-e695b0e5ada6e4bc98e58c96-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math3-%E6%95%B0%E5%AD%A6%E4%BC%98%E5%8C%96/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math3-e695b0e5ada6e4bc98e58c96"><span class="">数学优化</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math4-e6a682e78e87e7bb9fe8aea1-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math4-%E6%A6%82%E7%8E%87%E7%BB%9F%E8%AE%A1/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math4-e6a682e78e87e7bb9fe8aea1"><span class="">概率统计</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-1-e695b0e5ada6e59fbae7a180math5-e4bfa1e681afe8aeba-li">
+  <a href="/1-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/math5-%E4%BF%A1%E6%81%AF%E8%AE%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-1-e695b0e5ada6e59fbae7a180math5-e4bfa1e681afe8aeba"><span class="">信息论</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-2-e69cbae599a8e5ada6e4b9a0-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-2-e69cbae599a8e5ada6e4b9a0"><span class="">2-机器学习</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml1-e69cbae599a8e5ada6e4b9a0e59fbae7a180-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml1-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%9F%BA%E7%A1%80/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml1-e69cbae599a8e5ada6e4b9a0e59fbae7a180"><span class="">机器学习基础</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml2-e7babfe680a7e59b9ee5bd92-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml2-%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml2-e7babfe680a7e59b9ee5bd92"><span class="">线性回归</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml3-ke8bf91e982bbe7ae97e6b395-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml3-k%E8%BF%91%E9%82%BB%E7%AE%97%E6%B3%95/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml3-ke8bf91e982bbe7ae97e6b395"><span class="">近邻算法</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml4-e6849fe79fa5e69cba-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml4-%E6%84%9F%E7%9F%A5%E6%9C%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml4-e6849fe79fa5e69cba"><span class="">感知机</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml5-e8b49de58fb6e696afe58886e7b1bbe599a8-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml5-%E8%B4%9D%E5%8F%B6%E6%96%AF%E5%88%86%E7%B1%BB%E5%99%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml5-e8b49de58fb6e696afe58886e7b1bbe599a8"><span class="">贝叶斯分类器</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml6-e980bbe8be91e59b9ee5bd92e4b88ee69c80e5a4a7e786b5e6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml6-%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92%E4%B8%8E%E6%9C%80%E5%A4%A7%E7%86%B5%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml6-e980bbe8be91e59b9ee5bd92e4b88ee69c80e5a4a7e786b5e6a8a1e59e8b"><span class="">逻辑回归与最大熵模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml7-e694afe68c81e59091e9878fe69cba-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml7-%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml7-e694afe68c81e59091e9878fe69cba"><span class="">支持向量机</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml8-e586b3e7ad96e6a091-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml8-%E5%86%B3%E7%AD%96%E6%A0%91/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml8-e586b3e7ad96e6a091"><span class="">决策树</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml9-e99b86e68890e5ada6e4b9a0-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml9-%E9%9B%86%E6%88%90%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml9-e99b86e68890e5ada6e4b9a0"><span class="">集成学习</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml10-eme7ae97e6b395-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml10-em%E7%AE%97%E6%B3%95/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml10-eme7ae97e6b395"><span class="">EM算法</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml11-e8819ae7b1bb-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml11-%E8%81%9A%E7%B1%BB/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml11-e8819ae7b1bb"><span class="">聚类</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml12-e9998de7bbb4-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml12-%E9%99%8D%E7%BB%B4/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml12-e9998de7bbb4"><span class="">降维</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml13-e789b9e5be81e98089e68ba9-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml13-%E7%89%B9%E5%BE%81%E9%80%89%E6%8B%A9/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml13-e789b9e5be81e98089e68ba9"><span class="">特征选择</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml14-e8af9de9a298e6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml14-%E8%AF%9D%E9%A2%98%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml14-e8af9de9a298e6a8a1e59e8b"><span class="">话题模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-2-e69cbae599a8e5ada6e4b9a0ml15-e6a682e78e87e59bbee6a8a1e59e8b-li">
+  <a href="/2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/ml15-%E6%A6%82%E7%8E%87%E5%9B%BE%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-2-e69cbae599a8e5ada6e4b9a0ml15-e6a682e78e87e59bbee6a8a1e59e8b"><span class="">概率图模型</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-3-e6b7b1e5baa6e5ada6e4b9a0-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-3-e6b7b1e5baa6e5ada6e4b9a0"><span class="">3-深度学习</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl1-e6b7b1e5baa6e5ada6e4b9a0e6a682e8bfb0-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl1-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E6%A6%82%E8%BF%B0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl1-e6b7b1e5baa6e5ada6e4b9a0e6a682e8bfb0"><span class="">深度学习概述</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl2-e7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl2-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl2-e7a59ee7bb8fe7bd91e7bb9c"><span class="">神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl3-e58db7e7a7afe7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl3-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl3-e58db7e7a7afe7a59ee7bb8fe7bd91e7bb9c"><span class="">卷积神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl4-e5beaae78eafe7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl4-%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl4-e5beaae78eafe7a59ee7bb8fe7bd91e7bb9c"><span class="">循环神经网络</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl5-e7a59ee7bb8fe7bd91e7bb9ce79a84e4bc98e58c96-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl5-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E7%9A%84%E4%BC%98%E5%8C%96/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl5-e7a59ee7bb8fe7bd91e7bb9ce79a84e4bc98e58c96"><span class="">神经网络的优化</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl6-e887aae7bc96e7a081e599a8-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl6-%E8%87%AA%E7%BC%96%E7%A0%81%E5%99%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl6-e887aae7bc96e7a081e599a8"><span class="">自编码器</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl7-e6b7b1e5baa6e7949fe68890e6a8a1e59e8b-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl7-%E6%B7%B1%E5%BA%A6%E7%94%9F%E6%88%90%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl7-e6b7b1e5baa6e7949fe68890e6a8a1e59e8b"><span class="">深度生成模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl8-e6b3a8e6848fe58a9be69cbae588b6e4b88ee5a496e983a8e8aeb0e5bf86-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl8-%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%E4%B8%8E%E5%A4%96%E9%83%A8%E8%AE%B0%E5%BF%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl8-e6b3a8e6848fe58a9be69cbae588b6e4b88ee5a496e983a8e8aeb0e5bf86"><span class="">注意力机制与外部记忆</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl9-e59bbee7a59ee7bb8fe7bd91e7bb9c-li">
+  <a href="/3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/dl9-%E5%9B%BE%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-3-e6b7b1e5baa6e5ada6e4b9a0dl9-e59bbee7a59ee7bb8fe7bd91e7bb9c"><span class="">图神经网络</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m-4-e887aae784b6e8afade8a880e5a484e79086-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-4-e887aae784b6e8afade8a880e5a484e79086"><span class="">4-自然语言处理</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp1-e887aae784b6e8afade8a880e5a484e79086e6a682e8bfb0-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp1-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E6%A6%82%E8%BF%B0/" class="align-left ps-0 active td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp1-e887aae784b6e8afade8a880e5a484e79086e6a682e8bfb0"><span class="td-sidebar-nav-active-item">自然语言处理概述</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp2-e8af8de59091e9878f-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp2-%E8%AF%8D%E5%90%91%E9%87%8F/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp2-e8af8de59091e9878f"><span class="">词向量</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp3-e8afade8a880e6a8a1e59e8b-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp3-%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp3-e8afade8a880e6a8a1e59e8b"><span class="">语言模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp4-seq2seqe4b88eattention-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp4-seq2seq%E4%B8%8Eattention/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp4-seq2seqe4b88eattention"><span class="">seq2seq与attention</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp5-e9a284e8aeade7bb83e6a8a1e59e8b-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp5-%E9%A2%84%E8%AE%AD%E7%BB%83%E6%A8%A1%E5%9E%8B/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp5-e9a284e8aeade7bb83e6a8a1e59e8b"><span class="">预训练模型</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp6-e887aae784b6e8afade8a880e5a484e79086e5ba94e794a8-li">
+  <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/nlp6-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E5%BA%94%E7%94%A8/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-4-e887aae784b6e8afade8a880e5a484e79086nlp6-e887aae784b6e8afade8a880e5a484e79086e5ba94e794a8"><span class="">自然语言处理应用</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-5-aie7a094e7a9b6e6898be5868c-li">
+  <a href="/5-ai%E7%A0%94%E7%A9%B6%E6%89%8B%E5%86%8C/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-5-aie7a094e7a9b6e6898be5868c"><span class="">5-AI研究手册</span></a>
+</li>
+  </ul>
+</li>
+    </ul>
+  </nav>
+</div>
+
+
+          </aside>
+          <aside class="d-none d-xl-block col-xl-2 td-sidebar-toc d-print-none">
+            <div class="td-page-meta ms-2 pb-1 pt-2 mb-0">
+
+</div>
+
+            <div class="td-toc">
+        <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#自然语言与编程语言">自然语言与编程语言</a></li>
+        <li><a href="#自然语言处理的任务">自然语言处理的任务</a></li>
+        <li><a href="#自然语言处理的知识域">自然语言处理的知识域</a></li>
+        <li><a href="#歧义">歧义</a></li>
+        <li><a href="#传统模型和算法">传统模型和算法</a></li>
+        <li><a href="#语言思维和理解">语言、思维和理解</a></li>
+        <li><a href="#正则表达式">正则表达式</a></li>
+        <li><a href="#词">词</a></li>
+        <li><a href="#文本规范化">文本规范化</a></li>
+        <li><a href="#深度学习与自然语言处理">深度学习与自然语言处理</a></li>
+        <li><a href="#jieba库的分词词性标注与关键词提取操作示例">jieba库的分词、词性标注与关键词提取操作示例</a></li>
+        <li><a href="#参考资料">参考资料</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+      </div>
+    
+            
+
+          </aside>
+          <main class="col-12 col-md-9 col-xl-8 " role="main">
+            <nav class="td-navbar js-navbar-scroll" data-bs-theme="dark">
+<div class="container-fluid flex-column flex-md-row">
+  <a class="navbar-brand" href="/"><span class="navbar-brand__logo navbar-logo"><svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" style="enable-background:new 0 0 500 500"><g><path style="fill:#fff" d="M116.8525 421.9722c-5.7041.0-10.3442-4.3127-10.3442-9.6129V88.183c0-5.3002 4.6401-9.6117 10.3442-9.6117H320.858c3.0347.0 9.3959.5498 11.7506 2.6302l.3545.3442 58.905 63.2912c2.3101 2.491 2.9202 8.4928 2.9202 11.3184v256.2039c0 5.3002-4.6407 9.6129-10.3436 9.6129H116.8525z"/><g><g><g><path style="fill:#767676" d="M384.4445 423.2066H116.852c-6.3839.0-11.5786-4.8658-11.5786-10.8474V88.1831c0-5.9804 5.1947-10.8461 11.5786-10.8461h204.0062c.377.0 9.2786.0329 12.568 2.9389l.3947.3833 58.9508 63.337c3.2135 3.4652 3.2514 11.7924 3.2514 12.1593v256.2036C396.0231 418.3408 390.8284 423.2066 384.4445 423.2066zM116.5079 411.9189c.0848.0278.1999.0531.3441.0531h267.5925c.1442.0.2581-.0253.3441-.0531V156.1556c-.0076-.9033-.3593-3.7347-.7034-5.0037l-57.6527-61.9416c-1.4651-.3176-4.4533-.6389-5.5742-.6389H116.852c-.143.0-.2594.024-.3441.0531V411.9189zm267.4533-261.149zM327.0321 89.371v.0013V89.371z"/></g></g></g><g><g><path style="fill:#5b7fc0" d="M189.0874 210.1754l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4473C177.5953 212.627 183.0601 210.1742 189.0874 210.1754zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 234.1722 197.0804 232.033z"/><path style="opacity:.3;fill:#fff" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/><g><defs><path id="SVGID_1_" d="M194.7376 237.6875c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 234.2399 196.1861 236.239 194.7376 237.6875z"/></defs><clipPath id="SVGID_2_"><use xlink:href="#SVGID_1_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_2_);fill:#fff" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/><path style="opacity:.13;clip-path:url(#SVGID_2_);fill:#020202" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/></g><g><defs><path id="SVGID_3_" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/></defs><clipPath id="SVGID_4_"><use xlink:href="#SVGID_3_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_4_);fill:#5b7fc0" d="M172.6595 215.6045c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8475-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 209.1953 176.6171 211.647 172.6595 215.6045z"/></g></g><rect x="198.8952" y="225.1043" style="fill:#5b7fc0" width="122.6266" height="13.8671"/></g><g><path style="fill:#d95140" d="M189.0874 155.7611l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.0249 2.454-11.4897 6.4116-15.4473C177.5953 158.2128 183.0601 155.7599 189.0874 155.7611zm7.993 21.8577c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.2508 181.7667 197.0816 179.758 197.0804 177.6188z"/><path style="opacity:.3;fill:#fff" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/><g><defs><path id="SVGID_5_" d="M194.7376 183.2733c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 179.8256 196.1861 181.8248 194.7376 183.2733z"/></defs><clipPath id="SVGID_6_"><use xlink:href="#SVGID_5_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_6_);fill:#fff" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/><path style="opacity:.13;clip-path:url(#SVGID_6_);fill:#020202" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/></g><g><defs><path id="SVGID_7_" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/></defs><clipPath id="SVGID_8_"><use xlink:href="#SVGID_7_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_8_);fill:#d95140" d="M172.6595 161.1903c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 154.7811 176.6171 157.2327 172.6595 161.1903z"/></g><rect x="198.8952" y="170.69" style="fill:#d95140" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#56a55c" d="M189.5379 264.6147l.0012-.0012c7.7751.0012 15.0294 4.1862 18.932 10.9235 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032-5.8394.0-11.3281-2.2733-15.458-6.4032-4.13-4.13-6.4032-9.6186-6.4056-15.4628.0012-6.0249 2.454-11.4897 6.4116-15.4472C178.0458 267.0663 183.5105 264.6135 189.5379 264.6147zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6538 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.7013 290.6202 197.5321 288.6115 197.5309 286.4723z"/><path style="opacity:.3;fill:#fff" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/><g><defs><path id="SVGID_9_" d="M195.1881 292.1268c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9941 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.5344 288.6792 196.6366 290.6783 195.1881 292.1268z"/></defs><clipPath id="SVGID_10_"><use xlink:href="#SVGID_9_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_10_);fill:#fff" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/><path style="opacity:.13;clip-path:url(#SVGID_10_);fill:#020202" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/></g><g><defs><path id="SVGID_11_" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/></defs><clipPath id="SVGID_12_"><use xlink:href="#SVGID_11_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_12_);fill:#56a55c" d="M173.11 270.0439c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7325-11.1497-10.9151-18.926-10.9151C182.5311 263.6346 177.0676 266.0863 173.11 270.0439z"/></g></g><rect x="199.3456" y="279.5436" style="fill:#56a55c" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#f1bc42" d="M189.0874 318.7208l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3305-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4472C177.5953 321.1724 183.0601 318.7196 189.0874 318.7208zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 342.7176 197.0804 340.5784z"/><path style="opacity:.3;fill:#fff" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/><g><defs><path id="SVGID_13_" d="M194.7376 346.2329c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 342.7853 196.1861 344.7844 194.7376 346.2329z"/></defs><clipPath id="SVGID_14_"><use xlink:href="#SVGID_13_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_14_);fill:#fff" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/><path style="opacity:.13;clip-path:url(#SVGID_14_);fill:#020202" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/></g><g><defs><path id="SVGID_15_" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/></defs><clipPath id="SVGID_16_"><use xlink:href="#SVGID_15_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_16_);fill:#f1bc42" d="M172.6595 324.15c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8474-1.0151-7.6327-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 317.7407 176.6171 320.1924 172.6595 324.15z"/></g></g><rect x="198.8952" y="333.6497" style="fill:#f1bc42" width="122.6266" height="13.8671"/></g></g></svg></span><span class="navbar-brand__name">知予AI</span></a>
+  <div class="td-navbar-nav-scroll ms-md-auto" id="main_navbar">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="https://github.com/knove-ai" target="_blank" rel="noopener"><i class="fa fa-github"></i><span>Github</span></a>
+      </li>
+      </ul>
+  </div>
+  <div class="d-none d-lg-block">
+    
+  </div>
+</div>
+</nav>
+
+            <div class="ps-md-5">
+              
+  
+
+              <nav aria-label="breadcrumb" class="td-breadcrumbs">
+  <ol class="breadcrumb">
+  <li class="breadcrumb-item">
+    <a href="/4-%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/">4-自然语言处理</a></li>
+  <li class="breadcrumb-item active" aria-current="page">
+    自然语言处理概述</li>
+  </ol>
+</nav>
+              
+<div class="td-content">
+	<h1>自然语言处理概述</h1>
+	
+	<header class="article-meta">
+		
+</header>
+	<h3 id="自然语言与编程语言">自然语言与编程语言</h3>
+<p><strong>自然语言处理(natural language processing, NLP)</strong> 是一门融合了计算机科学、人工智能以及语言学的交叉学科(interdisciplinary field)。这门学科研究的是如何通过机器学习等技术，让计算机学会处理人类语言，乃至实现最终目标：<strong>理解人类语言或人工智能</strong>。</p>
+<p>自然语言处理同义词：注重语言学结构的学者喜欢使用<strong>计算语言学(conputational linguistics)</strong>，而强调最终目的的学者则更偏好<strong>自然语言理解(natural language understanding)</strong> 这个术语。</p>
+<p>完全理解和表达语言是极其困难的，正确的语言表达也没有精确并完备的特性。</p>
+<p>虽然自然语言和编程语言都称为“语言”，但二者有极大差异。自然语言和编程语言之间的不同：</p>
+<p>(1) <strong>词汇量</strong>：编程语言的关键词数量有限且确定，而自然语言的词汇量是无尽的、可创造的。</p>
+<p>(2) <strong>结构化</strong>：自然语言是非结构化的，而编程语言是结构化的。</p>
+<p>(3) <strong>歧义性</strong>：自然语言含有大量歧义，这些歧义根据语境的不同而表现为特定的义项。语言中的歧义问题是自然语言难以处理的原因。</p>
+<p>(4) <strong>容错性</strong>：自然语言具有很高的容错性，人们可以猜出有错的句子的含义；编程语言的拼写必须保证绝对正确，语法必须保证绝对规范。</p>
+<p>(5) <strong>易变性</strong>：编程语言的变化缓慢温和，而自然语言的变化迅速嘈杂。</p>
+<p>(6) <strong>简略性</strong>：人类语言往往简洁干练，我们经常省略大量背景知识或常识。</p>
+<h3 id="自然语言处理的任务">自然语言处理的任务</h3>
+<p>(1) 语音、图像和文本的处理</p>
+<p>自然语言处理系统的输入源有语音、图像和文本。其中文本占主要地位，语音和图像受制于存储容量和传输速度的限制，它们的信息总量不如文本多。通常进行**语音识别(speech recognition)<strong>将语音转化为文本，使用</strong>光学字符识别(optical character recognition, OCR)**将图像转化为文本。</p>
+<p>(2) 词法分析</p>
+<p>这三个任务都是围绕词语进行的分析，所以统称<strong>词法分析(lexical analysis)</strong>。词法分析的主要任务是：将文本分隔为有意义的词语，即<strong>分词(segmentation)</strong>；确定每个词语的类别和浅层的歧义消除，即<strong>词性标注(part-of-speech tagging)</strong>；并且识别出一些较长的专有名词，即<strong>命名实体识别(named entity recognition, NER)</strong>。</p>
+<p>(3) 信息抽取</p>
+<p>词法分析以后，文本已经呈现出部分结构化的趋势，计算机看到的不再是一个长字符串，而是有意义的单词列表，且每个单词还附有自己的词性及其他标签。根据这些单词与标签，可以利用<strong>信息抽取(information extraction)<strong>技术来抽取文本中的有用信息，从简单的</strong>高频词</strong>到高级算法提取出的<strong>关键词</strong>，从<strong>公司名称</strong>到<strong>专业术语</strong>，其中词语级别的信息已经可以进行很多的抽取。我们还可以根据词语之间的统计学信息抽取出关键短语乃至句子，更大粒度的文本对用户更加友好。</p>
+<p>(4) 文本分类与文本聚类</p>
+<p><strong>文本分类(text classification)</strong> 任务可以判断一段话是褒义还是贬义、分析一句话的感情是积极还是消极、判断一封邮件是否是垃圾邮件等。**文本聚类(text clustering)**任务可以将相似的文本归档到一起、排除重复文档等，在信息检索等领域有着广泛的应用。</p>
+<p>(5) 句法分析</p>
+<p><strong>句法分析(syntactic parsing)<strong>将零散词汇信息进行分析，得到</strong>词语间的关系</strong>。问答系统、搜索引擎和机器翻译等系统中，句法分析都是很重要的。</p>
+<p>(6) 语义分析</p>
+<p>相较于语法分析，<strong>语义分析(semantic analysis)</strong> 侧重语义而非语法。它包括<strong>词意消解</strong>(确定一个词在语境中的含义)、<strong>语义角色标注</strong>(标准组句子中的谓语与其他成分的关系)乃至<strong>语义依存分析</strong>(分析句子中词语之间的语义关系)。</p>
+<p>(7) 其他高级任务</p>
+<p>除了上述任务以外，还有很多综合性的任务，与终端应用级产品联系更加紧密。比如：<strong>自动问答(QA)</strong>、<strong>自动摘要(summarization)</strong>、<strong>机器翻译(machine translation)</strong> 等。注意，一般认为<strong>信息检索(information retrieve, IR)</strong> 是区别于自然语言处理的独立学科。虽然二者具有密切的联系，但<strong>IR的目标是查询信息，而NLP的目标是理解语言</strong>，二者的目标具有本质上的区别。</p>
+<h3 id="自然语言处理的知识域">自然语言处理的知识域</h3>
+<p>计算机分析所接受声音信号，并且把单词序列转换成声音信号，分别需要<strong>语音学</strong>和<strong>音系学</strong>的知识，这样的知识可以帮助我们建立词如何在话语中发音的模型。</p>
+<p>识别I&rsquo;m以及can&rsquo;t的缩写形式以及单词的各种变体需要<strong>形态学</strong>方面的知识。这些知识能够反映关于上下文中词的形态和行为的有关信息。</p>
+<p>关于单词排列顺序以及组词成句的知识称为<strong>句法</strong>(syntax)。</p>
+<p>为了完成问答系统，需要<strong>词汇语义学和组合语义学</strong>方面的知识。此外，关于说话人使用句子来表达意图的行为的知识称为<strong>语用学</strong>或对话。</p>
+<p>在回答一些问题的时候，需要<strong>话语学</strong>的知识，例如“How many states were  in the US that year?”这句话中，为了理解that year，必须检查前面已经回答过的问题。这种明确代词指向的问题称为同指消解问题。</p>
+<p>总而言之，在复杂的语言行为中需要的语言知识有如下六个方面：</p>
+<p>(1) <strong>语音学(phonetics)与音系学(phonology)</strong>：关于语言和语音的知识。</p>
+<p>(2) <strong>形态学(morphology)</strong>：关于词的有意义的组成成分的知识。</p>
+<p>(3) <strong>句法学(syntax)</strong>：关于词语词之间结构关系的知识。</p>
+<p>(4) <strong>语义学(semantics)</strong>：关于意义的知识。</p>
+<p>(5) <strong>语用学(pragmatic)</strong>：关于意义与说话人的目的和意图之间的关系的知识。</p>
+<p>(6) <strong>话语学(discourse)</strong>：关于比一个单独的话段更大的语言单位的知识。</p>
+<h3 id="歧义">歧义</h3>
+<p><strong>语音和语言计算机处理的绝大多数或者全部的研究内容都可以看成是在其中的某个层面上消解歧义</strong> 。如果我们把某个意思输入计算机，而存在着若干个不同的结构来表示这个意思，那么，我们就说这样的输入时有歧义的。考虑口语中的一个句子：<strong>I made her duck</strong>，这个句子有着非常多的意思(我给她烹饪鸭子/我创造了她的鸭子/我使她很快地把头或者身体放低一些)，这些意思都是由于歧义引起，歧义由形态或句法的不同而引起。</p>
+<p>歧义的处理可以采取消解方法，或者排歧模型和算法。例如，使用<strong>词类标注</strong>的办法来确定duck是名词还是动词；使用<strong>词类排歧</strong>的办法来确定duck是名词还是动词；使用<strong>词义排歧</strong>的办法来确定make的意思是create还是cook。<strong>词类排歧和词义排歧视词汇排歧的两个主要内容</strong>。很多研究内容都可以纳入到词汇排歧的框架内，比如一些单词的读音随着词性的不同而不同。</p>
+<p>除词汇排歧外，还有<strong>句法排歧</strong>，可以通过概率剖析来解决。此外，一些歧义可以通过<strong>言语行为解释</strong>的办法来解决。</p>
+<h3 id="传统模型和算法">传统模型和算法</h3>
+<p><strong>传统自然语言处理领域</strong>重要的模型和理论包括：状态机、形式规则系统、逻辑、概率模型和向量空间模型。这些模型本身又可以给出一些算法，其中最重要的算法是如动态规划算法的状态空间搜索算法、分类器和最大期望算法的机器学习算法以及其他的学习算法。</p>
+<p>(1) <strong>状态机(state machine)</strong>：简单来说，状态机就是形式模型，形式模型包括状态、状态间的转移以及输入表示。这种模型的变体有确定有限状态自动机、非确定有限状态自动机和有限状态转录机。</p>
+<p>(2) <strong>形式规则系统(rule system)</strong>：形式规则系统中重要的模型有正则语法、正则关系、上下文无关语法、特征增益语法以及与这些语法的概率变体。</p>
+<p>(3) <strong>逻辑(logic)</strong>：基于逻辑的模型是对获取语言知识起着关键性作用的模型，包含一阶逻辑、谓词演算等。</p>
+<p>(4) <strong>概率模型(probabilistic model)</strong>：概率论是非常关键的一个部分，包含隐马尔科夫模型等重要模型和理论。此外，状态机可以使用概率论来提升称为加权自动机或者马尔科夫模型。</p>
+<p>(5) <strong>向量空间模型(vector-space model)</strong>：基于线性代数的向量空间模型是信息检索和语义处理的基础。
+典型地说，使用这些模型来处理语言就是通过表示输入假定的状态的空间来进行搜索。</p>
+<h3 id="语言思维和理解">语言、思维和理解</h3>
+<p>Turing在他的论文开头就指出，关于什么是机器思维的问题是不能回答的，因为机器和思维这两个术语本身就是含糊不清的。因此，他建议做一个游戏来进行测试，在游戏中，计算机对语言的使用情况就可以用来作为判断计算机是否能进行思维的根据。这种方式被认为是判断机器是否具有智能的标准，该标准称为<strong>图灵测试(Turing test)</strong>。</p>
+<p>下面是Turing在他的论文中所描述的一个交互过程。显而易见，计算机要模拟人，并不能要求它成为一个无所不知的专家，而是需要<strong>在各方面的行为与人相似</strong>。</p>
+<p>Q: Please write me a sonnet on the topic of Forth Bridge.</p>
+<p>A: Count me out for this one. <strong>I never could write poetry</strong>.</p>
+<p>Q: Add 34957 to 70764.</p>
+<p>A: <strong>(Pause about 30s and then give answer as)</strong> 105621.</p>
+<p>在现代社会中，不管人们相信什么，不管人们是否已经知道了计算机的内部工作情况，他们都在谈论计算机，并且都在与计算机进行交互，把计算机当成一个社会实体。这样的社会背景导致了一个称为会话代理的研究焦点，所谓会话代理就是通过会话进行交际的计算机人造实体，会话代理的研究将会持续很长的时间。</p>
+<h3 id="正则表达式">正则表达式</h3>
+<p><strong>正则表达式(regular expression, RE)</strong> 是一种用于描述文本搜索符号串的语言。从形式上说，正则表达式是用来可符号串集合的一个代数表达。因此它可以用于描述搜索符号串，也可以用于以形式的方法定义一种语言。正则表达式的搜索要求有一个我们试图搜索的模式和一个被搜索的文本语料库。正则表达式的搜索函数将对整个的语料库进行搜索，并返回包含该模式的所有文本。</p>
+<p>正则表达式、<strong>有限状态自动机(finite-state automaton, FSA)</strong> 和正则语法三者是等价且对应的关系。</p>
+<p>常用的正则表达式字符如下：</p>
+<table>
+  <thead>
+      <tr>
+          <th style="text-align: center">字符</th>
+          <th style="text-align: center">描述</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td style="text-align: center">\</td>
+          <td style="text-align: center">将下一个字符标记为一个特殊字符、或一个原义字符、或一个向后引用、或一个八进制转义符。例如，&ldquo;n&quot;匹配字符&quot;n&rdquo;。&quot;\n&quot;匹配一个换行符。&quot;\\&ldquo;匹配&rdquo;\&ldquo;而&rdquo;(&ldquo;则匹配&rdquo;(&quot;。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">^</td>
+          <td style="text-align: center">匹配输入串的<strong>开始位置</strong>。如果设置了RegExp对象的Multiline属性，^也匹配&quot;\n&quot;或&quot;\r&quot;之后的位置。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">$</td>
+          <td style="text-align: center">匹配输入串的<strong>结束位置</strong>。如果设置了RegExp对象的Multiline属性，$也匹配“\n&quot;或&quot;\r&quot;之前的位置。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">*</td>
+          <td style="text-align: center">匹配前面的子表达式<strong>零次或多次</strong>。例如，zo能匹配&quot;z&quot;以及&quot;zoo&quot;。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">+</td>
+          <td style="text-align: center">匹配前面的子表达式<strong>一次或多次</strong>。例如，&ldquo;zo+&ldquo;能匹配&quot;zo&quot;以及&quot;zoooooo&rdquo;，但不能匹配&quot;z&rdquo;。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">?</td>
+          <td style="text-align: center">匹配前面的子表达式<strong>零次或一次</strong>。例如，&ldquo;do(es)?&ldquo;可以匹配&quot;does&quot;或&quot;does&quot;中的&quot;do&rdquo;。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">{n}</td>
+          <td style="text-align: center"><strong>匹配确定的n次</strong>。例如，&ldquo;o{2}&ldquo;不能匹配&quot;Bob&quot;中的&quot;o&rdquo;，但是能匹配&quot;food&quot;中的两个o。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">{n,}</td>
+          <td style="text-align: center"><strong>至少匹配n次</strong>。例如，&ldquo;o{2,}&ldquo;不能匹配&quot;Bob&quot;中的&quot;o&rdquo;，但能匹配&quot;foooood&quot;中的所有o。&ldquo;o{1,}&ldquo;等价于&quot;o+&quot;。&ldquo;o{0,}&ldquo;则等价于&quot;o&rdquo;。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">{n,m}</td>
+          <td style="text-align: center">m和n均为非负整数，其中n&lt;=m。<strong>最少匹配n次且最多匹配m次</strong>。例如，&ldquo;o{1,3}&ldquo;将匹配&quot;fooooood&quot;中的前三个o。&ldquo;o{0,1}&ldquo;等价于&quot;o?&quot;。请注意在逗号和两个数之间不能有空格。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">?</td>
+          <td style="text-align: center">当该字符紧跟在任何一个其他限制符(*, +, ?, {n}, {n,}, {n,m})后面时，<strong>匹配模式是非贪婪的</strong>。非贪婪模式尽可能少的匹配所搜索的字符串，而默认的贪婪模式则尽可能多的匹配所搜索的字符串。例如，对于字符串&quot;oooo&rdquo;，&ldquo;o+?&ldquo;将匹配单个&quot;o&rdquo;，而&quot;o+&ldquo;将匹配所有&quot;o&rdquo;。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">.</td>
+          <td style="text-align: center">匹配<strong>除&rdquo;\n&quot;之外的任何单个字符</strong>。要匹配包括&rdquo;\n&quot;在内的任何字符，请使用像&rdquo;(.|\n)&ldquo;的模式。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">x|y</td>
+          <td style="text-align: center">匹配x或y。例如，&ldquo;z|food&quot;能匹配&quot;z&quot;或&quot;food&rdquo;。&quot;(z|f)ood&quot;则匹配&quot;zood&quot;或&quot;food&rdquo;。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">[xyz]</td>
+          <td style="text-align: center">字符集合。匹配所包含的任意一个字符。例如，&quot;[abc]&ldquo;可以匹配&quot;plain&quot;中的&quot;a&rdquo;。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">[^xyz]</td>
+          <td style="text-align: center">负值字符集合。匹配未包含的任意字符。例如，&rdquo;\[^abc\]&ldquo;可以匹配&quot;plain&quot;中的&quot;p&rdquo;。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">[a-z]</td>
+          <td style="text-align: center">字符范围。匹配<strong>指定范围内的任意字符</strong>。例如，&quot;[a-z]&ldquo;可以匹配&quot;a&quot;到&quot;z&quot;范围内的任意小写字母。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">[^a-z]</td>
+          <td style="text-align: center">负值字符范围。匹配<strong>任何不在指定范围内的任意字符</strong>。例如，&rdquo;\[^a-z\]&ldquo;可以匹配任何除了小写字母外的任意字符。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">\b</td>
+          <td style="text-align: center">匹配一个单词边界，也就是指单词和空格间的位置。例如，&ldquo;er\b&quot;可以匹配&quot;never&quot;中的&quot;er&rdquo;，但不能匹配&quot;verb&quot;中的&quot;er&rdquo;。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">\B</td>
+          <td style="text-align: center">匹配非单词边界。&ldquo;er\B&quot;能匹配&quot;verb&quot;中的&quot;er&rdquo;，但不能匹配&quot;never&quot;中的&quot;er&rdquo;。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">\d</td>
+          <td style="text-align: center">匹配一个<strong>数字字符</strong>。等价于[0-9]。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">\D</td>
+          <td style="text-align: center">匹配一个<strong>非数字字符</strong>。等价于\[^0-9\]。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">\f</td>
+          <td style="text-align: center">匹配一个换页符。等价于\x0c和\cL。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">\n</td>
+          <td style="text-align: center">匹配一个换行符。等价于\x0a和\cJ。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">\r</td>
+          <td style="text-align: center">匹配一个回车符。等价于\x0d和\cM。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">\s</td>
+          <td style="text-align: center">匹配任何空白字符，包括空格、制表符、换页符等等。等价于[\f\n\r\t\v]。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">\S</td>
+          <td style="text-align: center">匹配任何<strong>非空白字符</strong>。等价于\[^\f\n\r\t\v\]。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">\t</td>
+          <td style="text-align: center">匹配一个制表符。等价于\x09和\cI。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">\v</td>
+          <td style="text-align: center">匹配一个垂直制表符。等价于\x0b和\cK。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">\w</td>
+          <td style="text-align: center">匹配<strong>包括下划线的任何单词字符</strong>。等价于&rdquo;[A-Za-z0-9_]&quot;。</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">\W</td>
+          <td style="text-align: center">匹配任何<strong>非单词字符</strong>。等价于&rdquo;\[^A-Za-z0-9_\]&quot;。</td>
+      </tr>
+  </tbody>
+</table>
+<h3 id="词">词</h3>
+<p>在自然语言处理领域，词的识别是最基本的任务。通常情况下，普通单词的辨认显而易见，但有些语言元素是否应被当做单词，要看具体的应用场景。</p>
+<p>(1) He stepped out into the hall, was delighted to encounter a water brother.</p>
+<p>通常认为以上这句话有13个单词，但算上**标点符号(punctuation)**逗号(comma)和句号(period)后变为15个单词。标点符号对于查找事物的边界(逗号，句号，冒号)和识别含义的某些方面(问号，感叹号，引号)至关重要。 对于某些任务，例如词性标记、语法分析或语音合成，有时我们将标点符号视为单独的单词。</p>
+<p>(2) I do uh main- mainly business data processing.</p>
+<p>言语表达(utterance)是话语语料库中常见的元素，以上这句话中有两种utterance，一种称作fragment，像main-这种<strong>说到一半的话</strong>；另一种叫filters或filled pause，比如uh这种<strong>语气词</strong>。这些utterance是否被当做单词，还要看所实现系统的应用场景。如果我们要构建语音转录系统，则可能最终希望消除这些disfluencies。</p>
+<p>但是我们有时也会保持这些disfluencies。 诸如uh或um之类的词在<strong>语音识别</strong>任务中有助于预测即将到来的单词，因为它们可能表示说话者正在重新构想，因此对于语音识别，它们被视为常规单词。 由于人们使用不同的disfluencies，因此也可以作为说话人识别的提示。</p>
+<p>(3) They和they是否认为是同一个单词？</p>
+<p>在<strong>语音识别</strong>等任务中，它们被认为是同一单词；在<strong>NER</strong>等任务中，首字母大写有帮助作用。</p>
+<p>(4) cat和cats是否认为是同一个单词？</p>
+<p>这两个词具有相同的<strong>词元(lemma)</strong>，但是具有不同的<strong>词形(wordform)</strong>。对于形态复杂的语言(例如阿拉伯语)，我们经常需要处理词形化。 但是，对于英语任务来说，词元就足够了。</p>
+<p>(5) word type and word token</p>
+<p>type指语料库中<strong>不同的词的个数(即词典大小)</strong>，而token指语料库中<strong>出现的词的总个数</strong>。以下这句话中，有16个tokens和14个types：They picnicked by the pool, then lay back on the grass and looked at the stars. 不同语料库中types数量$|V|$和tokens数量$N$的关系可用下式来表示：$|V|=kN^\beta$，其中$k$和$\beta$是常量。</p>
+<h3 id="文本规范化">文本规范化</h3>
+<p>在正式处理任何一段文本之前，通常需要对文本进行规范化处理。以下三个任务是在任何规范化处理中经常被应用的过程：</p>
+<p>(1) <strong>分词(tokenizing/segmenting words)</strong>；</p>
+<p>(2) <strong>规范文本格式(normalizingword formats)</strong>；</p>
+<p>(3) <strong>句子切分(segmenting sentences)</strong>。</p>
+<h4 id="分词">分词</h4>
+<p>最朴素的分词工具是UNIX系统中的$\text{tr}$命令，通过使用该命令能够得到大致的词汇统计。为了获取更加精确的词汇信息，需要使用<strong>分词(tokenization)<strong>技术。在$\text{tr}$工具中，所有的数字和标点符号都被移除了，但是在很多NLP任务中这些元素是必不可少的。我们通常希望</strong>将标点符号切分为独立的标记</strong>，但是有时我们也希望<strong>保留字母之间的标点符号</strong>，例如Ph.D、can&rsquo;t等情况。此外，<strong>日期、金钱数值、网站</strong>等情况中的特殊字符都要予以识别并保留。</p>
+<p>分词器还应具备其他一些功能，例如处理<strong>附着语素(clitic)</strong>，将what&rsquo;re转化为what are。此外，还应该将New York和rock&rsquo; n&rsquo; roll识别为一个单词，这就需要一个记录多单词表示的<strong>字典(dictionary)</strong>。</p>
+<p>目前常用的英语分词标准是<strong>Penn Treebank tokenization标准</strong>，一个使用该标准的分词实例如下：</p>
+<div align="center">
+<img src="/images/4/image-20200430090758651.png" style="zoom:25%;" />
+</div>
+<p>在实际应用中，由于分词是在其他NLP处理之前的步骤，其需要很快的完成速度。目前<strong>英语</strong>分词的通用方法是使用NLTK(<a href="http://www.nltk.org">http://www.nltk.org</a>)。<strong>汉语</strong>分词比英语更复杂，常用的分词工具是jieba(<a href="https://github.com/fxsjy/jieba">https://github.com/fxsjy/jieba</a>)。但一些研究发现，汉语直接按汉字进行切分的效果要比分词更好，因为一个汉字代表一个独立的语素，而且产生的单词表更小，且不会产生非常多的低频词汇。然而，在<strong>日语和泰语</strong>等语言中，单个字符作为一个独立单元太小了，因此必须分词。对于汉语、日语和泰语这类语言的标准分词算法使用<strong>神经序列模型(neural sequence model)</strong>，通过监督学习的方式训练模型在手工切分的数据集上学习切分的方式。</p>
+<h4 id="比特对编码">比特对编码</h4>
+<p><strong>比特对编码(byte-pair encoding)<strong>是一种</strong>子词模型(subword model)</strong>。该算法能够解决未知词汇的问题，其核心思想是迭代地合并频繁出现的字符对，并逐步扩大词汇表，直到进行$k$次合并，$k$为算法的超参数。算法一开始设置词汇表为文本中出现的所有单个的字符(每个单词后面添加一个特殊的结束符&rdquo;_&quot;)，经过$k$次合并后，词汇表中会新增$k$个标记，这些标记通常是一些单词的一部分，并且是经常出现的，因此可以<strong>捕获单词某一部分的统计信息</strong>。以下展示了该算法的一个实例步骤：</p>
+<p>(1) 第一步，vocabulary里只有单个字符，dictionary表示文本中出现的所有单词及其相应的词频：</p>
+<div align="center">
+<img src="/images/4/image-20200430103137228.png" style="zoom:25%;" />
+</div>
+<p>(2) 第二步，“(r, _)”这一字符对出现的频率最高，将其合并后加入vocabulary中：</p>
+<div align="center">
+<img src="/images/4/image-20200430103249059.png" style="zoom:25%;" />
+</div>
+<p>(3) 第三步，“(e, r_)”这一字符对出现的频率最高，将其合并后加入vocabulary中：</p>
+<div align="center">
+<img src="/images/4/image-20200430103416331.png" style="zoom:25%;" />
+</div>
+<p>(4) 第四步，以此类推：</p>
+<div align="center">
+<img src="/images/4/image-20200430103708140.png" style="zoom:25%;" />
+</div>
+<p>(5) 继续合并，会得到如下结果：</p>
+<div align="center">
+<img src="/images/4/image-20200430103739915.png" alt="image-20200430103739915" style="zoom:25%;" />
+</div>
+<p>对于测试句子的切分，首先将其分解为单个字符，然后按照训练时合并的顺序，对测试句子进行逐个合并，直到无法合并为止。因此在上例中，<strong>“n e w e r _”会被合并为“newer_”，而“l o w e r _”会被合并成“low er_”</strong>。</p>
+<p>在实际应用中，该算法通常会进行成千上万次合并。合并的结果是，大部分单词都能够被vocabulary里的一个元素完整地表示，而一些稀少的词汇或者未知词汇会被多个vocabulary中的元素表示。</p>
+<h4 id="词规范化">词规范化</h4>
+<p><strong>词规范化(word normalization)</strong> 指的是将文本中的单词/标记变为其标准的形式，为一个词的多种写法选择一个标准的单一格式。例如US和USA、color和colour等。这种标准化过程是有价值的，但值得注意的是，在信息检索领域，通常搜索US时返回包括US<strong>或者USA</strong>的文档，因此词的规范化过程可能造成了拼写信息的缺失。</p>
+<p>词规范化包含多种子任务，如<strong>大写转换(case folding)</strong> ，<strong>词形还原(lemmatization)</strong> 和<strong>词干提取(stemming)</strong> 等。</p>
+<h4 id="句子切分">句子切分</h4>
+<p><strong>句子切分(sentence segmentation)</strong> 是文本预处理的另一个重要步骤。句子切分所使用的最重要的线索是文本中的句号、问号和感叹号。其中问号和感叹号作为句子边界是十分模糊的，但另一方面，句号是否作为句子边界是更加模糊的，因为文本中通常包含许多像Mr. 或者Inc. 这样的词汇。而<strong>Inc. 恰好在句子结尾的情况更加复杂，因为其既作为缩略词(abbreviation)，又作为句子的结尾</strong>。因此，句子切分通常和分词同时进行。</p>
+<p>通常情况下，句子切分算法首先判断句号是句子边界标记还是作为单词的一部分(通过规则或者机器学习的方式)。缩略词字典对于句号的判断是很有帮助的。在<strong>Stanford CoreNLP toolkit</strong>中，句子的切分是通过规则实现的。</p>
+<h3 id="深度学习与自然语言处理">深度学习与自然语言处理</h3>
+<p><strong>深度自然语言处理(deep NLP)</strong> 使用表征学习和深度学习的方法去解决传统自然语言处理中的问题。</p>
+<p>(1) <strong>词的表示(word representation)</strong>：词是自然语言处理许多任务中最基础的单元。在使用深度学习来解决NLP中的任务的时候，词如何表示成为了一个核心的问题。在deep NLP中，词通常通过词向量(或词嵌入)的方式进行表示。<strong>词嵌入(word embedding)</strong> 技术将每个单词嵌入到一个低维空间中，相似的单词在空间中的距离较近。</p>
+<div align="center">
+<img src="/images/4/image-20200430091820599.png" style="zoom:30%;" />
+</div>
+<p>(2) <strong>形态学(morphology)</strong>：在传统NLP任务中，词由语素(morphemes)组成，如词干、前缀和后缀等；而在deep NLP中，为了描述词的多样的形态变换，解决方案是将每个语素看做一个向量，<strong>神经网络将多个语素向量结合</strong>，最终形成一个词向量(应用：句法分析器)。</p>
+<div align="center">
+<img src="/images/4/image-20200430091333212.png" style="zoom:20%;" />
+</div>
+<p>(3) <strong>语义学(semantics)</strong>：传统NLP通常使用lambda演算，即精巧设计的函数来表达语义；在deep NLP中依然是<strong>将每个语义单位用向量来进行表示</strong>(应用：情感分析)。</p>
+<div align="center">
+<img src="/images/4/image-20200430091419840.png" style="zoom:20%;" />
+</div>
+<p>(4) <strong>问答系统(question answering)</strong>：传统方法需要大量特征工程来捕获知识。在深度学习中，使用神经网络可以很好地解决该问题，因为deep NLP认为<strong>Facts are stored in vectors</strong>。</p>
+<p>(5) <strong>对话代理(dialog agent)</strong>：deep NLP中的对话代理通常使用神经语言模型(RNN的一种实例)进行实现。</p>
+<p>(6) <strong>机器翻译(machine translation)</strong>：传统的翻译系统是一个非常大的多层结构，而深度学习中可以使用神经网络完成<strong>端到端翻译过程</strong>，并使翻译性能得到极大的提高。</p>
+<div align="center">
+<img src="/images/4/image-20200430091527847.png" style="zoom:40%;" />
+</div>
+<h3 id="jieba库的分词词性标注与关键词提取操作示例">jieba库的分词、词性标注与关键词提取操作示例</h3>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">jieba</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">text</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#4e9a06">&#39;2013年政府工作报告提出，缩小收入分配差距，使发展成果更多更公平地惠及全体人民，这与以往政府提出的“尽快扭转收入差距扩大趋势”相比，有了一个更高的视角。下列对收入分配差距认识正确的是：①收入分配差距的存在违背了社会主义的本质要求；②收入分配差距过大，违背了公平原则，不利于社会稳定；③适度的收入分配差距有利于激发劳动者的生产积极性；④消除收入差距是社会土义市场经济的根本目标&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">seg_result1</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">jieba</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">cut</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">text</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">cut_all</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#204a87;font-weight:bold">True</span><span style="color:#000;font-weight:bold">)</span>  <span style="color:#8f5902;font-style:italic"># 全切分</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;cut_all true：&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#4e9a06">&#39; &#39;</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">join</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">seg_result1</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">seg_result2</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">jieba</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">cut</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">text</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">cut_all</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#204a87;font-weight:bold">False</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;cut_all false：&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#4e9a06">&#39; &#39;</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">join</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">seg_result2</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">seg_result3</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">jieba</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">cut</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">text</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;cut_all default：&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#4e9a06">&#39; &#39;</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">join</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">seg_result3</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">seg_result4</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">jieba</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">cut_for_search</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">text</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;cut_for_search：&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#4e9a06">&#39; &#39;</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">join</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">seg_result4</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 使用jieba.load_userdict(file_name)可以加载用户词表</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 使用jieba.posseg进行词性标注</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">jieba.posseg</span> <span style="color:#204a87;font-weight:bold">as</span> <span style="color:#000">pseg</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">words</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">pseg</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">cut</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">text</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">word</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">flag</span> <span style="color:#204a87;font-weight:bold">in</span> <span style="color:#000">words</span><span style="color:#000;font-weight:bold">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;</span><span style="color:#4e9a06">%s</span><span style="color:#4e9a06"> </span><span style="color:#4e9a06">%s</span><span style="color:#4e9a06">&#39;</span> <span style="color:#ce5c00;font-weight:bold">%</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#000">word</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">flag</span><span style="color:#000;font-weight:bold">))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># 使用jieba.analyse进行关键词提取</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">jieba.analyse</span> <span style="color:#204a87;font-weight:bold">as</span> <span style="color:#000">analyse</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34; &#34;</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">join</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">analyse</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">extract_tags</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">text</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">topK</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">20</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">withWeight</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#204a87;font-weight:bold">False</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">allowPOS</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000;font-weight:bold">())))</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34; &#34;</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">join</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">analyse</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">textrank</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">text</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">topK</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">20</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">withWeight</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#204a87;font-weight:bold">False</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">allowPOS</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;ns&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#4e9a06">&#39;n&#39;</span><span style="color:#000;font-weight:bold">))))</span>
+</span></span></code></pre></div><h3 id="参考资料">参考资料</h3>
+<ul>
+<li>
+<p>Dan Jurafsky, H. Martin. Speech and Language Processing(3rd ed. draft).</p>
+</li>
+<li>
+<p>何晗. 自然语言处理入门.  北京: 人民邮电出版社, 2019.</p>
+</li>
+<li>
+<p>正则表达式速查表：https://www.jb51.net/tools/regexsc.htm</p>
+</li>
+<li>
+<p>Stanford University CS224n课程官网：http://web.stanford.edu/class/cs224n/</p>
+</li>
+</ul>
+
+	
+</div>
+
+
+            </div>
+
+          </main>
+        </div>
+      </div>
+      <footer class="td-footer row d-print-none">
+  <div class="container-fluid">
+    <div class="row mx-md-2">
+      <div class="td-footer__left col-6 col-sm-4 order-sm-1">
+        
+      </div><div class="td-footer__right col-6 col-sm-4 order-sm-3">
+        
+      </div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2">
+        
+      </div>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css"
+      integrity="sha512-r2+FkHzf1u0+SQbZOoIz2RxWOIWfdEzRuYybGjzKq18jG9zaSfEy9s3+jMqG/zPtRor/q4qaUCYQpmSjTw8M+g==" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"
+        integrity="sha512-INps9zQ2GUEMCQD7xiZQbGUVnqnzEvlynVy6eqcTcHN4+aQiLo9/uaQqckDpdJ8Zm3M0QBs+Pktg4pz0kEklUg=="
+        crossorigin="anonymous">
+</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"
+       integrity="sha512-YJVxTjqttjsU3cSvaTRqsSl0wbRgZUNF+NGGCgto/MUbIvaLdXQzGTCQu4CvyJZbZctgflVB0PXw9LLmTWm5/w==" crossorigin="anonymous"
+       onload='renderMathInElement(document.body, {"delimiters":[{"display":true,"left":"$$","right":"$$"},{"display":false,"left":"$","right":"$"},{"display":false,"left":"\\(","right":"\\)"},{"display":true,"left":"\\[","right":"\\]"}],"errorcolor":"#CD5C5C","throwonerror":false});'>
+</script>
+<script src="/js/main.min.613b131e2c315a570f2f0f22f51f752a53e30fc078f674f7ab0885a6ce15ad68.js" integrity="sha256-YTsTHiwxWlcPLw8i9R91KlPjD8B49nT3qwiFps4VrWg=" crossorigin="anonymous"></script>
+<script defer src="/js/click-to-copy.min.73478a7d4807698aed7e355eb23f9890ca18fea3158604c8471746d046702bad.js" integrity="sha256-c0eKfUgHaYrtfjVesj&#43;YkMoY/qMVhgTIRxdG0EZwK60=" crossorigin="anonymous"></script>
+<script src='/js/tabpane-persist.js'></script>
+
+  </body>
+</html>
