@@ -75,11 +75,13 @@
       font-weight: $font-weight-light;
     }
   }
-
+  a:hover {
+    color: #fc5500;
+  }
   a {
     &:focus,
     &:hover {
-      color: var(--bs-link-color);
+      color:  #fc5500;
     }
 
     &.active {
@@ -137,7 +139,7 @@
   }
 
   &__search {
-    padding: 1rem 0;
+    // padding: 1rem 0;
   }
 
   &__inner {
